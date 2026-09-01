@@ -49,10 +49,32 @@ Resend の API キーは Next.js 側ではなく、Supabase Edge Function のシ
 ## ディレクトリ
 
 ```
-docs/     設計書
-public/   静的ファイル（ロゴは Supabase Storage 側に置く）
-src/app/  App Router
+docs/                 設計書
+supabase/migrations/  DB マイグレーション（SQL）
+public/               静的ファイル（ロゴは Supabase Storage 側に置く）
+src/app/              App Router
 ```
+
+## データベース
+
+Supabase プロジェクトに接続してマイグレーションを適用する。
+
+```bash
+npx supabase login
+npx supabase link --project-ref <プロジェクトの ref>
+npx supabase db push
+```
+
+`supabase db push` は `supabase/migrations/` の SQL を古い順に適用する。
+適用済みのファイルは編集せず、必ず新しいファイルを追加すること。
+
+| ファイル | 内容 |
+| --- | --- |
+| `20260901000100_tenant_foundation.sql` | organizations / memberships / super_admins / brand_settings / locations / rooms |
+| `20260901000200_tenant_foundation_rls.sql` | 上記テーブルの RLS ポリシー |
+
+ローカルでの `supabase start` は Docker が必要。未導入の場合はリモートの
+Supabase プロジェクトに直接 push する。
 
 ## 開発上の絶対条件
 
