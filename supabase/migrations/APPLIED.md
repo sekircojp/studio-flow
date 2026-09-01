@@ -4,9 +4,11 @@ MarcheBase と同じく、適用済みかどうかをこの表で管理する。
 
 | 順番 | ファイル | 内容 | 適用 |
 |---|---|---|---|
-| 1 | `20260901000100_tenant_foundation.sql` | organizations / memberships / super_admins / brand_settings / locations / rooms | **未適用** |
-| 2 | `20260901000200_tenant_foundation_rls.sql` | 上記の権限（GRANT）と RLS ポリシー | **未適用** |
-| 3 | `20260901000300_email_verification.sql` | email_verifications / find_user_id_by_email | **未適用** |
+| 1 | `20260901000100_tenant_foundation.sql` | organizations / memberships / super_admins / brand_settings / locations / rooms | 済 2026-09-01 |
+| 2 | `20260901000200_tenant_foundation_rls.sql` | 上記の権限（GRANT）と RLS ポリシー | 済 2026-09-01 |
+| 3 | `20260901000300_email_verification.sql` | email_verifications / find_user_id_by_email | 済 2026-09-01 |
+
+適用先: Supabase プロジェクト `studio-flow`（ref: fterpqyvzeqcaltfkpuc / Tokyo）
 
 ## 適用のしかた
 
