@@ -7,17 +7,23 @@ MarcheBase と同じく、適用済みかどうかをこの表で管理する。
 | 1 | `20260901000100_tenant_foundation.sql` | organizations / memberships / super_admins / brand_settings / locations / rooms | 済 2026-09-01 |
 | 2 | `20260901000200_tenant_foundation_rls.sql` | 上記の権限（GRANT）と RLS ポリシー | 済 2026-09-01 |
 | 3 | `20260901000300_email_verification.sql` | email_verifications / find_user_id_by_email | 済 2026-09-01 |
+| 4 | `20260901000400_students.sql` | households / guardians / students / student_measurements | 済 2026-09-01 |
+| 5 | `20260901000500_students_rls.sql` | 上記の権限と RLS、自世帯判定のヘルパー | 済 2026-09-01 |
 
 適用先: Supabase プロジェクト `studio-flow`（ref: fterpqyvzeqcaltfkpuc / Tokyo）
 
 ## 適用のしかた
 
-Supabase ダッシュボードの **SQL Editor** に、上から順に貼り付けて実行する。
+`.env.local` の `SUPABASE_ACCESS_TOKEN` があれば、Management API から直接実行できる。
 
-1. ダッシュボード → 左メニューの **SQL Editor** → **New query**
-2. ファイルの中身を全部コピーして貼り付け
-3. **Run** を押す
-4. 成功したら、この表の「適用」を「済（YYYY-MM-DD）」に書き換える
+```bash
+TOKEN=$(grep '^SUPABASE_ACCESS_TOKEN=' .env.local | cut -d= -f2-)
+curl -s -X POST "https://api.supabase.com/v1/projects/fterpqyvzeqcaltfkpuc/database/query"   -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json"   --data-binary @<(python -c "import json,io;print(json.dumps({'query':io.open('supabase/migrations/FILE.sql',encoding='utf-8').read()}))")
+```
+
+手作業で行う場合は、Supabase ダッシュボードの **SQL Editor** に上から順に貼り付けて実行する。
+
+どちらの方法でも、成功したらこの表の「適用」を「済（YYYY-MM-DD）」に書き換える。
 
 **順番を守ること。** 2 は 1 で作ったテーブルに、3 は 1 の organizations に依存している。
 
