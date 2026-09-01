@@ -1,0 +1,6 @@
+# 改行コードはリポジトリ内では LF に統一する（Windows と Vercel で差分が出ないように）
+* text=auto eol=lf
+*.png binary
+*.jpg binary
+*.webp binary
+*.ico binary
