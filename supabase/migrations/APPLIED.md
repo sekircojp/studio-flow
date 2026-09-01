@@ -11,6 +11,8 @@ MarcheBase と同じく、適用済みかどうかをこの表で管理する。
 | 5 | `20260901000500_students_rls.sql` | 上記の権限と RLS、自世帯判定のヘルパー | 済 2026-09-01 |
 | 6 | `20260901000600_delete_location.sql` | 実績のない校舎を削除する関数 delete_location | 済 2026-09-02 |
 | 7 | `20260901000700_seasons.sql` | seasons / studio_closures と、その権限・RLS | 済 2026-09-02 |
+| 8 | `20260902000100_classes.sql` | instructors / classes / lessons と、その権限・RLS | 済 2026-09-02 |
+| 9 | `20260902000200_generate_lessons.sql` | レッスン一括生成の関数 generate_lessons | 済 2026-09-02 |
 
 適用先: Supabase プロジェクト `studio-flow`（ref: fterpqyvzeqcaltfkpuc / Tokyo）
 

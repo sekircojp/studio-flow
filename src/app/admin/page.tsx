@@ -12,7 +12,7 @@ import {
 } from "lucide-react";
 import { requireAdmin } from "@/lib/auth/guards";
 import { createClient } from "@/lib/supabase/server";
-import { formatDateJa, greetingJa } from "@/lib/date";
+import { formatDateJa, formatTimeJa, greetingJa, todayInTokyo } from "@/lib/date";
 import { Card, EmptyState, SectionHeading, StatCard } from "@/components/ui";
 
 export const metadata: Metadata = { title: "ダッシュボード" };
@@ -48,6 +48,42 @@ export default async function AdminHome() {
   const needsLocation = (locations.count ?? 0) === 0;
   const needsRoom = (rooms.count ?? 0) === 0;
   const name = email?.split("@")[0] ?? "";
+
+  // 本日のレッスン。date は date 型なので、JST の「今日」で引く（設計書 2.1）
+  const today = todayInTokyo();
+  const [{ data: todayRows }, anyLesson] = await Promise.all([
+    supabase
+      .from("lessons")
+      .select(
+        "id, start_at, status, classes(name), rooms(name), instructors(name)",
+      )
+      .eq("organization_id", orgId)
+      .eq("date", today)
+      .order("start_at"),
+    supabase
+      .from("lessons")
+      .select("id", { count: "exact", head: true })
+      .eq("organization_id", orgId),
+  ]);
+
+  type Joined = {
+    id: string;
+    start_at: string;
+    status: string;
+    classes: { name: string } | null;
+    rooms: { name: string } | null;
+    instructors: { name: string } | null;
+  };
+
+  const todayLessons = ((todayRows ?? []) as unknown as Joined[]).map((l) => ({
+    id: l.id,
+    start_at: l.start_at,
+    status: l.status,
+    className: l.classes?.name ?? "（クラス不明）",
+    roomName: l.rooms?.name ?? "",
+    instructorName: l.instructors?.name ?? "",
+  }));
+  const hasAnyLesson = (anyLesson.count ?? 0) > 0;
 
   return (
     <div className="space-y-6">
@@ -116,12 +152,67 @@ export default async function AdminHome() {
 
       <div className="grid gap-4 lg:grid-cols-[1.6fr_1fr]">
         <Card className="p-5">
-          <SectionHeading kicker="Today's lessons" title="本日のレッスン" />
+          <SectionHeading
+            kicker="Today's lessons"
+            title="本日のレッスン"
+            action={
+              <Link
+                href="/admin/classes"
+                className="text-[12px] text-sf-muted underline"
+              >
+                クラス一覧
+              </Link>
+            }
+          />
           <div className="mt-4">
-            <EmptyState
-              title="レッスンはまだありません"
-              description="期（シーズン）と定期クラスを登録すると、開催日が自動で作られ、ここに今日の予定が並びます。"
-            />
+            {todayLessons.length === 0 ? (
+              <EmptyState
+                title={
+                  hasAnyLesson
+                    ? "本日のレッスンはありません"
+                    : "レッスンはまだありません"
+                }
+                description={
+                  hasAnyLesson
+                    ? "今日は開催予定のクラスがない日です。"
+                    : "期（シーズン）と定期クラスを登録すると、開催日が自動で作られ、ここに今日の予定が並びます。"
+                }
+              />
+            ) : (
+              <ul className="divide-y divide-sf-border rounded-xl border border-sf-border">
+                {todayLessons.map((l) => (
+                  <li key={l.id} className="flex items-center gap-3 px-4 py-3">
+                    <span className="sf-num w-12 shrink-0 text-[13px] font-semibold text-sf-ink">
+                      {formatTimeJa(l.start_at)}
+                    </span>
+                    <span className="min-w-0 flex-1">
+                      <span className="block truncate text-[13px] font-medium text-sf-ink">
+                        {l.className}
+                      </span>
+                      <span className="block truncate text-[11px] text-sf-muted">
+                        {l.roomName}
+                        {l.instructorName ? ` / ${l.instructorName}` : ""}
+                      </span>
+                    </span>
+                    <span
+                      className={`rounded-md px-2 py-1 text-[11px] font-medium ${
+                        l.status === "canceled"
+                          ? "bg-sf-danger/10 text-sf-danger"
+                          : l.status === "held"
+                            ? "bg-sf-ok/10 text-sf-ok"
+                            : "bg-sf-ink/8 text-sf-body"
+                      }`}
+                    >
+                      {l.status === "canceled"
+                        ? "休講"
+                        : l.status === "held"
+                          ? "実施済"
+                          : "予定"}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            )}
           </div>
         </Card>
 

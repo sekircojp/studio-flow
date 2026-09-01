@@ -10,6 +10,7 @@ import {
   LayoutDashboard,
   Repeat,
   Settings,
+  UserCog,
   Users,
   Wallet,
 } from "lucide-react";
@@ -47,10 +48,14 @@ const GROUPS: { kicker: string; items: Item[] }[] = [
     kicker: "Lessons",
     items: [
       { href: "/admin/seasons", label: "期・休講日", icon: CalendarDays },
-      { href: null, label: "定期クラス", icon: LayoutGrid },
+      { href: "/admin/classes", label: "定期クラス", icon: LayoutGrid },
       { href: null, label: "出欠管理", icon: CheckSquare },
       { href: null, label: "欠席・振替", icon: Repeat },
     ],
+  },
+  {
+    kicker: "Team",
+    items: [{ href: "/admin/instructors", label: "講師", icon: UserCog }],
   },
   {
     kicker: "Finance",

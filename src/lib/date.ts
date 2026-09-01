@@ -56,6 +56,20 @@ export function hourInTokyo(value: Date = new Date()): number {
   );
 }
 
+/**
+ * JST での「今日」を YYYY-MM-DD で返す。
+ * date 型の列と突き合わせるときに使う。サーバーの UTC で日付を取ると、
+ * 日本の朝9時より前と、夜9時以降で1日ずれる。
+ */
+export function todayInTokyo(now: Date = new Date()): string {
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone: TIME_ZONE,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(now);
+}
+
 export function greetingJa(now: Date = new Date()): string {
   const h = hourInTokyo(now);
   if (h < 4) return "こんばんは";
