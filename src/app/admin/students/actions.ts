@@ -199,3 +199,99 @@ export async function createMeasurement(
   revalidatePath(`/admin/students/${studentId}`);
   return { ok: true };
 }
+
+/**
+ * クラスへの在籍を追加する
+ *
+ * 定員の判定は設計書 5.2 のとおり2種類ある。ここで見るのは在籍定員のほう。
+ *   新規入会可否 = 現在の在籍数 < enrollment_capacity かつ accepts_new_enrollment
+ * 体験・振替の受入可否は 1レッスンの実収容上限（room_capacity）で判定するので、
+ * ここでは見ない。
+ */
+export async function createEnrollment(
+  _prev: StudentState,
+  formData: FormData,
+): Promise<StudentState> {
+  const { membership } = await requireAdmin();
+  const orgId = membership.organizationId;
+
+  const studentId = orNull(formData.get("student_id"));
+  const classId = orNull(formData.get("class_id"));
+  const startDate = orNull(formData.get("start_date"));
+
+  if (!studentId || !classId) return { error: "生徒とクラスを指定してください。" };
+  if (!isDate(startDate)) return { error: "開始日を入力してください。" };
+
+  const supabase = await createClient();
+
+  const { data: klass } = await supabase
+    .from("classes")
+    .select("id, name, enrollment_capacity, accepts_new_enrollment")
+    .eq("id", classId)
+    .eq("organization_id", orgId)
+    .maybeSingle();
+
+  if (!klass) return { error: "そのクラスは見つかりませんでした。" };
+
+  if (!klass.accepts_new_enrollment) {
+    return { error: `「${klass.name}」は現在、新規入会を受け付けていません。` };
+  }
+
+  if (klass.enrollment_capacity !== null) {
+    const { count } = await supabase
+      .from("enrollments")
+      .select("id", { count: "exact", head: true })
+      .eq("class_id", classId)
+      .eq("organization_id", orgId)
+      .is("end_date", null);
+
+    if ((count ?? 0) >= klass.enrollment_capacity) {
+      return {
+        error: `「${klass.name}」は在籍定員（${klass.enrollment_capacity}名）に達しています。`,
+      };
+    }
+  }
+
+  const { error } = await supabase.from("enrollments").insert({
+    organization_id: orgId,
+    student_id: studentId,
+    class_id: classId,
+    start_date: startDate,
+  });
+
+  if (error) {
+    console.error("在籍の登録に失敗しました", error);
+    // 23505 = 一意制約違反。すでに在籍中
+    if (error.code === "23505") {
+      return { error: "すでにそのクラスに在籍しています。" };
+    }
+    return { error: "登録できませんでした。" };
+  }
+
+  revalidatePath(`/admin/students/${studentId}`);
+  revalidatePath("/admin/classes");
+  return { ok: true };
+}
+
+/**
+ * 在籍を終了する
+ *
+ * 行は消さない。過去にどのクラスにいたかは請求の根拠になる（設計書 4.4）。
+ */
+export async function endEnrollment(enrollmentId: string, endDate: string) {
+  const { membership } = await requireAdmin();
+  if (!isDate(endDate)) return;
+
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("enrollments")
+    .update({ end_date: endDate })
+    .eq("id", enrollmentId)
+    .eq("organization_id", membership.organizationId)
+    .select("student_id")
+    .maybeSingle();
+
+  if (error) console.error("在籍の終了に失敗しました", error);
+  if (data) revalidatePath(`/admin/students/${data.student_id}`);
+  revalidatePath("/admin/classes");
+}

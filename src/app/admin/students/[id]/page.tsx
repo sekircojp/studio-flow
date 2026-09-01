@@ -1,14 +1,16 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft, Mail, Phone, Ruler, Users } from "lucide-react";
+import { ArrowLeft, CalendarDays, Mail, Phone, Ruler, Users } from "lucide-react";
 import { requireAdmin } from "@/lib/auth/guards";
 import { createClient } from "@/lib/supabase/server";
-import { formatDateJa } from "@/lib/date";
+import { formatDateJa, todayInTokyo } from "@/lib/date";
+import { dayLabel, hhmm } from "@/lib/schedule";
 import { ageFrom, STUDENT_STATUSES } from "@/lib/students";
-import { setStudentStatus } from "../actions";
+import { endEnrollment, setStudentStatus } from "../actions";
 import { StatusBadge } from "../page";
 import { GuardianForm, MeasurementForm } from "./forms";
+import { EnrollmentForm } from "./enrollment-form";
 import { Card, EmptyState, SectionHeading, secondaryButtonClass } from "@/components/ui";
 
 export const metadata: Metadata = { title: "生徒" };
@@ -67,6 +69,50 @@ export default async function StudentDetailPage({
         .eq("organization_id", orgId)
         .order("measured_at", { ascending: false }),
     ]);
+
+  const [{ data: enrollments }, { data: classes }] = await Promise.all([
+    supabase
+      .from("enrollments")
+      .select("id, start_date, end_date, class_id, classes(name, day_of_week, start_time, end_time)")
+      .eq("student_id", id)
+      .eq("organization_id", orgId)
+      .order("start_date", { ascending: false }),
+    supabase
+      .from("classes")
+      .select("id, name, day_of_week, start_time, end_time")
+      .eq("organization_id", orgId)
+      .order("day_of_week")
+      .order("start_time"),
+  ]);
+
+  type EnrollmentRow = {
+    id: string;
+    start_date: string;
+    end_date: string | null;
+    class_id: string;
+    classes: {
+      name: string;
+      day_of_week: number;
+      start_time: string;
+      end_time: string;
+    } | null;
+  };
+  const enrollmentList = (enrollments ?? []) as unknown as EnrollmentRow[];
+  const activeClassIds = new Set(
+    enrollmentList.filter((e) => e.end_date === null).map((e) => e.class_id),
+  );
+  const selectableClasses = ((classes ?? []) as {
+    id: string;
+    name: string;
+    day_of_week: number;
+    start_time: string;
+    end_time: string;
+  }[])
+    .filter((c) => !activeClassIds.has(c.id))
+    .map((c) => ({
+      id: c.id,
+      label: `${c.name}（${dayLabel(c.day_of_week)} ${hhmm(c.start_time)}）`,
+    }));
 
   const guardianList = guardians ?? [];
   const siblingList = siblings ?? [];
@@ -170,6 +216,76 @@ export default async function StudentDetailPage({
           </ul>
         </Card>
       </div>
+
+      <Card className="p-5">
+        <SectionHeading
+          kicker="Classes"
+          title={`在籍クラス（${enrollmentList.filter((e) => e.end_date === null).length}）`}
+        />
+        <div className="mt-4">
+          {enrollmentList.length === 0 ? (
+            <EmptyState
+              title="まだクラスに登録されていません"
+              description="クラスに登録すると、その回の名簿に並び、出欠を記録できるようになります。"
+            />
+          ) : (
+            <ul className="divide-y divide-sf-border rounded-xl border border-sf-border">
+              {enrollmentList.map((e) => {
+                const ended = e.end_date !== null;
+                return (
+                  <li
+                    key={e.id}
+                    className={`flex flex-wrap items-center gap-3 px-4 py-3 ${ended ? "opacity-60" : ""}`}
+                  >
+                    <CalendarDays
+                      className="size-4 shrink-0 text-sf-muted"
+                      aria-hidden
+                    />
+                    <span className="min-w-0 flex-1">
+                      <span className="block text-[13px] font-medium text-sf-ink">
+                        {e.classes?.name ?? "（クラス不明）"}
+                        {ended && (
+                          <span className="ml-2 rounded-md bg-sf-ink/8 px-1.5 py-0.5 text-[11px] font-normal text-sf-muted">
+                            終了
+                          </span>
+                        )}
+                      </span>
+                      <span className="sf-num block text-[11px] text-sf-muted">
+                        {e.classes &&
+                          `毎週${dayLabel(e.classes.day_of_week)}曜 ${hhmm(e.classes.start_time)}–${hhmm(e.classes.end_time)}・`}
+                        {formatDateJa(e.start_date)} 〜{" "}
+                        {e.end_date ? formatDateJa(e.end_date) : ""}
+                      </span>
+                    </span>
+                    {!ended && (
+                      <form
+                        action={async () => {
+                          "use server";
+                          await endEnrollment(e.id, todayInTokyo());
+                        }}
+                      >
+                        <button type="submit" className={secondaryButtonClass}>
+                          在籍を終了
+                        </button>
+                      </form>
+                    )}
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+        </div>
+        <div className="mt-5 border-t border-sf-border pt-5">
+          <p className="sf-kicker">Add</p>
+          <div className="mt-3">
+            <EnrollmentForm
+              studentId={id}
+              classes={selectableClasses}
+              today={todayInTokyo()}
+            />
+          </div>
+        </div>
+      </Card>
 
       <Card className="p-5">
         <SectionHeading
