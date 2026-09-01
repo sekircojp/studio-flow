@@ -23,11 +23,16 @@ const ROLE_LABELS: Record<string, string> = {
 export default async function Home() {
   const session = await getSessionContext();
 
-  // 管理画面はできているので、オーナー・スタッフはそのまま送る
+  // ロールに対応する画面ができていれば、そのまま送る（設計書 3章・7章）
   const admin = session?.memberships.find(
     (m) => m.role === "owner" || m.role === "staff",
   );
   if (admin) redirect("/admin");
+
+  const my = session?.memberships.find(
+    (m) => m.role === "guardian" || m.role === "student",
+  );
+  if (my) redirect("/my");
 
   return (
     <main className="flex flex-1 items-center justify-center bg-sf-bg p-6">
