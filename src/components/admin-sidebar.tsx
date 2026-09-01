@@ -42,7 +42,7 @@ const GROUPS: { kicker: string; items: Item[] }[] = [
   },
   {
     kicker: "Members",
-    items: [{ href: null, label: "生徒・保護者", icon: Users }],
+    items: [{ href: "/admin/students", label: "生徒・保護者", icon: Users }],
   },
   {
     kicker: "Lessons",
