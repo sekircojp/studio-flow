@@ -1,9 +1,8 @@
-import Link from "next/link";
-import { Building2, Home, Settings } from "lucide-react";
 import { requireAdmin } from "@/lib/auth/guards";
-import { getBrand } from "@/lib/brand";
-import { BrandMark } from "@/components/brand-mark";
-import { signOut } from "@/app/actions/auth";
+import { getBrand } from "@/lib/brand.server";
+import { createClient } from "@/lib/supabase/server";
+import { AdminSidebar } from "@/components/admin-sidebar";
+import { AdminTopBar } from "@/components/admin-topbar";
 
 /**
  * スタジオ管理（/admin/*）の枠組み
@@ -11,66 +10,65 @@ import { signOut } from "@/app/actions/auth";
  * 設計書 12章: 管理者にはスタジオロゴ・スタジオ名を主表示し、
  * Studio Flow は補助表示にとどめる。
  *
+ * ブランドカラーはこの要素の --sf-accent を差し替えることで反映する。
+ * 各画面は sf-accent を参照するだけでよく、色の判断を持たない。
+ *
  * ここでも requireAdmin() を呼ぶが、これは表示のためであって認可の本体ではない。
  * 各ページとサーバーアクションでも必ず確認する（設計書 7章）。
  */
-
-// 生徒・クラス・請求は、それぞれの画面を作る段階でここに足す
-const NAV = [
-  { href: "/admin", label: "ホーム", icon: Home },
-  { href: "/admin/locations", label: "校舎・部屋", icon: Building2 },
-  { href: "/admin/settings", label: "スタジオ設定", icon: Settings },
-];
-
 export default async function AdminLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
   const { membership, email } = await requireAdmin();
-  const brand = await getBrand(membership.organizationId);
+  const orgId = membership.organizationId;
+
+  const brand = await getBrand(orgId);
+  const supabase = await createClient();
+
+  // サイドバーに出す校舎。アプリ層でも organization_id で絞る（設計書 3章）
+  const { data: locations } = await supabase
+    .from("locations")
+    .select("name")
+    .eq("organization_id", orgId)
+    .eq("is_active", true)
+    .order("created_at");
+
+  const list = locations ?? [];
+  const locationLabel = list[0]?.name ?? "校舎未登録";
+  const locationSubLabel =
+    list.length === 0
+      ? "登録してください"
+      : list.length === 1
+        ? "メインスタジオ"
+        : `ほか ${list.length - 1} 校`;
 
   return (
-    <div className="flex min-h-full flex-1 flex-col">
-      <header className="border-b border-black/10 dark:border-white/15">
-        <div className="mx-auto flex max-w-5xl items-center gap-3 px-4 py-3">
-          <BrandMark brand={brand} />
-          <div className="min-w-0 flex-1">
-            <p className="truncate text-sm font-semibold">{brand.studioName}</p>
-            <p className="text-[11px] opacity-50">Studio Flow</p>
-          </div>
-          <span className="hidden truncate text-xs opacity-60 sm:block">
-            {email}
-            {membership.role === "owner" ? "（オーナー）" : "（スタッフ）"}
-          </span>
-          <form action={signOut}>
-            <button
-              type="submit"
-              className="rounded-md border border-black/15 px-3 py-1.5 text-xs dark:border-white/20"
-            >
-              ログアウト
-            </button>
-          </form>
-        </div>
+    <div
+      className="flex min-h-full flex-1 bg-sf-bg"
+      style={
+        brand.brandColor
+          ? ({ "--sf-accent": brand.brandColor } as React.CSSProperties)
+          : undefined
+      }
+    >
+      <AdminSidebar
+        brand={brand}
+        locationLabel={locationLabel}
+        locationSubLabel={locationSubLabel}
+      />
 
-        <nav className="mx-auto max-w-5xl overflow-x-auto px-4">
-          <ul className="flex gap-1">
-            {NAV.map(({ href, label, icon: Icon }) => (
-              <li key={href}>
-                <Link
-                  href={href}
-                  className="flex items-center gap-1.5 whitespace-nowrap rounded-t-md px-3 py-2 text-sm opacity-70 hover:bg-black/5 hover:opacity-100 dark:hover:bg-white/10"
-                >
-                  <Icon className="size-4" aria-hidden />
-                  {label}
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </nav>
-      </header>
-
-      <div className="mx-auto w-full max-w-5xl flex-1 px-4 py-6">{children}</div>
+      <div className="flex min-w-0 flex-1 flex-col">
+        <AdminTopBar
+          brand={brand}
+          email={email}
+          role={membership.role}
+        />
+        <main className="mx-auto w-full max-w-6xl flex-1 px-5 pb-12 pt-2 sm:px-8">
+          {children}
+        </main>
+      </div>
     </div>
   );
 }

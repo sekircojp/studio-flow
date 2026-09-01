@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Loader2, Mail } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import { Card, fieldClass, labelClass, primaryButtonClass } from "@/components/ui";
 
 /**
  * ログインフォーム（メール確認コード方式・パスワード不要）
@@ -117,10 +118,10 @@ export default function LoginForm() {
   }
 
   return (
-    <main className="flex flex-1 items-center justify-center p-6">
-      <div className="w-full max-w-sm">
-        <h1 className="text-xl font-bold tracking-tight">Studio Flow</h1>
-        <p className="mt-1 text-sm opacity-70">
+    <main className="flex flex-1 items-center justify-center bg-sf-bg p-6">
+      <Card className="w-full max-w-sm p-6 sm:p-7">
+        <h1 className="text-xl font-bold tracking-tight text-sf-ink">Studio Flow</h1>
+        <p className="mt-1 text-[13px] text-sf-body">
           {step === "email"
             ? "メールアドレスに確認コードをお送りします。"
             : `${email} に6桁のコードを送りました。`}
@@ -129,7 +130,7 @@ export default function LoginForm() {
         {step === "email" ? (
           <form onSubmit={handleSendCode} className="mt-6 space-y-4">
             <div>
-              <label htmlFor="email" className="block text-sm font-medium">
+              <label htmlFor="email" className={labelClass}>
                 メールアドレス
               </label>
               <input
@@ -140,14 +141,14 @@ export default function LoginForm() {
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="mt-1 w-full rounded-md border border-black/15 px-3 py-2 text-base outline-none focus:border-black/40 dark:border-white/20 dark:focus:border-white/50"
+                className={fieldClass}
               />
             </div>
 
             <button
               type="submit"
               disabled={busy || !email.trim()}
-              className="flex w-full items-center justify-center gap-2 rounded-md bg-foreground px-4 py-2.5 text-sm font-medium text-background disabled:opacity-40"
+              className={`${primaryButtonClass} w-full py-2.5`}
             >
               {busy ? (
                 <Loader2 className="size-4 animate-spin" aria-hidden />
@@ -160,7 +161,7 @@ export default function LoginForm() {
         ) : (
           <form onSubmit={handleVerify} className="mt-6 space-y-4">
             <div>
-              <label htmlFor="code" className="block text-sm font-medium">
+              <label htmlFor="code" className={labelClass}>
                 確認コード（6桁）
               </label>
               <input
@@ -173,14 +174,14 @@ export default function LoginForm() {
                 required
                 value={code}
                 onChange={(e) => setCode(e.target.value.replace(/\D/g, ""))}
-                className="mt-1 w-full rounded-md border border-black/15 px-3 py-2 text-center text-xl tracking-[0.4em] outline-none focus:border-black/40 dark:border-white/20 dark:focus:border-white/50"
+                className={`${fieldClass} text-center text-2xl tracking-[0.4em]`}
               />
             </div>
 
             <button
               type="submit"
               disabled={busy || code.length !== 6}
-              className="flex w-full items-center justify-center gap-2 rounded-md bg-foreground px-4 py-2.5 text-sm font-medium text-background disabled:opacity-40"
+              className={`${primaryButtonClass} w-full py-2.5`}
             >
               {busy && <Loader2 className="size-4 animate-spin" aria-hidden />}
               ログイン
@@ -193,7 +194,7 @@ export default function LoginForm() {
                 setCode("");
                 setMessage("");
               }}
-              className="w-full text-sm underline opacity-70"
+              className="w-full text-[13px] text-sf-muted underline"
             >
               メールアドレスを入れ直す
             </button>
@@ -203,12 +204,12 @@ export default function LoginForm() {
         {message && (
           <p
             role="status"
-            className="mt-4 rounded-md bg-amber-50 px-3 py-2 text-sm text-amber-900 dark:bg-amber-950 dark:text-amber-100"
+            className="mt-4 rounded-lg bg-sf-warn/10 px-3 py-2 text-[13px] text-sf-ink"
           >
             {message}
           </p>
         )}
-      </div>
+      </Card>
     </main>
   );
 }

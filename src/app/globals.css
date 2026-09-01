@@ -1,28 +1,92 @@
 @import "tailwindcss";
 
+/*
+ * Studio Flow の配色（設計書 12章）
+ * ────────────────────────────────────────────────
+ * ・管理画面はサイドバーだけ濃紺、本文は明るい面という構成
+ * ・ブランドカラーはボタン・リンク・選択状態・アクセントにのみ反映する。
+ *   背景全体は塗り替えない。スタジオが濃い色を選んだときに
+ *   文字が読めなくなるため
+ * ・--sf-accent は既定値を持ち、brand_settings.brand_color があれば
+ *   /admin のルート要素で上書きする
+ */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* 面 */
+  --sf-bg: #f4f5f9;
+  --sf-card: #ffffff;
+  --sf-border: #e5e7f0;
+  --sf-border-strong: #d3d7e5;
+
+  /* 文字 */
+  --sf-ink: #1d2340;
+  --sf-body: #4b5273;
+  --sf-muted: #8a90a8;
+
+  /* サイドバー */
+  --sf-nav: #191f3c;
+  --sf-nav-soft: #232a4c;
+  --sf-nav-ink: #eef0f8;
+  --sf-nav-muted: #8f97b8;
+
+  /* 強調 */
+  --sf-accent: #f0665c;
+  --sf-accent-ink: #ffffff;
+  --sf-ok: #2fae7d;
+  --sf-warn: #e2953a;
+  --sf-danger: #dc4f45;
+
+  /* 旧 create-next-app のトークン。ログイン画面などで使う */
+  --background: var(--sf-bg);
+  --foreground: var(--sf-ink);
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+
+  --color-sf-bg: var(--sf-bg);
+  --color-sf-card: var(--sf-card);
+  --color-sf-border: var(--sf-border);
+  --color-sf-border-strong: var(--sf-border-strong);
+  --color-sf-ink: var(--sf-ink);
+  --color-sf-body: var(--sf-body);
+  --color-sf-muted: var(--sf-muted);
+  --color-sf-nav: var(--sf-nav);
+  --color-sf-nav-soft: var(--sf-nav-soft);
+  --color-sf-nav-ink: var(--sf-nav-ink);
+  --color-sf-nav-muted: var(--sf-nav-muted);
+  --color-sf-accent: var(--sf-accent);
+  --color-sf-accent-ink: var(--sf-accent-ink);
+  --color-sf-ok: var(--sf-ok);
+  --color-sf-warn: var(--sf-warn);
+  --color-sf-danger: var(--sf-danger);
+
   /* 日本語グリフを持たない Geist の後段に、OS 標準の日本語フォントを並べる */
   --font-sans: var(--font-geist-sans), "Hiragino Kaku Gothic ProN", "Hiragino Sans",
     "Noto Sans JP", "Yu Gothic UI", "Meiryo", sans-serif;
   --font-mono: var(--font-geist-mono), monospace;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
 body {
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-sans);
+}
+
+/*
+ * 見出しの上に置く英字ラベル。
+ * 情報の区切りを、罫線を増やさずに示すために使う。
+ */
+@utility sf-kicker {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--sf-muted);
+}
+
+/* 数字を並べたときに桁がそろうようにする */
+@utility sf-num {
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
 }
