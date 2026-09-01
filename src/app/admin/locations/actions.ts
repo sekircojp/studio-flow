@@ -95,9 +95,10 @@ export async function createRoom(
 }
 
 /**
- * 校舎の休止 / 再開
+ * 閉校 / 再開
  *
- * 物理削除はしない（設計書 2章・5.6）。is_active の切り替えで表す。
+ * 運営していた校舎はこちらで表す。一覧の「閉校した校舎」に移るだけで、
+ * 過去のレッスンや出欠は残る。
  */
 export async function setLocationActive(locationId: string, isActive: boolean) {
   const { membership } = await requireAdmin();
@@ -111,4 +112,47 @@ export async function setLocationActive(locationId: string, isActive: boolean) {
 
   if (error) console.error("校舎の状態変更に失敗しました", error);
   revalidatePath("/admin/locations");
+}
+
+/**
+ * 校舎の完全削除
+ *
+ * 間違えて登録した校舎を消すためのもの。実績のある校舎は消せない。
+ * 校舎を消すと 校舎 → 部屋 → クラス → レッスン → 出欠 が芋づるで
+ * 消えることになり、「校舎の情報だけ消して他は残す」意図と逆になるため。
+ *
+ * 削除そのものは DB 側の関数 delete_location() が行う。
+ * 部屋と校舎を1つのトランザクションで消し、外部キーに阻まれたら
+ * 部屋の削除ごと巻き戻る。
+ */
+export async function deleteLocation(
+  _prev: LocationState,
+  formData: FormData,
+): Promise<LocationState> {
+  await requireAdmin();
+
+  const locationId = orNull(formData.get("location_id"));
+  if (!locationId) return { error: "校舎が指定されていません。" };
+
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("delete_location", {
+    target_location_id: locationId,
+  });
+
+  if (error) {
+    console.error("校舎の削除に失敗しました", error);
+
+    // 23503 = 外部キー違反。使われている校舎を消そうとした場合
+    if (error.code === "23503") {
+      return {
+        error:
+          "この校舎はすでに使われているため削除できません。閉校にしてください（過去のデータは残ります）。",
+      };
+    }
+    return { error: "削除できませんでした。" };
+  }
+
+  revalidatePath("/admin/locations");
+  revalidatePath("/admin");
+  return { ok: true };
 }
