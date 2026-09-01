@@ -412,3 +412,20 @@ enabled = true
 # declarative_schema_path = "./database"
 # JSON string passed through to pg-delta SQL formatting.
 # format_options = "{\"keywordCase\":\"upper\",\"indent\":2,\"maxWidth\":80,\"commaStyle\":\"trailing\"}"
+
+# =============================================================================
+# Edge Functions
+#
+# ログイン前に呼ぶ関数なので、JWT の検証は無効にする必要がある。
+# 有効のままだと「ログインしていないとログインできない」状態になる。
+#
+# 誰でも叩ける状態になるため、防御は関数側で持つ:
+#   ・ALLOWED_ORIGIN による CORS の制限
+#   ・同一アドレスへの連投制限（60秒に1通、1時間に5通）
+#   ・照合の試行回数制限（5回）
+# =============================================================================
+[functions.send-verification-code]
+verify_jwt = false
+
+[functions.verify-code]
+verify_jwt = false
