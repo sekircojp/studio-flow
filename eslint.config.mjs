@@ -12,6 +12,8 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Supabase Edge Functions は Deno で動く。Next.js 向けの規則は当てはまらない
+    "supabase/functions/**",
   ]),
 ]);
 

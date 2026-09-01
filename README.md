@@ -51,30 +51,66 @@ Resend の API キーは Next.js 側ではなく、Supabase Edge Function のシ
 ```
 docs/                 設計書
 supabase/migrations/  DB マイグレーション（SQL）
+supabase/functions/   Edge Functions（Deno。Next.js の型検査対象外）
 public/               静的ファイル（ロゴは Supabase Storage 側に置く）
 src/app/              App Router
+src/lib/supabase/     Supabase クライアント（client / server / admin）
+src/lib/auth/         セッションとロールの判定
+src/proxy.ts          セッション更新（Next.js 16 で middleware から改称）
 ```
 
 ## データベース
 
-Supabase プロジェクトに接続してマイグレーションを適用する。
+マイグレーションは `supabase/migrations/` に置く。適用状況は
+[supabase/migrations/APPLIED.md](supabase/migrations/APPLIED.md) で管理する。
 
-```bash
-npx supabase login
-npx supabase link --project-ref <プロジェクトの ref>
-npx supabase db push
+MarcheBase と同じく、Supabase ダッシュボードの **SQL Editor** に貼り付けて
+上から順に実行する。適用したら APPLIED.md を必ず更新すること。
+
+適用済みのファイルは編集しない。修正が必要なら新しいファイルを追加する。
+
+## 認証
+
+メール確認コード方式（パスワード不要・設計書 2章）。MarcheBase から移植した。
+
+```
+1. ログイン画面でメールアドレスを入力
+2. Edge Function send-verification-code が6桁を発行し、Resend で送信
+   （コードは平文で保存せず、sha256 のハッシュだけを DB に置く）
+3. 届いたコードを入力
+4. Edge Function verify-code が照合し、magic link のトークンを返す
+5. ブラウザが verifyOtp してセッションを Cookie に確立する
 ```
 
-`supabase db push` は `supabase/migrations/` の SQL を古い順に適用する。
-適用済みのファイルは編集せず、必ず新しいファイルを追加すること。
+セッションは **Cookie** に置く（MarcheBase は localStorage）。設計書 3章の
+「ロールはサーバーセッションから決定する」を満たすには、サーバー側から
+セッションを読める必要があるため。`@supabase/ssr` を使う。
 
-| ファイル | 内容 |
+### Edge Function のデプロイ
+
+```bash
+npx supabase functions deploy send-verification-code
+npx supabase functions deploy verify-code
+```
+
+### Edge Function のシークレット
+
+Next.js の `.env.local` ではなく、Supabase 側に設定する。
+ダッシュボードの Edge Functions → Secrets、または以下のコマンド。
+
+```bash
+npx supabase secrets set RESEND_API_KEY=... MAIL_FROM="Studio Flow <noreply@example.com>" ALLOWED_ORIGIN=http://localhost:3000 PUBLIC_SITE_URL=http://localhost:3000
+```
+
+| 名前 | 用途 |
 | --- | --- |
-| `20260901000100_tenant_foundation.sql` | organizations / memberships / super_admins / brand_settings / locations / rooms |
-| `20260901000200_tenant_foundation_rls.sql` | 上記テーブルの RLS ポリシー |
+| `RESEND_API_KEY` | Resend の API キー |
+| `MAIL_FROM` | 送信元アドレス。表示名はスタジオ名で上書きされる（設計書 11章） |
+| `ALLOWED_ORIGIN` | CORS の許可元。カンマ区切りで複数可。`*` は開発時のみ |
+| `PUBLIC_SITE_URL` | メール本文のリンクに使う URL |
 
-ローカルでの `supabase start` は Docker が必要。未導入の場合はリモートの
-Supabase プロジェクトに直接 push する。
+`SUPABASE_URL` と `SUPABASE_SERVICE_ROLE_KEY` は Supabase が自動で渡すため、
+設定は不要。
 
 ## 開発上の絶対条件
 
