@@ -17,6 +17,8 @@ MarcheBase と同じく、適用済みかどうかをこの表で管理する。
 | 11 | `20260902000400_attendance.sql` | enrollments / attendances と、has_attendance_record を立てるトリガ | 済 2026-09-02 |
 | 12 | `20260902000500_billing.sql` | pricing_plans / student_contracts / invoices / invoice_items / payments / refunds | 済 2026-09-02 |
 | 13 | `20260902000600_generate_invoices.sql` | billing_settings、請求生成 generate_invoices、入金で請求状態を同期するトリガ | 済 2026-09-02 |
+| 14 | `20260902000700_transfers.sql` | transfer_settings / absence_requests / transfer_credits / transfer_bookings / waitlists | 済 2026-09-02 |
+| 15 | `20260902000800_transfer_logic.sql` | submit_absence / book_transfer / expire_transfer_credits | 済 2026-09-02 |
 
 適用先: Supabase プロジェクト `studio-flow`（ref: fterpqyvzeqcaltfkpuc / Tokyo）
 
