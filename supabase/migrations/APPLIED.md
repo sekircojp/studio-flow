@@ -15,6 +15,8 @@ MarcheBase と同じく、適用済みかどうかをこの表で管理する。
 | 9 | `20260902000200_generate_lessons.sql` | レッスン一括生成の関数 generate_lessons | 済 2026-09-02 |
 | 10 | `20260902000300_create_student.sql` | 生徒・世帯・保護者をまとめて作る関数 create_student | 済 2026-09-02 |
 | 11 | `20260902000400_attendance.sql` | enrollments / attendances と、has_attendance_record を立てるトリガ | 済 2026-09-02 |
+| 12 | `20260902000500_billing.sql` | pricing_plans / student_contracts / invoices / invoice_items / payments / refunds | 済 2026-09-02 |
+| 13 | `20260902000600_generate_invoices.sql` | billing_settings、請求生成 generate_invoices、入金で請求状態を同期するトリガ | 済 2026-09-02 |
 
 適用先: Supabase プロジェクト `studio-flow`（ref: fterpqyvzeqcaltfkpuc / Tokyo）
 

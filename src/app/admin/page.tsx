@@ -12,7 +12,8 @@ import {
 } from "lucide-react";
 import { requireAdmin } from "@/lib/auth/guards";
 import { createClient } from "@/lib/supabase/server";
-import { formatDateJa, formatTimeJa, greetingJa, todayInTokyo } from "@/lib/date";
+import { formatDateJa, formatTimeJa, formatYen, greetingJa, todayInTokyo } from "@/lib/date";
+import { billingMonthLabel, monthStart, UNPAID_STATUSES } from "@/lib/billing";
 import { Card, EmptyState, SectionHeading, StatCard } from "@/components/ui";
 
 export const metadata: Metadata = { title: "ダッシュボード" };
@@ -85,6 +86,46 @@ export default async function AdminHome() {
   }));
   const hasAnyLesson = (anyLesson.count ?? 0) > 0;
 
+  // 第一表示＝今月の月謝（設計書 9章）
+  const month = monthStart(today);
+  const [{ data: invoices }, { data: monthPayments }] = await Promise.all([
+    supabase
+      .from("invoices")
+      .select("id, total, status")
+      .eq("organization_id", orgId)
+      .eq("billing_month", month),
+    supabase
+      .from("payments")
+      .select("invoice_id, amount")
+      .eq("organization_id", orgId),
+  ]);
+
+  const invoiceRows = (invoices ?? []) as {
+    id: string;
+    total: number;
+    status: string;
+  }[];
+  const paymentRows = (monthPayments ?? []) as {
+    invoice_id: string;
+    amount: number;
+  }[];
+  const paidOf = (invoiceId: string) =>
+    paymentRows
+      .filter((p) => p.invoice_id === invoiceId)
+      .reduce((s, p) => s + p.amount, 0);
+
+  const billable = invoiceRows.filter((i) => i.status !== "canceled");
+  const billed = billable.reduce((s, i) => s + i.total, 0);
+  const collected = billable.reduce(
+    (s, i) => s + Math.min(paidOf(i.id), i.total),
+    0,
+  );
+  const unpaid = billable.filter((i) =>
+    UNPAID_STATUSES.includes(i.status as never),
+  );
+  const unpaidAmount = unpaid.reduce((s, i) => s + (i.total - paidOf(i.id)), 0);
+  const collectRate = billed > 0 ? Math.round((collected / billed) * 1000) / 10 : 0;
+
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-end justify-between gap-4 pb-1">
@@ -103,17 +144,48 @@ export default async function AdminHome() {
       {/* 第一表示＝今月の月謝（設計書 9章）。まだ請求機能が無いので、その旨を出す */}
       <div className="overflow-hidden rounded-2xl bg-sf-nav p-6 text-sf-nav-ink">
         <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-sf-nav-muted">
-          今月の月謝
+          {billingMonthLabel(month)}の月謝
         </p>
-        <p className="sf-num mt-2 text-3xl font-bold">まだ請求はありません</p>
-        <p className="mt-2 max-w-xl text-[13px] leading-relaxed text-sf-nav-muted">
-          料金プランと月謝契約を登録すると、ここに今月の回収状況が出ます。
-          現金でも「誰から受け取ったか／受け取っていないか」が一目で分かる形にします。
-        </p>
-        <p className="mt-4 inline-flex items-center gap-1.5 rounded-lg bg-white/10 px-3 py-1.5 text-[11px] text-sf-nav-ink">
-          <Wallet className="size-3.5" aria-hidden />
-          月謝・請求はこれから作ります
-        </p>
+        {billable.length === 0 ? (
+          <>
+            <p className="sf-num mt-2 text-3xl font-bold">まだ請求はありません</p>
+            <p className="mt-2 max-w-xl text-[13px] leading-relaxed text-sf-nav-muted">
+              月謝契約を登録して「この月の請求を作る」を押すと、ここに回収状況が出ます。
+            </p>
+            <Link
+              href="/admin/billing"
+              className="mt-4 inline-flex items-center gap-1.5 rounded-lg bg-white/10 px-3 py-1.5 text-[11px] text-sf-nav-ink transition hover:bg-white/20"
+            >
+              <Wallet className="size-3.5" aria-hidden />
+              月謝・請求を開く
+            </Link>
+          </>
+        ) : (
+          <>
+            <div className="mt-3 flex flex-wrap items-end gap-x-6 gap-y-2">
+              <p className="sf-num text-3xl font-bold">{formatYen(collected)}</p>
+              <p className="sf-num text-sf-nav-muted">/ {formatYen(billed)}</p>
+            </div>
+            <div className="mt-4 h-2 overflow-hidden rounded-full bg-white/15">
+              <div
+                className="h-full rounded-full bg-sf-ok transition-all"
+                style={{ width: `${Math.min(collectRate, 100)}%` }}
+              />
+            </div>
+            <div className="mt-3 flex flex-wrap items-center gap-x-6 gap-y-2 text-[12px]">
+              <span className="text-sf-ok">回収率 {collectRate}%</span>
+              <span className="text-sf-nav-muted">請求 {billable.length} 件</span>
+              <Link
+                href="/admin/billing"
+                className="rounded-lg bg-white/10 px-2.5 py-1 transition hover:bg-white/20"
+              >
+                {unpaid.length > 0
+                  ? `未納 ${unpaid.length} 名 ${formatYen(unpaidAmount)} →`
+                  : "月謝管理を開く →"}
+              </Link>
+            </div>
+          </>
+        )}
       </div>
 
       <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">

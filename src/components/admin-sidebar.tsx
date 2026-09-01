@@ -59,7 +59,7 @@ const GROUPS: { kicker: string; items: Item[] }[] = [
   },
   {
     kicker: "Finance",
-    items: [{ href: null, label: "月謝・請求", icon: Wallet }],
+    items: [{ href: "/admin/billing", label: "月謝・請求", icon: Wallet }],
   },
   {
     kicker: "Settings",
