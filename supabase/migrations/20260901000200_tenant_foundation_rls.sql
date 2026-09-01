@@ -17,8 +17,21 @@
 -- =============================================================================
 
 -- -----------------------------------------------------------------------------
--- anon（未ログイン）にはテーブル権限そのものを与えない
+-- テーブル権限
+--
+-- Supabase プロジェクトの "Automatically expose new tables" を無効にしているため、
+-- 新規テーブルには anon / authenticated / service_role のいずれにも権限が付かない。
+-- 必要な権限をここで明示的に与える。
+--
+-- この順序で守る:
+--   1. GRANT   … そもそもテーブルに触れるか（この節）
+--   2. RLS     … 触れるとして、どの行か（以下の policy）
+-- GRANT が無ければ RLS 以前にアクセスできない。
+--
+-- delete は誰にも与えない。設計書の「物理削除はしない」を権限側でも担保する。
 -- -----------------------------------------------------------------------------
+
+-- anon（未ログイン）には一切与えない
 revoke all on table public.organizations   from anon;
 revoke all on table public.memberships     from anon;
 revoke all on table public.super_admins    from anon;
@@ -26,8 +39,23 @@ revoke all on table public.brand_settings  from anon;
 revoke all on table public.locations       from anon;
 revoke all on table public.rooms           from anon;
 
+-- ログイン済みユーザー。実際に見える行は RLS で絞る
+grant select, update                 on table public.organizations  to authenticated;
+grant select, insert, update         on table public.memberships    to authenticated;
+grant select, insert, update         on table public.brand_settings to authenticated;
+grant select, insert, update         on table public.locations      to authenticated;
+grant select, insert, update         on table public.rooms          to authenticated;
+
 -- super_admins は authenticated からも触らせない（service_role のみ）
 revoke all on table public.super_admins from authenticated;
+
+-- service_role は RLS をバイパスする。Super Admin 画面とバッチ処理で使う
+grant all on table public.organizations   to service_role;
+grant all on table public.memberships     to service_role;
+grant all on table public.super_admins    to service_role;
+grant all on table public.brand_settings  to service_role;
+grant all on table public.locations       to service_role;
+grant all on table public.rooms           to service_role;
 
 
 -- -----------------------------------------------------------------------------
