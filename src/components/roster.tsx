@@ -2,7 +2,6 @@
 
 import { useState, useTransition } from "react";
 import { Check, Clock3, Minus, X } from "lucide-react";
-import { recordAttendance, type AttendanceStatus } from "../actions";
 
 /**
  * 出欠の名簿（設計書 9章「講師のスマートフォン優先」）
@@ -10,7 +9,12 @@ import { recordAttendance, type AttendanceStatus } from "../actions";
  * 片手で押せるよう、生徒1人につき大きなボタンを4つ横に並べる。
  * 選択はすぐ画面に反映し、保存はその裏で走らせる。現場で「押したのに
  * 変わらない」と何度も押されるのを防ぐため。
+ *
+ * 記録する処理はサーバーアクションを props で受け取る。管理画面（/admin）と
+ * 講師の画面（/staff）で認可の入口が違うため、部品側では決めない。
  */
+
+export type AttendanceStatus = "present" | "absent" | "late" | "unconfirmed";
 
 const OPTIONS: {
   value: AttendanceStatus;
@@ -29,11 +33,17 @@ export function Roster({
   students,
   initial,
   disabled,
+  record,
 }: {
   lessonId: string;
   students: { id: string; name: string; kana: string | null }[];
   initial: Record<string, AttendanceStatus>;
   disabled: boolean;
+  record: (
+    lessonId: string,
+    studentId: string,
+    status: AttendanceStatus,
+  ) => Promise<void>;
 }) {
   const [marks, setMarks] = useState<Record<string, AttendanceStatus>>(initial);
   const [, startTransition] = useTransition();
@@ -42,7 +52,7 @@ export function Roster({
     // 先に画面を変えてから保存する
     setMarks((m) => ({ ...m, [studentId]: status }));
     startTransition(() => {
-      void recordAttendance(lessonId, studentId, status);
+      void record(lessonId, studentId, status);
     });
   }
 

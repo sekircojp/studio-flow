@@ -2,49 +2,53 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft, Users } from "lucide-react";
-import { requireAdmin } from "@/lib/auth/guards";
+import { requireStaff } from "@/lib/auth/staff";
 import { createClient } from "@/lib/supabase/server";
 import { formatDateJa, formatTimeJa } from "@/lib/date";
-import { recordAttendance, setLessonStatus } from "../actions";
+import { recordAttendanceAsStaff, setLessonHeldAsStaff } from "../../actions";
 import { Roster, type AttendanceStatus } from "@/components/roster";
 import { Card, EmptyState, SectionHeading, secondaryButtonClass } from "@/components/ui";
 
 export const metadata: Metadata = { title: "出欠" };
 
 /**
- * 出欠の記録
+ * 講師による出欠の記録（設計書 7章 / 9章 項目6）
  *
- * 名簿はその回の時点で在籍している生徒。途中入会・途中退会があるので、
- * 在籍期間とレッスンの日付で絞る。
- *
- * 記録すると DB のトリガが lessons.has_attendance_record を立て、
- * この回はレッスンの作り直しで消えなくなる（設計書 5.1）。
+ * 自分が担当している回だけ開ける。他人の回の id を直接入れても
+ * 404 になる（画面側とサーバーアクション側の両方で確認する）。
  */
-export default async function AttendanceDetailPage({
+export default async function StaffLessonPage({
   params,
-}: PageProps<"/admin/attendance/[id]">) {
+}: PageProps<"/staff/lessons/[id]">) {
   const { id } = await params;
-  const { membership } = await requireAdmin();
+  const { membership, instructor } = await requireStaff();
+
+  if (!instructor) {
+    return (
+      <EmptyState
+        title="講師として登録されていません"
+        description="スタジオにお問い合わせください。"
+      />
+    );
+  }
+
   const supabase = await createClient();
   const orgId = membership.organizationId;
 
   const { data: lesson } = await supabase
     .from("lessons")
     .select(
-      "id, date, start_at, end_at, status, cancel_reason, class_id, classes(name, room_capacity), rooms(name), instructors(name)",
+      "id, date, start_at, end_at, status, cancel_reason, class_id, classes(name), rooms(name)",
     )
     .eq("id", id)
     .eq("organization_id", orgId)
+    .eq("instructor_id", instructor.id)
     .maybeSingle();
 
   if (!lesson) notFound();
 
-  const klass = lesson.classes as unknown as {
-    name: string;
-    room_capacity: number | null;
-  } | null;
+  const klass = lesson.classes as unknown as { name: string } | null;
   const room = lesson.rooms as unknown as { name: string } | null;
-  const instructor = lesson.instructors as unknown as { name: string } | null;
 
   // その回の時点で在籍している生徒だけを名簿に出す
   const [{ data: enrollments }, { data: attendances }] = await Promise.all([
@@ -88,29 +92,27 @@ export default async function AttendanceDetailPage({
   const canceled = lesson.status === "canceled";
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-5">
       <div>
         <Link
-          href={`/admin/attendance?date=${lesson.date}`}
+          href="/staff"
           className="inline-flex items-center gap-1 text-[12px] text-sf-muted hover:text-sf-ink"
         >
           <ArrowLeft className="size-3.5" aria-hidden />
-          {formatDateJa(lesson.date)}のレッスン
+          担当レッスン
         </Link>
-        <h1 className="mt-2 text-2xl font-bold tracking-tight text-sf-ink">
+        <h1 className="mt-2 text-xl font-bold text-sf-ink">
           {klass?.name ?? "（クラス不明）"}
         </h1>
-        <p className="mt-1 flex flex-wrap items-center gap-x-4 gap-y-1 text-[13px] text-sf-body">
-          <span className="sf-num">
+        <p className="sf-num mt-1 flex flex-wrap items-center gap-x-4 gap-y-1 text-[13px] text-sf-body">
+          <span>
             {formatDateJa(lesson.date)} {formatTimeJa(lesson.start_at)}–
             {formatTimeJa(lesson.end_at)}
           </span>
           {room?.name && <span>{room.name}</span>}
-          {instructor?.name && <span>{instructor.name}</span>}
           <span className="flex items-center gap-1 text-sf-muted">
             <Users className="size-3.5" aria-hidden />
-            在籍 {students.length}
-            {klass?.room_capacity != null && ` / 1回上限 ${klass.room_capacity}`}
+            {students.length}名
           </span>
         </p>
       </div>
@@ -119,7 +121,6 @@ export default async function AttendanceDetailPage({
         <p className="rounded-xl bg-sf-danger/10 px-4 py-3 text-[13px] text-sf-ink">
           この回は休講です。
           {lesson.cancel_reason && `（${lesson.cancel_reason}）`}
-          保護者のカレンダーにも休講として表示されます。
         </p>
       )}
 
@@ -128,8 +129,8 @@ export default async function AttendanceDetailPage({
         <div className="mt-4">
           {students.length === 0 ? (
             <EmptyState
-              title="このクラスに在籍している生徒がいません"
-              description="生徒の画面から、このクラスへの在籍を登録してください。"
+              title="在籍している生徒がいません"
+              description="このクラスにまだ誰も登録されていません。スタジオにご確認ください。"
             />
           ) : (
             <Roster
@@ -137,49 +138,49 @@ export default async function AttendanceDetailPage({
               students={students}
               initial={initial}
               disabled={canceled}
-              record={recordAttendance}
+              record={recordAttendanceAsStaff}
             />
           )}
         </div>
       </Card>
 
-      <Card className="p-5">
-        <SectionHeading kicker="Lesson" title="この回の状態" />
-        <p className="mt-2 text-[12px] leading-relaxed text-sf-muted">
-          休講にすると保護者のカレンダーにも反映されるので、個別の連絡が要りません。
-          出欠を記録した回は、クラスの曜日を変えて作り直しても消えません。
-        </p>
-        <div className="mt-4 flex flex-wrap gap-2">
-          {(
-            [
-              ["scheduled", "予定に戻す"],
-              ["held", "実施済みにする"],
-              ["canceled", "休講にする"],
-            ] as const
-          ).map(([value, label]) => (
-            <form
-              key={value}
-              action={async () => {
-                "use server";
-                await setLessonStatus(id, value);
-              }}
-            >
-              <button
-                type="submit"
-                disabled={lesson.status === value}
-                className={`${secondaryButtonClass} ${
-                  lesson.status === value
-                    ? "border-sf-accent bg-sf-accent/5 text-sf-ink"
-                    : ""
-                }`}
+      {!canceled && (
+        <Card className="p-4 sm:p-5">
+          <SectionHeading kicker="Lesson" title="この回の状態" />
+          <p className="mt-2 text-[12px] leading-relaxed text-sf-muted">
+            休講の判断はスタジオが行います。急な休講は事務所にご連絡ください。
+          </p>
+          <div className="mt-4 flex flex-wrap gap-2">
+            {(
+              [
+                ["scheduled", "予定に戻す"],
+                ["held", "実施済みにする"],
+              ] as const
+            ).map(([value, label]) => (
+              <form
+                key={value}
+                action={async () => {
+                  "use server";
+                  await setLessonHeldAsStaff(id, value);
+                }}
               >
-                {lesson.status === value ? "● " : ""}
-                {label}
-              </button>
-            </form>
-          ))}
-        </div>
-      </Card>
+                <button
+                  type="submit"
+                  disabled={lesson.status === value}
+                  className={`${secondaryButtonClass} ${
+                    lesson.status === value
+                      ? "border-sf-accent bg-sf-accent/5 text-sf-ink"
+                      : ""
+                  }`}
+                >
+                  {lesson.status === value ? "● " : ""}
+                  {label}
+                </button>
+              </form>
+            ))}
+          </div>
+        </Card>
+      )}
     </div>
   );
 }

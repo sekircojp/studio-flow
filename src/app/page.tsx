@@ -29,6 +29,9 @@ export default async function Home() {
   );
   if (admin) redirect("/admin");
 
+  const staff = session?.memberships.find((m) => m.role === "instructor");
+  if (staff) redirect("/staff");
+
   const my = session?.memberships.find(
     (m) => m.role === "guardian" || m.role === "student",
   );
