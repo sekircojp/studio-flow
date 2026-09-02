@@ -19,6 +19,8 @@ MarcheBase と同じく、適用済みかどうかをこの表で管理する。
 | 13 | `20260902000600_generate_invoices.sql` | billing_settings、請求生成 generate_invoices、入金で請求状態を同期するトリガ | 済 2026-09-02 |
 | 14 | `20260902000700_transfers.sql` | transfer_settings / absence_requests / transfer_credits / transfer_bookings / waitlists | 済 2026-09-02 |
 | 15 | `20260902000800_transfer_logic.sql` | submit_absence / book_transfer / expire_transfer_credits | 済 2026-09-02 |
+| 16 | `20260902000900_invoice_guard.sql` | audit_logs、入金済み請求の編集禁止、請求の変更履歴 | 済 2026-09-02 |
+| 17 | `20260902001000_cron.sql` | pg_cron による月次請求生成と振替権の期限切れ処理 | 済 2026-09-02 |
 
 適用先: Supabase プロジェクト `studio-flow`（ref: fterpqyvzeqcaltfkpuc / Tokyo）
 
