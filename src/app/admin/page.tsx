@@ -5,6 +5,7 @@ import {
   ArrowRight,
   Building2,
   CalendarDays,
+  ClipboardCheck,
   LayoutGrid,
   Settings,
   Users,
@@ -62,7 +63,7 @@ export default async function AdminHome() {
 
   // 本日のレッスン。date は date 型なので、JST の「今日」で引く（設計書 2.1）
   const today = todayInTokyo();
-  const [{ data: todayRows }, anyLesson] = await Promise.all([
+  const [{ data: todayRows }, anyLesson, unrecorded] = await Promise.all([
     supabase
       .from("lessons")
       .select(
@@ -75,6 +76,15 @@ export default async function AdminHome() {
       .from("lessons")
       .select("id", { count: "exact", head: true })
       .eq("organization_id", orgId),
+    // 終わったのに出欠が付いていない回。放っておくと振替権が発生せず、
+    // 保護者との「休んだのに振替が無い」という食い違いになる
+    supabase
+      .from("lessons")
+      .select("id", { count: "exact", head: true })
+      .eq("organization_id", orgId)
+      .lt("date", today)
+      .neq("status", "canceled")
+      .eq("has_attendance_record", false),
   ]);
 
   type Joined = {
@@ -95,6 +105,7 @@ export default async function AdminHome() {
     instructorName: l.instructors?.name ?? "",
   }));
   const hasAnyLesson = (anyLesson.count ?? 0) > 0;
+  const unrecordedLessons = unrecorded.count ?? 0;
 
   // 欠席連絡・振替は、その日いちばん先に知りたい情報
   const flags = await fetchLessonFlags(
@@ -237,7 +248,7 @@ export default async function AdminHome() {
         )}
       </div>
 
-      <div className="grid gap-3 sm:grid-cols-3">
+      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         <StatCard
           icon={Users}
           tone="accent"
@@ -245,6 +256,7 @@ export default async function AdminHome() {
           value={students.count ?? 0}
           unit="名"
           note="休会・退会・体験は含めません"
+          href="/admin/students"
         />
         <StatCard
           icon={LayoutGrid}
@@ -253,6 +265,20 @@ export default async function AdminHome() {
           value={classes.count ?? 0}
           unit="クラス"
           note={currentSeason ? undefined : "期が未設定です"}
+          href="/admin/classes"
+        />
+        <StatCard
+          icon={ClipboardCheck}
+          tone={unrecordedLessons > 0 ? "warn" : "ok"}
+          label="出欠が未記録"
+          value={unrecordedLessons}
+          unit="回"
+          note={
+            unrecordedLessons > 0
+              ? "終わったのに記録が付いていません"
+              : "終わった回はすべて記録済みです"
+          }
+          href="/admin/attendance"
         />
         <StatCard
           icon={AlertCircle}
@@ -264,6 +290,7 @@ export default async function AdminHome() {
               ? `${carriedStudents} 名から未入金`
               : "先月までの分は全額入金済みです"
           }
+          href="/admin/billing"
         />
       </div>
 

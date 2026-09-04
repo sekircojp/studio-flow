@@ -1,3 +1,4 @@
+import Link from "next/link";
 import type { LucideIcon } from "lucide-react";
 
 /**
@@ -52,6 +53,7 @@ export function StatCard({
   value,
   unit,
   note,
+  href,
 }: {
   icon: LucideIcon;
   tone?: "neutral" | "accent" | "ok" | "warn";
@@ -59,6 +61,8 @@ export function StatCard({
   value: string | number;
   unit?: string;
   note?: string;
+  /** 指標を見たあとに行きたい場所。渡すとカード全体が押せるようになる */
+  href?: string;
 }) {
   const tones: Record<string, string> = {
     neutral: "bg-sf-ink/8 text-sf-ink",
@@ -67,8 +71,8 @@ export function StatCard({
     warn: "bg-sf-warn/14 text-sf-warn",
   };
 
-  return (
-    <Card className="p-4">
+  const body = (
+    <>
       <div className="flex items-center gap-2">
         <span
           className={`flex size-6 items-center justify-center rounded-md ${tones[tone]}`}
@@ -84,8 +88,20 @@ export function StatCard({
         )}
       </p>
       {note && <p className="mt-1 text-[11px] text-sf-muted">{note}</p>}
-    </Card>
+    </>
   );
+
+  if (href) {
+    return (
+      <Card className="p-4 transition hover:border-sf-accent/50">
+        <Link href={href} className="block">
+          {body}
+        </Link>
+      </Card>
+    );
+  }
+
+  return <Card className="p-4">{body}</Card>;
 }
 
 /** 空の状態。まだ何も無いことと、次に何をすればよいかを同時に出す */
