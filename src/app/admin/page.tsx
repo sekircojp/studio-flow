@@ -109,16 +109,17 @@ export default async function AdminHome() {
     await Promise.all([
       supabase
         .from("invoices")
-        .select("id, total, status")
+        .select("id, total, status, student_id")
         .eq("organization_id", orgId)
         .eq("billing_month", month),
-      // 未収は今月に限らない。先月までの取りこぼしこそ見えている必要がある。
-      // 逆に、先に作ってある翌月分はまだ受け取る期日が来ていないので数えない
+      // 先月以前で、まだ受け取れていない分。
+      // 今月の状況は上の紺色の帯が受け持つので、ここでは重ねない。
+      // 翌月分は受け取る期日が来ていないので、そもそも数えない
       supabase
         .from("invoices")
         .select("id, total, student_id")
         .eq("organization_id", orgId)
-        .lte("billing_month", month)
+        .lt("billing_month", month)
         .in("status", UNPAID_STATUSES),
       supabase
         .from("payments")
@@ -130,6 +131,7 @@ export default async function AdminHome() {
     id: string;
     total: number;
     status: string;
+    student_id: string;
   }[];
   const paymentRows = (monthPayments ?? []) as {
     invoice_id: string;
@@ -152,14 +154,24 @@ export default async function AdminHome() {
   const unpaidAmount = unpaid.reduce((s, i) => s + (i.total - paidOf(i.id)), 0);
   const collectRate = billed > 0 ? Math.round((collected / billed) * 1000) / 10 : 0;
 
-  // 今月までの未収（先月以前の取りこぼしを含む。翌月以降は数えない）
-  const openRows = (openInvoices ?? []) as {
+  // 何名中何名から受け取れたか。件数だけだと、あと何人残っているかが読めない。
+  // 請求は生徒単位なので（設計書 4.5）、人数で数えて構わない
+  const targetStudents = new Set(billable.map((i) => i.student_id)).size;
+  const paidStudents = new Set(
+    billable.filter((i) => i.status === "paid").map((i) => i.student_id),
+  ).size;
+
+  // 先月以前の未収。今月ぶんは紺色の帯にあるので、ここでは繰り越しだけを見る
+  const carriedRows = (openInvoices ?? []) as {
     id: string;
     total: number;
     student_id: string;
   }[];
-  const openAmount = openRows.reduce((s, i) => s + (i.total - paidOf(i.id)), 0);
-  const openStudents = new Set(openRows.map((i) => i.student_id)).size;
+  const carriedAmount = carriedRows.reduce(
+    (s, i) => s + (i.total - paidOf(i.id)),
+    0,
+  );
+  const carriedStudents = new Set(carriedRows.map((i) => i.student_id)).size;
 
   return (
     <div className="space-y-6">
@@ -209,7 +221,9 @@ export default async function AdminHome() {
             </div>
             <div className="mt-3 flex flex-wrap items-center gap-x-6 gap-y-2 text-[12px]">
               <span className="text-sf-ok">回収率 {collectRate}%</span>
-              <span className="text-sf-nav-muted">請求 {billable.length} 件</span>
+              <span className="sf-num text-sf-nav-muted">
+                支払済 {paidStudents} / {targetStudents} 名
+              </span>
               <Link
                 href="/admin/billing"
                 className="rounded-lg bg-white/10 px-2.5 py-1 transition hover:bg-white/20"
@@ -238,17 +252,17 @@ export default async function AdminHome() {
           label="クラス"
           value={classes.count ?? 0}
           unit="クラス"
-          note={currentSeason ? "現在の期" : "期が未設定です"}
+          note={currentSeason ? undefined : "期が未設定です"}
         />
         <StatCard
           icon={AlertCircle}
-          tone={openAmount > 0 ? "warn" : "ok"}
-          label="未収の月謝"
-          value={formatYen(openAmount)}
+          tone={carriedAmount > 0 ? "warn" : "ok"}
+          label="先月までの未収"
+          value={formatYen(carriedAmount)}
           note={
-            openAmount > 0
-              ? `${openStudents} 名 / 今月までの未納`
-              : "取りこぼしはありません"
+            carriedAmount > 0
+              ? `${carriedStudents} 名から未入金`
+              : "先月までの分は全額入金済みです"
           }
         />
       </div>
