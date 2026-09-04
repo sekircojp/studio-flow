@@ -27,7 +27,7 @@ export default async function AdminLayout({
   const brand = await getBrand(orgId);
   const supabase = await createClient();
 
-  // サイドバーに出す校舎。アプリ層でも organization_id で絞る（設計書 3章）
+  // サイドバーに出すスタジオ。アプリ層でも organization_id で絞る（設計書 3章）
   const { data: locations } = await supabase
     .from("locations")
     .select("name")
@@ -36,7 +36,7 @@ export default async function AdminLayout({
     .order("created_at");
 
   const list = locations ?? [];
-  const locationLabel = list[0]?.name ?? "校舎未登録";
+  const locationLabel = list[0]?.name ?? "スタジオ未登録";
   const locationSubLabel =
     list.length === 0
       ? "登録してください"

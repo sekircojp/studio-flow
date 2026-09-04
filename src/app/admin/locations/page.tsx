@@ -12,7 +12,7 @@ import {
   secondaryButtonClass,
 } from "@/components/ui";
 
-export const metadata: Metadata = { title: "校舎・部屋" };
+export const metadata: Metadata = { title: "スタジオ・ルーム" };
 
 type Room = { id: string; name: string; capacity: number | null; location_id: string };
 type Location = {
@@ -24,12 +24,12 @@ type Location = {
 };
 
 /**
- * 校舎・部屋の管理（設計書 4.1）
+ * スタジオ・ルームの管理（設計書 4.1）
  *
- * 部屋が1つしかないスタジオでも、校舎の下に部屋を1件作る。
- * 後から2部屋目ができたときに構造が壊れないようにするため。
+ * ルームが1つしかなくても、スタジオの下にルームを1件作る。
+ * 後から2つ目のルームができたときに構造が壊れないようにするため。
  *
- * 閉じた校舎は別枠に移す。一覧からは消えるが、過去のデータは残る。
+ * 閉じたスタジオは別枠に移す。一覧からは消えるが、過去のデータは残る。
  */
 export default async function LocationsPage() {
   const { membership } = await requireAdmin();
@@ -69,7 +69,7 @@ export default async function LocationsPage() {
               {loc.name}
               {closed && (
                 <span className="rounded-md bg-sf-ink/8 px-1.5 py-0.5 text-[11px] font-medium text-sf-muted">
-                  閉校
+                  閉鎖
                 </span>
               )}
             </p>
@@ -87,7 +87,7 @@ export default async function LocationsPage() {
             }}
           >
             <button type="submit" className={secondaryButtonClass}>
-              {closed ? "再開する" : "閉校にする"}
+              {closed ? "再開する" : "閉鎖にする"}
             </button>
           </form>
 
@@ -102,7 +102,7 @@ export default async function LocationsPage() {
           <p className="sf-kicker">Rooms</p>
           {inRoom.length === 0 ? (
             <p className="mt-1.5 text-[13px] text-sf-warn">
-              部屋がありません。1件登録してください。
+              ルームがありません。1件登録してください。
             </p>
           ) : (
             <ul className="mt-2 flex flex-wrap gap-2">
@@ -132,21 +132,21 @@ export default async function LocationsPage() {
       <div className="pb-1">
         <p className="sf-kicker">Settings</p>
         <h1 className="mt-1.5 text-2xl font-bold tracking-tight text-sf-ink">
-          校舎・部屋
+          スタジオ・ルーム
         </h1>
         <p className="mt-1 max-w-2xl text-[13px] leading-relaxed text-sf-body">
-          部屋が1つだけのスタジオでも、校舎の下に部屋を1件作ってください。
-          あとから2部屋目が増えても、設定を作り直さずに済みます。
+          ルームが1つだけでも、スタジオの下にルームを1件作ってください。
+          あとから2つ目のルームが増えても、設定を作り直さずに済みます。
         </p>
       </div>
 
       <Card className="p-5">
-        <SectionHeading kicker="Open" title="運営中の校舎" />
+        <SectionHeading kicker="Open" title="運営中のスタジオ" />
         <div className="mt-4">
           {openList.length === 0 ? (
             <EmptyState
-              title="運営中の校舎がありません"
-              description="下の「校舎を追加」から登録してください。1店舗のスタジオでも1件必要です。"
+              title="運営中のスタジオがありません"
+              description="下の「スタジオを追加」から登録してください。1か所だけのスタジオでも1件必要です。"
             />
           ) : (
             <ul className="space-y-3">
@@ -162,7 +162,7 @@ export default async function LocationsPage() {
         <Card className="p-5">
           <SectionHeading
             kicker="Closed"
-            title={`閉校した校舎（${closedList.length}）`}
+            title={`閉鎖したスタジオ（${closedList.length}）`}
           />
           <p className="mt-2 text-[12px] leading-relaxed text-sf-muted">
             運営中の一覧からは外れています。過去のレッスンや出欠の記録は残っています。
@@ -177,14 +177,14 @@ export default async function LocationsPage() {
 
       <div className="grid gap-4 lg:grid-cols-2">
         <Card className="p-5">
-          <SectionHeading kicker="Add" title="校舎を追加" />
+          <SectionHeading kicker="Add" title="スタジオを追加" />
           <div className="mt-4">
             <LocationForm />
           </div>
         </Card>
 
         <Card className="p-5">
-          <SectionHeading kicker="Add" title="部屋を追加" />
+          <SectionHeading kicker="Add" title="ルームを追加" />
           <div className="mt-4">
             <RoomForm
               locations={openList.map((l) => ({ id: l.id, name: l.name }))}
@@ -194,9 +194,9 @@ export default async function LocationsPage() {
       </div>
 
       <p className="text-[12px] leading-relaxed text-sf-muted">
-        <strong className="font-medium text-sf-body">削除と閉校の違い</strong>
-        ：登録を間違えた校舎は「削除」で完全に消せます。実際に使った校舎は、
-        レッスンや出欠の記録が付いているため削除できません。その場合は「閉校にする」を
+        <strong className="font-medium text-sf-body">削除と閉鎖の違い</strong>
+        ：登録を間違えたスタジオは「削除」で完全に消せます。実際に使ったスタジオは、
+        レッスンや出欠の記録が付いているため削除できません。その場合は「閉鎖にする」を
         使ってください。一覧から外れ、記録は残ります。
       </p>
     </div>

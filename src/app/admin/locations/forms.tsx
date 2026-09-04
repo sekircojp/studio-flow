@@ -23,7 +23,7 @@ export function LocationForm() {
     <form action={action} className="space-y-4">
       <div>
         <label htmlFor="loc-name" className={labelClass}>
-          校舎名
+          スタジオ名
         </label>
         <input id="loc-name" name="name" required className={fieldClass} />
       </div>
@@ -48,7 +48,7 @@ export function LocationForm() {
           ) : (
             <Plus className="size-4" aria-hidden />
           )}
-          校舎を追加
+          スタジオを追加
         </button>
         <Message state={state} />
       </div>
@@ -69,7 +69,7 @@ export function RoomForm({
   if (locations.length === 0) {
     return (
       <p className="text-[13px] text-sf-muted">
-        先に校舎を1件登録すると、部屋を追加できます。
+        先にスタジオを1件登録すると、ルームを追加できます。
       </p>
     );
   }
@@ -79,7 +79,7 @@ export function RoomForm({
       <div className="grid gap-4 sm:grid-cols-3">
         <div>
           <label htmlFor="room-location" className={labelClass}>
-            校舎
+            スタジオ
           </label>
           <select
             id="room-location"
@@ -96,7 +96,7 @@ export function RoomForm({
         </div>
         <div>
           <label htmlFor="room-name" className={labelClass}>
-            部屋名
+            ルーム名
           </label>
           <input id="room-name" name="name" required className={fieldClass} />
         </div>
@@ -121,7 +121,7 @@ export function RoomForm({
           ) : (
             <Plus className="size-4" aria-hidden />
           )}
-          部屋を追加
+          ルームを追加
         </button>
         <Message state={state} />
       </div>

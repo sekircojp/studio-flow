@@ -132,7 +132,7 @@ export default async function ClassesPage() {
           {classList.length === 0 ? (
             <EmptyState
               title="クラスがまだありません"
-              description="下の「クラスを追加」から登録してください。期と部屋が先に必要です。"
+              description="下の「クラスを追加」から登録してください。期とルームが先に必要です。"
             />
           ) : (
             <ul className="space-y-3">

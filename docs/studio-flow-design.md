@@ -115,12 +115,31 @@ brand_settings
   tel, email, address, website,
   invoice_registration_number  -- 適格請求書発行事業者の登録番号（任意）
 
-locations (校舎・会場)
+locations (スタジオ = 場所)
   id, organization_id, name, address, tel, is_active
 
-rooms (部屋)
+rooms (ルーム = その中の1室)
   id, location_id, name, capacity, display_order
 ```
+
+### 画面での呼び方（2026-09-05 確定）
+
+DB のテーブル名は `locations` / `rooms` のまま、画面の表記を次のとおりとする。
+
+| 階層 | 画面での呼び方 | 例 |
+| --- | --- | --- |
+| テナント（契約者） | **スクール名** | テストダンススクール |
+| locations | **スタジオ** | 岡崎スタジオ |
+| rooms | **ルーム** | メインルーム |
+
+対象を「スタジオと名のつく業態」に絞っている（1.1）ので、業種を跨ぐための
+無難な言葉（店舗・拠点）ではなく、現場で実際に使われている「スタジオ」を
+場所の名前にする。
+
+テナント側を「スタジオ名」と呼ぶと場所と衝突するため、そちらは「スクール名」
+とする。`brand_settings.studio_name` の列名は変更しない。
+
+運営を終えたスタジオは `is_active = false`（画面では「閉鎖」）で表す。
 
 **Room は必ず持つ。** 部屋が1つしかないスタジオでも Location 配下に Room を1件作る。後から2部屋目ができても構造が壊れないようにするため。
 

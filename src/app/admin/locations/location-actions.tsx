@@ -6,10 +6,10 @@ import { deleteLocation, type LocationState } from "./actions";
 import { secondaryButtonClass } from "@/components/ui";
 
 /**
- * 校舎の削除ボタン
+ * スタジオの削除ボタン
  *
  * 押し間違いで消えると取り返しがつかないため、必ず確認をはさむ。
- * 実績のある校舎はサーバー側で弾かれ、閉校を案内するメッセージが返る。
+ * 実績のあるスタジオはサーバー側で弾かれ、閉鎖を案内するメッセージが返る。
  */
 export function DeleteLocationButton({
   locationId,
@@ -31,7 +31,7 @@ export function DeleteLocationButton({
       onSubmit={(e) => {
         const detail =
           roomCount > 0
-            ? `「${locationName}」と、その中の部屋 ${roomCount} 室を削除します。`
+            ? `「${locationName}」と、その中のルーム ${roomCount} 室を削除します。`
             : `「${locationName}」を削除します。`;
         if (!confirm(`${detail}\n\nこの操作は取り消せません。よろしいですか。`)) {
           e.preventDefault();

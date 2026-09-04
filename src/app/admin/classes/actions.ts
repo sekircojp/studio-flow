@@ -54,7 +54,7 @@ function readMeetings(formData: FormData): MeetingInput[] | string {
     const room = orNull(rooms[i]);
 
     if (day === null || day < 0 || day > 6) return "曜日を選んでください。";
-    if (!room) return "部屋を選んでください。";
+    if (!room) return "ルームを選んでください。";
     if (!start || !end) return "開始時刻と終了時刻を入れてください。";
     if (start >= end) return "終了時刻は開始時刻より後にしてください。";
 
@@ -72,7 +72,7 @@ function readMeetings(formData: FormData): MeetingInput[] | string {
   return meetings;
 }
 
-/** 部屋がすべて自テナントのものか確認する（設計書 3章） */
+/** ルームがすべて自テナントのものか確認する（設計書 3章） */
 async function roomsBelongToOrg(
   supabase: Awaited<ReturnType<typeof createClient>>,
   orgId: string,
@@ -123,7 +123,7 @@ export async function createClass(
     roomsBelongToOrg(supabase, orgId, meetings.map((m) => m.room_id)),
   ]);
   if (!season) return { error: "その期は見つかりませんでした。" };
-  if (!roomsOk) return { error: "その部屋は見つかりませんでした。" };
+  if (!roomsOk) return { error: "そのルームは見つかりませんでした。" };
 
   // クラスと開催枠は同じトランザクションで作る。
   // 途中で失敗すると「開催日の無いクラス」が残り、画面からは消せない
@@ -178,7 +178,7 @@ export async function addClassMeeting(
     roomsBelongToOrg(supabase, orgId, meetings.map((m) => m.room_id)),
   ]);
   if (!cls) return { error: "そのクラスは見つかりませんでした。" };
-  if (!roomsOk) return { error: "その部屋は見つかりませんでした。" };
+  if (!roomsOk) return { error: "そのルームは見つかりませんでした。" };
 
   const { error } = await supabase.from("class_meetings").insert(
     meetings.map((m) => ({ organization_id: orgId, class_id: classId, ...m })),

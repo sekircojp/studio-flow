@@ -64,7 +64,7 @@ export default async function SeasonsPage() {
   const closureList = (closures ?? []) as Closure[];
   const locationList = (locations ?? []) as { id: string; name: string }[];
   const locationName = (id: string | null) =>
-    id ? (locationList.find((l) => l.id === id)?.name ?? "（削除された校舎）") : "全校舎";
+    id ? (locationList.find((l) => l.id === id)?.name ?? "（削除されたスタジオ）") : "全スタジオ";
 
   return (
     <div className="space-y-6">
@@ -142,7 +142,7 @@ export default async function SeasonsPage() {
         <SectionHeading kicker="Closures" title="休講日" />
         <p className="mt-2 text-[12px] leading-relaxed text-sf-muted">
           年末年始やお盆など、レッスンを行わない日を登録します。
-          ここに入れた日はレッスンが作られません。特定の校舎だけ休みにすることもできます。
+          ここに入れた日はレッスンが作られません。特定のスタジオだけ休みにすることもできます。
         </p>
 
         <div className="mt-4">

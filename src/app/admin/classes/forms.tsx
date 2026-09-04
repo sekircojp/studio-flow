@@ -39,7 +39,7 @@ export function ClassForm({
         クラスを作るには、先に
         {seasons.length === 0 && "「期」"}
         {seasons.length === 0 && rooms.length === 0 && "と"}
-        {rooms.length === 0 && "「部屋」"}
+        {rooms.length === 0 && "「ルーム」"}
         の登録が必要です。
       </p>
     );
@@ -210,7 +210,7 @@ export function GenerateLessonsButton({
  * クラスは週に何回開いてもよい。「初級クラス（週2回レッスン）」は
  * 1クラスで、ここに2行入れる。クラス数は行数ではなくクラスの件数で数える。
  *
- * 行ごとに部屋を選べるのは、曜日によって使う部屋が違うことがあるため。
+ * 行ごとにルームを選べるのは、曜日によって使うルームが違うことがあるため。
  * 隔週・月1回のような周期は扱わない。例外的な回はカレンダーから
  * 個別に休講・時間変更して調整する（設計書 5.1）。
  */
@@ -268,7 +268,7 @@ function MeetingRows({
             <select
               name="meeting_room"
               required
-              aria-label={`${index + 1} 行目の部屋`}
+              aria-label={`${index + 1} 行目のルーム`}
               className={fieldClass}
             >
               {rooms.map((r) => (

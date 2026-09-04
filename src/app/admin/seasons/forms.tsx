@@ -115,7 +115,7 @@ export function ClosureForm({
             対象
           </label>
           <select id="closure-location" name="location_id" className={fieldClass}>
-            <option value="">全校舎</option>
+            <option value="">全スタジオ</option>
             {locations.map((l) => (
               <option key={l.id} value={l.id}>
                 {l.name}のみ

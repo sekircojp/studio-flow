@@ -37,7 +37,7 @@ export async function requireAdmin(): Promise<AdminContext> {
   return { userId: session.userId, email: session.email, membership };
 }
 
-/** オーナー限定の操作で使う（スタジオ設定の変更など） */
+/** オーナー限定の操作で使う（基本設定の変更など） */
 export async function requireOwner(): Promise<AdminContext> {
   const ctx = await requireAdmin();
   if (ctx.membership.role !== "owner") redirect("/admin");

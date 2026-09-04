@@ -101,7 +101,7 @@ export async function createClosure(
 
   const supabase = await createClient();
 
-  // 校舎を指定した場合は、自テナントのものかアプリ層でも確認する
+  // スタジオを指定した場合は、自テナントのものかアプリ層でも確認する
   if (locationId) {
     const { data: loc } = await supabase
       .from("locations")
@@ -109,7 +109,7 @@ export async function createClosure(
       .eq("id", locationId)
       .eq("organization_id", membership.organizationId)
       .maybeSingle();
-    if (!loc) return { error: "その校舎は見つかりませんでした。" };
+    if (!loc) return { error: "そのスタジオは見つかりませんでした。" };
   }
 
   const { error } = await supabase.from("studio_closures").insert({
@@ -121,7 +121,7 @@ export async function createClosure(
 
   if (error) {
     console.error("休講日の登録に失敗しました", error);
-    // 23505 = 一意制約違反。同じ日・同じ校舎がすでにある
+    // 23505 = 一意制約違反。同じ日・同じスタジオがすでにある
     if (error.code === "23505") {
       return { error: "その日はすでに休講日として登録されています。" };
     }

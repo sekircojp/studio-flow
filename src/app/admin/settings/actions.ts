@@ -13,7 +13,7 @@ function orNull(v: FormDataEntryValue | null): string | null {
 }
 
 /**
- * スタジオ設定の保存
+ * 基本設定の保存
  *
  * 設計書 7章のとおり、画面の出し分けとは別に、ここでも必ず認可する。
  * requireOwner() は /admin へリダイレクトするため、スタッフが直接

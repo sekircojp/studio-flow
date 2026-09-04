@@ -5,10 +5,10 @@ import { getBrand } from "@/lib/brand.server";
 import SettingsForm from "./settings-form";
 import { Card, SectionHeading } from "@/components/ui";
 
-export const metadata: Metadata = { title: "スタジオ設定" };
+export const metadata: Metadata = { title: "基本設定" };
 
 /**
- * スタジオ設定（ブランド表示・設計書 4.1 / 12章）
+ * 基本設定（ブランド表示・設計書 4.1 / 12章）
  *
  * 変更できるのはオーナーだけ。スタッフには読み取り専用で見せる。
  * 保存側でも requireOwner() で確認しているため、画面を迂回しても更新できない。
@@ -23,7 +23,7 @@ export default async function SettingsPage() {
       <div className="pb-1">
         <p className="sf-kicker">Settings</p>
         <h1 className="mt-1.5 text-2xl font-bold tracking-tight text-sf-ink">
-          スタジオ設定
+          基本設定
         </h1>
         <p className="mt-1 max-w-2xl text-[13px] leading-relaxed text-sf-body">
           ここで登録した内容が、保護者向けの画面と、保護者に届くメールの
@@ -40,11 +40,11 @@ export default async function SettingsPage() {
             <div className="space-y-4">
               <p className="flex items-center gap-2 rounded-xl bg-sf-warn/10 px-3 py-2.5 text-[13px] text-sf-ink">
                 <Lock className="size-4 shrink-0 text-sf-warn" aria-hidden />
-                スタジオ設定を変更できるのはオーナーのみです。
+                基本設定を変更できるのはオーナーのみです。
               </p>
               <dl className="divide-y divide-sf-border rounded-xl border border-sf-border text-[13px]">
                 {[
-                  ["スタジオ名", brand.studioName],
+                  ["スクール名", brand.studioName],
                   ["電話番号", brand.tel],
                   ["メールアドレス", brand.email],
                   ["住所", brand.address],

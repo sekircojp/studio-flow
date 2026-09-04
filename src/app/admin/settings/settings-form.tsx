@@ -9,7 +9,7 @@ import { fieldClass, labelClass, primaryButtonClass } from "@/components/ui";
 const FIELDS = [
   {
     name: "studio_name",
-    label: "スタジオ名",
+    label: "スクール名",
     type: "text",
     hint: "保護者向けの画面と、メールの差出人名に使われます",
   },

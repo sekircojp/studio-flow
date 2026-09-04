@@ -67,8 +67,8 @@ const GROUPS: { kicker: string; items: Item[] }[] = [
   {
     kicker: "Settings",
     items: [
-      { href: "/admin/locations", label: "校舎・部屋", icon: Building2 },
-      { href: "/admin/settings", label: "スタジオ設定", icon: Settings },
+      { href: "/admin/locations", label: "スタジオ・ルーム", icon: Building2 },
+      { href: "/admin/settings", label: "基本設定", icon: Settings },
     ],
   },
 ];
@@ -93,7 +93,7 @@ export function AdminSidebar({
         </span>
       </div>
 
-      {/* 校舎の表示。校舎をまたいだ絞り込みは、クラスを作る段階で足す */}
+      {/* スタジオの表示。スタジオをまたいだ絞り込みは、クラスを作る段階で足す */}
       <Link
         href="/admin/locations"
         className="mt-3 flex items-center gap-2.5 rounded-xl bg-sf-nav-soft px-3 py-2.5 transition hover:brightness-110"

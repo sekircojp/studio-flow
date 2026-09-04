@@ -12,9 +12,9 @@ function orNull(v: FormDataEntryValue | null): string | null {
 }
 
 /**
- * 校舎の登録
+ * スタジオの登録
  *
- * 校舎・部屋はオーナーとスタッフが編集できる（設計書 7章のスタッフの担当店舗に対応）。
+ * スタジオ・ルームはオーナーとスタッフが編集できる（設計書 7章のスタッフの担当店舗に対応）。
  * 個別権限の仕組みはフェーズ1に無いため、いまは両者を同じ扱いにしている。
  */
 export async function createLocation(
@@ -24,7 +24,7 @@ export async function createLocation(
   const { membership } = await requireAdmin();
 
   const name = orNull(formData.get("name"));
-  if (!name) return { error: "校舎名を入力してください。" };
+  if (!name) return { error: "スタジオ名を入力してください。" };
 
   const supabase = await createClient();
   const { error } = await supabase.from("locations").insert({
@@ -35,7 +35,7 @@ export async function createLocation(
   });
 
   if (error) {
-    console.error("校舎の登録に失敗しました", error);
+    console.error("スタジオの登録に失敗しました", error);
     return { error: "登録できませんでした。" };
   }
 
@@ -44,7 +44,7 @@ export async function createLocation(
 }
 
 /**
- * 部屋の登録
+ * ルームの登録
  *
  * organization_id は locations と揃える必要がある。DB 側にも複合外部キーが
  * あるため食い違えば弾かれるが、アプリ層でも所属を確認してから入れる。
@@ -57,8 +57,8 @@ export async function createRoom(
 
   const name = orNull(formData.get("name"));
   const locationId = orNull(formData.get("location_id"));
-  if (!name) return { error: "部屋名を入力してください。" };
-  if (!locationId) return { error: "校舎を選んでください。" };
+  if (!name) return { error: "ルーム名を入力してください。" };
+  if (!locationId) return { error: "スタジオを選んでください。" };
 
   const capacityRaw = orNull(formData.get("capacity"));
   const capacity = capacityRaw ? Number(capacityRaw) : null;
@@ -68,7 +68,7 @@ export async function createRoom(
 
   const supabase = await createClient();
 
-  // 指定された校舎が自テナントのものか、アプリ層でも確認する（設計書 3章）
+  // 指定されたスタジオが自テナントのものか、アプリ層でも確認する（設計書 3章）
   const { data: location } = await supabase
     .from("locations")
     .select("id")
@@ -76,7 +76,7 @@ export async function createRoom(
     .eq("organization_id", membership.organizationId)
     .maybeSingle();
 
-  if (!location) return { error: "その校舎は見つかりませんでした。" };
+  if (!location) return { error: "そのスタジオは見つかりませんでした。" };
 
   const { error } = await supabase.from("rooms").insert({
     organization_id: membership.organizationId,
@@ -86,7 +86,7 @@ export async function createRoom(
   });
 
   if (error) {
-    console.error("部屋の登録に失敗しました", error);
+    console.error("ルームの登録に失敗しました", error);
     return { error: "登録できませんでした。" };
   }
 
@@ -95,9 +95,9 @@ export async function createRoom(
 }
 
 /**
- * 閉校 / 再開
+ * 閉鎖 / 再開
  *
- * 運営していた校舎はこちらで表す。一覧の「閉校した校舎」に移るだけで、
+ * 運営していたスタジオはこちらで表す。一覧の「閉鎖したスタジオ」に移るだけで、
  * 過去のレッスンや出欠は残る。
  */
 export async function setLocationActive(locationId: string, isActive: boolean) {
@@ -110,20 +110,20 @@ export async function setLocationActive(locationId: string, isActive: boolean) {
     .eq("id", locationId)
     .eq("organization_id", membership.organizationId);
 
-  if (error) console.error("校舎の状態変更に失敗しました", error);
+  if (error) console.error("スタジオの状態変更に失敗しました", error);
   revalidatePath("/admin/locations");
 }
 
 /**
- * 校舎の完全削除
+ * スタジオの完全削除
  *
- * 間違えて登録した校舎を消すためのもの。実績のある校舎は消せない。
- * 校舎を消すと 校舎 → 部屋 → クラス → レッスン → 出欠 が芋づるで
- * 消えることになり、「校舎の情報だけ消して他は残す」意図と逆になるため。
+ * 間違えて登録したスタジオを消すためのもの。実績のあるスタジオは消せない。
+ * スタジオを消すと スタジオ → ルーム → クラス → レッスン → 出欠 が芋づるで
+ * 消えることになり、「スタジオの情報だけ消して他は残す」意図と逆になるため。
  *
  * 削除そのものは DB 側の関数 delete_location() が行う。
- * 部屋と校舎を1つのトランザクションで消し、外部キーに阻まれたら
- * 部屋の削除ごと巻き戻る。
+ * ルームとスタジオを1つのトランザクションで消し、外部キーに阻まれたら
+ * ルームの削除ごと巻き戻る。
  */
 export async function deleteLocation(
   _prev: LocationState,
@@ -132,7 +132,7 @@ export async function deleteLocation(
   await requireAdmin();
 
   const locationId = orNull(formData.get("location_id"));
-  if (!locationId) return { error: "校舎が指定されていません。" };
+  if (!locationId) return { error: "スタジオが指定されていません。" };
 
   const supabase = await createClient();
   const { error } = await supabase.rpc("delete_location", {
@@ -140,13 +140,13 @@ export async function deleteLocation(
   });
 
   if (error) {
-    console.error("校舎の削除に失敗しました", error);
+    console.error("スタジオの削除に失敗しました", error);
 
-    // 23503 = 外部キー違反。使われている校舎を消そうとした場合
+    // 23503 = 外部キー違反。使われているスタジオを消そうとした場合
     if (error.code === "23503") {
       return {
         error:
-          "この校舎はすでに使われているため削除できません。閉校にしてください（過去のデータは残ります）。",
+          "このスタジオはすでに使われているため削除できません。閉鎖にしてください（過去のデータは残ります）。",
       };
     }
     return { error: "削除できませんでした。" };

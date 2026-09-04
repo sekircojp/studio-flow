@@ -373,13 +373,13 @@ export default async function AdminHome() {
               {
                 href: "/admin/locations",
                 icon: Building2,
-                label: "校舎・部屋を登録",
+                label: "スタジオ・ルームを登録",
                 hint: needsLocation ? "まだ登録されていません" : undefined,
               },
               {
                 href: "/admin/settings",
                 icon: Settings,
-                label: "スタジオ設定を編集",
+                label: "基本設定を編集",
                 hint: undefined,
               },
             ].map((a) => (
