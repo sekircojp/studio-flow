@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { getSessionContext } from "@/lib/auth/session";
+import { devLoginEnabled } from "@/lib/auth/dev-login";
 import LoginForm from "./login-form";
 
 export const metadata: Metadata = {
@@ -17,5 +18,7 @@ export default async function LoginPage() {
   const session = await getSessionContext();
   if (session) redirect("/");
 
-  return <LoginForm />;
+  // 開発用ログインの有無はサーバーで決める。クライアントで判定すると、
+  // ビルドに条件が焼き込まれて本番でも枠だけ残る
+  return <LoginForm devLogin={devLoginEnabled()} />;
 }

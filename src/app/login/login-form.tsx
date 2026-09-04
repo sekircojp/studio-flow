@@ -2,10 +2,11 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Loader2, Mail } from "lucide-react";
+import { Loader2, Mail, TriangleAlert } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { Card, fieldClass, labelClass, primaryButtonClass } from "@/components/ui";
 import { APP_NAME } from "@/config/app";
+import { devLogin as devLoginAction } from "./dev-actions";
 
 /**
  * ログインフォーム（メール確認コード方式・パスワード不要）
@@ -34,7 +35,12 @@ const REASON_MESSAGES: Record<string, string> = {
 
 type Step = "email" | "code";
 
-export default function LoginForm() {
+export default function LoginForm({
+  devLogin: devLoginAvailable = false,
+}: {
+  /** 開発用ログインを出すか。手元で DEV_LOGIN=1 のときだけ true */
+  devLogin?: boolean;
+}) {
   const router = useRouter();
   const [step, setStep] = useState<Step>("email");
   const [email, setEmail] = useState("");
@@ -61,6 +67,41 @@ export default function LoginForm() {
       // 登録済みかどうかはここでは分からない（意図的にそうしている）。
       // 未登録のアドレスにも同じ案内を出す。
       setStep("code");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  /**
+   * 開発用ログイン（手元のみ）
+   *
+   * 確認コードの送信と照合だけを飛ばす。セッションの張り方は通常と同じで、
+   * サーバーが返したトークンで verifyOtp する。
+   */
+  async function handleDevLogin(e: React.FormEvent) {
+    e.preventDefault();
+    setBusy(true);
+    setMessage("");
+
+    try {
+      const result = await devLoginAction(email.trim().toLowerCase());
+      if (result.error || !result.token_hash) {
+        setMessage(result.error ?? "ログインできませんでした。");
+        return;
+      }
+
+      const supabase = createClient();
+      const { error } = await supabase.auth.verifyOtp({
+        token_hash: result.token_hash,
+        type: "magiclink",
+      });
+      if (error) {
+        setMessage("ログインできませんでした。もう一度お試しください。");
+        return;
+      }
+
+      router.replace("/");
+      router.refresh();
     } finally {
       setBusy(false);
     }
@@ -209,6 +250,28 @@ export default function LoginForm() {
           >
             {message}
           </p>
+        )}
+
+        {/* 手元で DEV_LOGIN=1 のときだけ出る。本番では描画されない */}
+        {devLoginAvailable && step === "email" && (
+          <div className="mt-6 rounded-lg border border-dashed border-sf-warn/60 bg-sf-warn/8 p-3">
+            <p className="flex items-center gap-1.5 text-[11px] font-semibold text-sf-warn">
+              <TriangleAlert className="size-3.5" aria-hidden />
+              開発モード
+            </p>
+            <p className="mt-1 text-[11px] leading-relaxed text-sf-body">
+              確認コードを飛ばしてログインします。メールが届かないアドレス
+              （講師・保護者のテスト用）の画面を見るためのものです。
+            </p>
+            <button
+              type="button"
+              onClick={handleDevLogin}
+              disabled={busy || !email.trim()}
+              className="mt-2 w-full rounded-lg border border-sf-warn/60 px-3 py-2 text-[12px] font-medium text-sf-warn transition hover:bg-sf-warn/10 disabled:opacity-50"
+            >
+              コード無しでログイン
+            </button>
+          </div>
         )}
       </Card>
     </main>
