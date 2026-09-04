@@ -1,10 +1,11 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import {
+  AlertCircle,
   ArrowRight,
   Building2,
   CalendarDays,
-  DoorOpen,
+  LayoutGrid,
   Settings,
   Users,
   Wallet,
@@ -38,14 +39,23 @@ export default async function AdminHome() {
     return q;
   };
 
-  const [students, locations, rooms] = await Promise.all([
+  // 現在の期のクラス数。期が未設定なら全件を数える
+  const { data: currentSeason } = await supabase
+    .from("seasons")
+    .select("id")
+    .eq("organization_id", orgId)
+    .eq("is_current", true)
+    .maybeSingle();
+
+  const [students, locations, classes] = await Promise.all([
     count("students", ["status", "active"]),
     count("locations", ["is_active", "true"]),
-    count("rooms", ["is_active", "true"]),
+    currentSeason
+      ? count("classes", ["season_id", currentSeason.id])
+      : count("classes"),
   ]);
 
   const needsLocation = (locations.count ?? 0) === 0;
-  const needsRoom = (rooms.count ?? 0) === 0;
   const name = email?.split("@")[0] ?? "";
 
   // 本日のレッスン。date は date 型なので、JST の「今日」で引く（設計書 2.1）
@@ -86,17 +96,24 @@ export default async function AdminHome() {
 
   // 第一表示＝今月の月謝（設計書 9章）
   const month = monthStart(today);
-  const [{ data: invoices }, { data: monthPayments }] = await Promise.all([
-    supabase
-      .from("invoices")
-      .select("id, total, status")
-      .eq("organization_id", orgId)
-      .eq("billing_month", month),
-    supabase
-      .from("payments")
-      .select("invoice_id, amount")
-      .eq("organization_id", orgId),
-  ]);
+  const [{ data: invoices }, { data: openInvoices }, { data: monthPayments }] =
+    await Promise.all([
+      supabase
+        .from("invoices")
+        .select("id, total, status")
+        .eq("organization_id", orgId)
+        .eq("billing_month", month),
+      // 未納は今月に限らない。先月の取りこぼしこそ見えている必要がある
+      supabase
+        .from("invoices")
+        .select("id, total, student_id")
+        .eq("organization_id", orgId)
+        .in("status", UNPAID_STATUSES),
+      supabase
+        .from("payments")
+        .select("invoice_id, amount")
+        .eq("organization_id", orgId),
+    ]);
 
   const invoiceRows = (invoices ?? []) as {
     id: string;
@@ -123,6 +140,15 @@ export default async function AdminHome() {
   );
   const unpaidAmount = unpaid.reduce((s, i) => s + (i.total - paidOf(i.id)), 0);
   const collectRate = billed > 0 ? Math.round((collected / billed) * 1000) / 10 : 0;
+
+  // 全期間の未納（過去の月を含む）
+  const openRows = (openInvoices ?? []) as {
+    id: string;
+    total: number;
+    student_id: string;
+  }[];
+  const openAmount = openRows.reduce((s, i) => s + (i.total - paidOf(i.id)), 0);
+  const openStudents = new Set(openRows.map((i) => i.student_id)).size;
 
   return (
     <div className="space-y-6">
@@ -196,20 +222,23 @@ export default async function AdminHome() {
           note="休会・退会・体験は含めません"
         />
         <StatCard
-          icon={Building2}
-          tone={needsLocation ? "warn" : "ok"}
-          label="校舎"
-          value={locations.count ?? 0}
-          unit="校"
-          note={needsLocation ? "未登録です" : "稼働中"}
+          icon={LayoutGrid}
+          tone="ok"
+          label="クラス"
+          value={classes.count ?? 0}
+          unit="クラス"
+          note={currentSeason ? "現在の期" : "期が未設定です"}
         />
         <StatCard
-          icon={DoorOpen}
-          tone={needsRoom ? "warn" : "ok"}
-          label="部屋"
-          value={rooms.count ?? 0}
-          unit="室"
-          note={needsRoom ? "校舎ごとに1件は必要です" : "稼働中"}
+          icon={AlertCircle}
+          tone={openAmount > 0 ? "warn" : "ok"}
+          label="未納の月謝"
+          value={formatYen(openAmount)}
+          note={
+            openAmount > 0
+              ? `${openStudents} 名 / 過去の月を含む`
+              : "取りこぼしはありません"
+          }
         />
       </div>
 
