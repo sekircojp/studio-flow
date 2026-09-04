@@ -5,6 +5,8 @@ import { requireAdmin } from "@/lib/auth/guards";
 import { createClient } from "@/lib/supabase/server";
 import { formatDateJa, formatTimeJa, todayInTokyo } from "@/lib/date";
 import { Card, EmptyState, SectionHeading, secondaryButtonClass } from "@/components/ui";
+import { LessonFlagBadges } from "@/components/lesson-flags";
+import { fetchLessonFlags } from "@/lib/lessons";
 
 export const metadata: Metadata = { title: "出欠管理" };
 
@@ -64,6 +66,13 @@ export default async function AttendancePage({
     lesson_id: string;
     status: string;
   }[];
+
+  // 名簿を開く前に、欠席連絡と振替が入っているかが分かるようにする
+  const flags = await fetchLessonFlags(
+    supabase,
+    orgId,
+    lessonList.map((l) => l.id),
+  );
 
   return (
     <div className="space-y-6">
@@ -137,6 +146,8 @@ export default async function AttendancePage({
                           {l.instructors?.name && <span>{l.instructors.name}</span>}
                         </span>
                       </span>
+
+                      <LessonFlagBadges flags={flags.get(l.id)} />
 
                       {l.status === "canceled" ? (
                         <span className="rounded-md bg-sf-danger/10 px-2 py-1 text-[11px] font-medium text-sf-danger">

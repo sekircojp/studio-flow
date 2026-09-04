@@ -5,6 +5,8 @@ import { requireStaff } from "@/lib/auth/staff";
 import { createClient } from "@/lib/supabase/server";
 import { formatDateJa, formatTimeJa, todayInTokyo } from "@/lib/date";
 import { Card, EmptyState, SectionHeading } from "@/components/ui";
+import { LessonFlagBadges } from "@/components/lesson-flags";
+import { fetchLessonFlags, type LessonFlags } from "@/lib/lessons";
 
 export const metadata: Metadata = { title: "担当レッスン" };
 
@@ -21,9 +23,11 @@ type LessonRow = {
 function LessonList({
   items,
   recordedOn,
+  flags,
 }: {
   items: LessonRow[];
   recordedOn: (lessonId: string) => number;
+  flags: Map<string, LessonFlags>;
 }) {
   return (
     <ul className="divide-y divide-sf-border rounded-xl border border-sf-border">
@@ -61,6 +65,8 @@ function LessonList({
                   )}
                 </span>
               </span>
+
+              <LessonFlagBadges flags={flags.get(l.id)} />
 
               {canceled ? (
                 <span className="flex shrink-0 items-center gap-1 rounded-md bg-sf-danger/10 px-2 py-1 text-[11px] font-medium text-sf-danger">
@@ -140,6 +146,14 @@ export default async function StaffHome() {
   const todays = all.filter((l) => l.date === today);
   const upcoming = all.filter((l) => l.date > today);
 
+  // 欠席連絡と振替。現場で「今日は誰が来ないか」を先に知りたい（設計書 7章）。
+  // 講師に見せないのは売上・報酬・未納であって、出欠まわりは担当分を見せる
+  const flags = await fetchLessonFlags(
+    supabase,
+    membership.organizationId,
+    all.map((l) => l.id),
+  );
+
   return (
     <div className="space-y-5">
       <div>
@@ -158,7 +172,7 @@ export default async function StaffHome() {
               description="今日は担当のレッスンが入っていない日です。"
             />
           ) : (
-            <LessonList items={todays} recordedOn={recordedOn} />
+            <LessonList items={todays} recordedOn={recordedOn} flags={flags} />
           )}
         </div>
       </Card>
@@ -167,7 +181,7 @@ export default async function StaffHome() {
         <Card className="p-4 sm:p-5">
           <SectionHeading kicker="Upcoming" title="この先の担当" />
           <div className="mt-4">
-            <LessonList items={upcoming} recordedOn={recordedOn} />
+            <LessonList items={upcoming} recordedOn={recordedOn} flags={flags} />
           </div>
         </Card>
       )}

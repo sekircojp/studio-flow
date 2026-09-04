@@ -15,6 +15,8 @@ import { createClient } from "@/lib/supabase/server";
 import { formatDateJa, formatTimeJa, formatYen, greetingJa, todayInTokyo } from "@/lib/date";
 import { billingMonthLabel, monthStart, UNPAID_STATUSES } from "@/lib/billing";
 import { Card, EmptyState, SectionHeading, StatCard } from "@/components/ui";
+import { LessonFlagBadges } from "@/components/lesson-flags";
+import { fetchLessonFlags } from "@/lib/lessons";
 
 export const metadata: Metadata = { title: "ダッシュボード" };
 
@@ -93,6 +95,13 @@ export default async function AdminHome() {
     instructorName: l.instructors?.name ?? "",
   }));
   const hasAnyLesson = (anyLesson.count ?? 0) > 0;
+
+  // 欠席連絡・振替は、その日いちばん先に知りたい情報
+  const flags = await fetchLessonFlags(
+    supabase,
+    orgId,
+    todayLessons.map((l) => l.id),
+  );
 
   // 第一表示＝今月の月謝（設計書 9章）
   const month = monthStart(today);
@@ -275,34 +284,40 @@ export default async function AdminHome() {
             ) : (
               <ul className="divide-y divide-sf-border rounded-xl border border-sf-border">
                 {todayLessons.map((l) => (
-                  <li key={l.id} className="flex items-center gap-3 px-4 py-3">
-                    <span className="sf-num w-12 shrink-0 text-[13px] font-semibold text-sf-ink">
-                      {formatTimeJa(l.start_at)}
-                    </span>
-                    <span className="min-w-0 flex-1">
-                      <span className="block truncate text-[13px] font-medium text-sf-ink">
-                        {l.className}
-                      </span>
-                      <span className="block truncate text-[11px] text-sf-muted">
-                        {l.roomName}
-                        {l.instructorName ? ` / ${l.instructorName}` : ""}
-                      </span>
-                    </span>
-                    <span
-                      className={`rounded-md px-2 py-1 text-[11px] font-medium ${
-                        l.status === "canceled"
-                          ? "bg-sf-danger/10 text-sf-danger"
-                          : l.status === "held"
-                            ? "bg-sf-ok/10 text-sf-ok"
-                            : "bg-sf-ink/8 text-sf-body"
-                      }`}
+                  <li key={l.id}>
+                    <Link
+                      href={`/admin/attendance/${l.id}`}
+                      className="flex items-center gap-3 px-4 py-3 transition hover:bg-sf-bg"
                     >
-                      {l.status === "canceled"
-                        ? "休講"
-                        : l.status === "held"
-                          ? "実施済"
-                          : "予定"}
-                    </span>
+                      <span className="sf-num w-12 shrink-0 text-[13px] font-semibold text-sf-ink">
+                        {formatTimeJa(l.start_at)}
+                      </span>
+                      <span className="min-w-0 flex-1">
+                        <span className="block truncate text-[13px] font-medium text-sf-ink">
+                          {l.className}
+                        </span>
+                        <span className="block truncate text-[11px] text-sf-muted">
+                          {l.roomName}
+                          {l.instructorName ? ` / ${l.instructorName}` : ""}
+                        </span>
+                      </span>
+                      <LessonFlagBadges flags={flags.get(l.id)} />
+                      <span
+                        className={`rounded-md px-2 py-1 text-[11px] font-medium ${
+                          l.status === "canceled"
+                            ? "bg-sf-danger/10 text-sf-danger"
+                            : l.status === "held"
+                              ? "bg-sf-ok/10 text-sf-ok"
+                              : "bg-sf-ink/8 text-sf-body"
+                        }`}
+                      >
+                        {l.status === "canceled"
+                          ? "休講"
+                          : l.status === "held"
+                            ? "実施済"
+                            : "予定"}
+                      </span>
+                    </Link>
                   </li>
                 ))}
               </ul>
