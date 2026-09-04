@@ -103,11 +103,13 @@ export default async function AdminHome() {
         .select("id, total, status")
         .eq("organization_id", orgId)
         .eq("billing_month", month),
-      // 未納は今月に限らない。先月の取りこぼしこそ見えている必要がある
+      // 未収は今月に限らない。先月までの取りこぼしこそ見えている必要がある。
+      // 逆に、先に作ってある翌月分はまだ受け取る期日が来ていないので数えない
       supabase
         .from("invoices")
         .select("id, total, student_id")
         .eq("organization_id", orgId)
+        .lte("billing_month", month)
         .in("status", UNPAID_STATUSES),
       supabase
         .from("payments")
@@ -141,7 +143,7 @@ export default async function AdminHome() {
   const unpaidAmount = unpaid.reduce((s, i) => s + (i.total - paidOf(i.id)), 0);
   const collectRate = billed > 0 ? Math.round((collected / billed) * 1000) / 10 : 0;
 
-  // 全期間の未納（過去の月を含む）
+  // 今月までの未収（先月以前の取りこぼしを含む。翌月以降は数えない）
   const openRows = (openInvoices ?? []) as {
     id: string;
     total: number;
@@ -232,11 +234,11 @@ export default async function AdminHome() {
         <StatCard
           icon={AlertCircle}
           tone={openAmount > 0 ? "warn" : "ok"}
-          label="未納の月謝"
+          label="未収の月謝"
           value={formatYen(openAmount)}
           note={
             openAmount > 0
-              ? `${openStudents} 名 / 過去の月を含む`
+              ? `${openStudents} 名 / 今月までの未納`
               : "取りこぼしはありません"
           }
         />
