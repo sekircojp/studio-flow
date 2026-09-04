@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Loader2, Mail } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { Card, fieldClass, labelClass, primaryButtonClass } from "@/components/ui";
+import { APP_NAME } from "@/config/app";
 
 /**
  * ログインフォーム（メール確認コード方式・パスワード不要）
@@ -120,7 +121,7 @@ export default function LoginForm() {
   return (
     <main className="flex flex-1 items-center justify-center bg-sf-bg p-6">
       <Card className="w-full max-w-sm p-6 sm:p-7">
-        <h1 className="text-xl font-bold tracking-tight text-sf-ink">Studio Flow</h1>
+        <h1 className="text-xl font-bold tracking-tight text-sf-ink">{APP_NAME}</h1>
         <p className="mt-1 text-[13px] text-sf-body">
           {step === "email"
             ? "メールアドレスに確認コードをお送りします。"

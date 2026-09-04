@@ -105,7 +105,10 @@ Deno.serve(async (req) => {
     if (insertError) throw insertError;
 
     // --- スタジオ名を差出人の表示名に使う（設計書 11章） ---
-    // ログイン画面から呼ばれた場合は organization_id が無いので Studio Flow 名義になる
+    // ログイン画面から呼ばれた場合は organization_id が無い。
+    // そのときは mailFrom() が MAIL_FROM の表示名をそのまま使う。
+    // サービス名をここに書かないのは、名称変更のたびに関数を
+    // デプロイし直すことになるため。シークレット1つで変えられるようにする。
     let studioName = "";
     let replyTo: string | undefined;
     if (organization_id) {
@@ -123,7 +126,7 @@ Deno.serve(async (req) => {
       : `確認コード ${code}`;
 
     const result = await sendMail(resend, {
-      from: mailFrom(studioName || "Studio Flow"),
+      from: mailFrom(studioName),
       // 返信はスタジオに届くようにする（設計書 11章）
       ...(replyTo ? { reply_to: replyTo } : {}),
       to: addr,

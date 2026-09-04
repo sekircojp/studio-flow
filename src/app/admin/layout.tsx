@@ -8,7 +8,7 @@ import { AdminTopBar } from "@/components/admin-topbar";
  * スタジオ管理（/admin/*）の枠組み
  *
  * 設計書 12章: 管理者にはスタジオロゴ・スタジオ名を主表示し、
- * Studio Flow は補助表示にとどめる。
+ * サービス名は補助表示にとどめる。
  *
  * ブランドカラーはこの要素の --sf-accent を差し替えることで反映する。
  * 各画面は sf-accent を参照するだけでよく、色の判断を持たない。

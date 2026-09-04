@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import { BrandMark } from "@/components/brand-mark";
 import type { Brand } from "@/lib/brand";
+import { APP_NAME } from "@/config/app";
 
 /**
  * 管理画面のサイドバー
@@ -163,7 +164,7 @@ export function AdminSidebar({
         ))}
       </nav>
 
-      <p className="px-3 pt-4 text-[10px] text-sf-nav-muted/70">Studio Flow</p>
+      <p className="px-3 pt-4 text-[10px] text-sf-nav-muted/70">{APP_NAME}</p>
     </aside>
   );
 }

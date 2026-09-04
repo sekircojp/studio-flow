@@ -69,6 +69,27 @@ MarcheBase と同じく、Supabase ダッシュボードの **SQL Editor** に�
 
 適用済みのファイルは編集しない。修正が必要なら新しいファイルを追加する。
 
+## サービス名
+
+画面に出すサービス名は **[src/config/app.ts](src/config/app.ts) の1か所だけ**で定義する。
+各画面に直接書かないこと。名称が決まったら、このファイルを書き換えれば全画面に反映される。
+
+```ts
+export const APP_NAME = "Studio Flow";  // 仮称
+```
+
+**メールの差出人名だけは別**。Edge Function は Deno という別の実行環境で動き、
+このファイルを読めないため、Supabase のシークレットで設定する。
+
+```bash
+npx supabase secrets set --project-ref fterpqyvzeqcaltfkpuc   MAIL_FROM="新しいサービス名 <noreply@ドメイン>"
+```
+
+スタジオ名が設定されているテナントでは、差出人名はそちらが優先される（設計書 11章）。
+
+なお「サービス名」と「スタジオ名」は別物。前者はこの SaaS の名前で全テナント共通、
+後者は契約したスタジオごとの値で `brand_settings` に入っている。
+
 ## 認証
 
 メール確認コード方式（パスワード不要・設計書 2章）。MarcheBase から移植した。

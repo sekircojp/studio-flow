@@ -4,6 +4,7 @@ import { ArrowRight } from "lucide-react";
 import { getSessionContext, homePathForRole } from "@/lib/auth/session";
 import { signOut } from "@/app/actions/auth";
 import { Card, primaryButtonClass, secondaryButtonClass } from "@/components/ui";
+import { APP_DESCRIPTION, APP_NAME } from "@/config/app";
 
 /**
  * トップ画面
@@ -41,11 +42,9 @@ export default async function Home() {
     <main className="flex flex-1 items-center justify-center bg-sf-bg p-6">
       <Card className="w-full max-w-sm p-7 text-center">
         <h1 className="text-2xl font-bold tracking-tight text-sf-ink">
-          Studio Flow
+          {APP_NAME}
         </h1>
-        <p className="mt-2 text-[13px] text-sf-body">
-          ダンススタジオ向けのスクール運営管理サービス
-        </p>
+        <p className="mt-2 text-[13px] text-sf-body">{APP_DESCRIPTION}</p>
 
         {!session ? (
           <Link href="/login" className={`${primaryButtonClass} mt-7 w-full py-2.5`}>

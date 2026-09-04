@@ -4,12 +4,13 @@ import { requireMy } from "@/lib/auth/my";
 import { getBrand } from "@/lib/brand.server";
 import { BrandMark } from "@/components/brand-mark";
 import { signOut } from "@/app/actions/auth";
+import { POWERED_BY } from "@/config/app";
 
 /**
  * 保護者マイページの枠組み（設計書 7章 / 12章）
  *
  * 保護者・生徒向けの画面ではスタジオのロゴと名前を主表示し、
- * Studio Flow は「Powered by」の補助表示にとどめる（設計書 12章）。
+ * サービス名は「Powered by」の補助表示にとどめる（設計書 12章）。
  *
  * スマートフォンで開かれる前提で、下部にタブを置く。
  */
@@ -74,7 +75,7 @@ export default async function MyLayout({
           ))}
         </ul>
         <p className="pb-2 text-center text-[10px] text-sf-muted">
-          Powered by Studio Flow
+          {POWERED_BY}
         </p>
       </nav>
     </div>

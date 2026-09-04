@@ -4,13 +4,14 @@ import { requireStaff } from "@/lib/auth/staff";
 import { getBrand } from "@/lib/brand.server";
 import { BrandMark } from "@/components/brand-mark";
 import { signOut } from "@/app/actions/auth";
+import { APP_NAME } from "@/config/app";
 
 /**
  * 講師の画面（/staff/*）の枠組み（設計書 7章 / 12章）
  *
  * 現場のスマートフォンで開かれる前提。下部にタブを置く。
  * 設計書 12章では講師は管理者と同じ扱いなので、スタジオ名を主表示にし
- * Studio Flow を補助表示にする（Powered by は付けない）。
+ * サービス名を補助表示にする（Powered by は付けない）。
  */
 
 const NAV = [
@@ -75,7 +76,7 @@ export default async function StaffLayout({
             </li>
           ))}
         </ul>
-        <p className="pb-2 text-center text-[10px] text-sf-muted">Studio Flow</p>
+        <p className="pb-2 text-center text-[10px] text-sf-muted">{APP_NAME}</p>
       </nav>
     </div>
   );
