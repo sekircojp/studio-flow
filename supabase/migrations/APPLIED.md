@@ -21,6 +21,9 @@ MarcheBase と同じく、適用済みかどうかをこの表で管理する。
 | 15 | `20260902000800_transfer_logic.sql` | submit_absence / book_transfer / expire_transfer_credits | 済 2026-09-02 |
 | 16 | `20260902000900_invoice_guard.sql` | audit_logs、入金済み請求の編集禁止、請求の変更履歴 | 済 2026-09-02 |
 | 17 | `20260902001000_cron.sql` | pg_cron による月次請求生成と振替権の期限切れ処理 | 済 2026-09-02 |
+| 18 | `20260904000100_class_meetings.sql` | クラスと開催枠の分離（週複数回のクラスに対応） | 済 2026-09-04 |
+| 19 | `20260904000200_generate_lessons_v2.sql` | レッスン生成を開催枠ごとに回すよう書き換え | 済 2026-09-04 |
+| 20 | `20260904000300_create_class.sql` | クラスと開催枠を同じトランザクションで作る | 済 2026-09-04 |
 
 適用先: Supabase プロジェクト `studio-flow`（ref: fterpqyvzeqcaltfkpuc / Tokyo）
 
@@ -30,6 +33,13 @@ MarcheBase と同じく、適用済みかどうかをこの表で管理する。
 
 ```bash
 TOKEN=$(grep '^SUPABASE_ACCESS_TOKEN=' .env.local | cut -d= -f2-)
+python scripts/apply-migration.py supabase/migrations/FILE.sql
+```
+
+`.env.local` の `SUPABASE_ACCESS_TOKEN` と `NEXT_PUBLIC_SUPABASE_URL` を読んで
+Management API に投げるだけの補助スクリプト。curl で直接叩く場合は次のとおり。
+
+```bash
 curl -s -X POST "https://api.supabase.com/v1/projects/fterpqyvzeqcaltfkpuc/database/query"   -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json"   --data-binary @<(python -c "import json,io;print(json.dumps({'query':io.open('supabase/migrations/FILE.sql',encoding='utf-8').read()}))")
 ```
 

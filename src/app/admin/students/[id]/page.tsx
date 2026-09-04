@@ -5,7 +5,11 @@ import { ArrowLeft, CalendarDays, Mail, Phone, Ruler, Users } from "lucide-react
 import { requireAdmin } from "@/lib/auth/guards";
 import { createClient } from "@/lib/supabase/server";
 import { formatDateJa, todayInTokyo } from "@/lib/date";
-import { dayLabel, hhmm } from "@/lib/schedule";
+import {
+  meetingLabel,
+  meetingsShortLabel,
+  type Meeting,
+} from "@/lib/schedule";
 import { ageFrom, STUDENT_STATUSES } from "@/lib/students";
 import { endEnrollment, setStudentStatus } from "../actions";
 import { StatusBadge } from "../page";
@@ -73,45 +77,45 @@ export default async function StudentDetailPage({
   const [{ data: enrollments }, { data: classes }] = await Promise.all([
     supabase
       .from("enrollments")
-      .select("id, start_date, end_date, class_id, classes(name, day_of_week, start_time, end_time)")
+      .select(
+        "id, start_date, end_date, class_id, classes(name, class_meetings(day_of_week, start_time, end_time, is_active))",
+      )
       .eq("student_id", id)
       .eq("organization_id", orgId)
       .order("start_date", { ascending: false }),
     supabase
       .from("classes")
-      .select("id, name, day_of_week, start_time, end_time")
+      .select(
+        "id, name, class_meetings(day_of_week, start_time, is_active)",
+      )
       .eq("organization_id", orgId)
-      .order("day_of_week")
-      .order("start_time"),
+      .order("created_at"),
   ]);
 
+  // クラスは週に何回開いてもよいので、開催枠は配列で返る（設計書 4.2）
+  type MeetingRow = Meeting & { is_active: boolean };
   type EnrollmentRow = {
     id: string;
     start_date: string;
     end_date: string | null;
     class_id: string;
-    classes: {
-      name: string;
-      day_of_week: number;
-      start_time: string;
-      end_time: string;
-    } | null;
+    classes: { name: string; class_meetings: MeetingRow[] } | null;
   };
+  const activeOnly = (list: MeetingRow[] | undefined) =>
+    (list ?? []).filter((m) => m.is_active);
   const enrollmentList = (enrollments ?? []) as unknown as EnrollmentRow[];
   const activeClassIds = new Set(
     enrollmentList.filter((e) => e.end_date === null).map((e) => e.class_id),
   );
-  const selectableClasses = ((classes ?? []) as {
+  const selectableClasses = ((classes ?? []) as unknown as {
     id: string;
     name: string;
-    day_of_week: number;
-    start_time: string;
-    end_time: string;
+    class_meetings: MeetingRow[];
   }[])
     .filter((c) => !activeClassIds.has(c.id))
     .map((c) => ({
       id: c.id,
-      label: `${c.name}（${dayLabel(c.day_of_week)} ${hhmm(c.start_time)}）`,
+      label: `${c.name}（${meetingsShortLabel(activeOnly(c.class_meetings))}）`,
     }));
 
   const guardianList = guardians ?? [];
@@ -252,7 +256,9 @@ export default async function StudentDetailPage({
                       </span>
                       <span className="sf-num block text-[11px] text-sf-muted">
                         {e.classes &&
-                          `毎週${dayLabel(e.classes.day_of_week)}曜 ${hhmm(e.classes.start_time)}–${hhmm(e.classes.end_time)}・`}
+                          `${activeOnly(e.classes.class_meetings)
+                            .map(meetingLabel)
+                            .join("・")}・`}
                         {formatDateJa(e.start_date)} 〜{" "}
                         {e.end_date ? formatDateJa(e.end_date) : ""}
                       </span>

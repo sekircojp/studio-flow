@@ -136,22 +136,47 @@ studio_closures (休講日マスタ)
   id, organization_id, date, name, location_id (null = 全校舎)
 
 classes (定期クラス)
-  id, organization_id, season_id, room_id, instructor_id,
+  id, organization_id, season_id, instructor_id,
   name, genre, level, target_age_min, target_age_max,
-  day_of_week, start_time, end_time,
   enrollment_capacity,      -- 在籍定員
   room_capacity,            -- 1レッスンの実収容上限
   monthly_fee,              -- 税込
   accepts_new_enrollment, accepts_trial, accepts_transfer,
   is_public, description
 
+class_meetings (開催枠)
+  id, organization_id, class_id, room_id,
+  day_of_week, start_time, end_time,
+  is_active
+
 lessons (開催回)
-  id, organization_id, class_id, room_id, instructor_id,
+  id, organization_id, class_id, class_meeting_id, room_id, instructor_id,
   date, start_at, end_at,
   status,                   -- scheduled / held / canceled
   cancel_reason,
   has_attendance_record     -- 出欠が1件でも記録されたか
 ```
+
+**クラスは週に何回開いてもよい（2026-09-04 変更）。**
+曜日・時刻・部屋は `classes` ではなく `class_meetings` が持つ。
+
+```
+初級クラス（週2回レッスン） → 1 クラス ＋ 開催枠 2 件
+中級クラス（週1回レッスン） → 1 クラス ＋ 開催枠 1 件
+```
+
+当初は `classes` が曜日を1つだけ持っていたが、それだと週2回のクラスが
+2行に分かれ、クラス数が運営の数え方と合わなくなる。生徒が在籍する単位
+（クラス）と、毎週いつどこで開くか（開催枠）は別物として扱う。
+
+同じジャンルでも対象が違えば別クラスとする。「K-POP 幼児クラス（水）」と
+「K-POP 小学生クラス（木）」は 2 クラスである。在籍する生徒が違うため。
+
+**隔週・月1回のような周期は持たせない。** 実例が乏しいわりに生成処理が
+複雑になる。例外的な回はレッスンを個別に休講・時間変更して調整する（5.1）。
+
+開催枠に物理削除は用意しない。使わなくなった枠は `is_active = false` に
+する。生成済みのレッスンが根拠を失わないようにするため。
 
 ### 4.3 生徒・保護者・世帯
 
@@ -353,11 +378,14 @@ audit_logs
 入力: season_id, class_id (または全クラス)
 処理:
   1. season の start_date 〜 end_date を走査
-  2. class の day_of_week に一致する日を抽出
+  2. クラスの有効な開催枠ごとに、その day_of_week に一致する日を抽出
   3. studio_closures に該当する日を除外
   4. lessons を生成 (status = scheduled)
 出力: 生成件数、除外された休講日の一覧
 ```
+
+週2回のクラスなら開催枠を2周する。同じクラスが同じ日に2回開かれることも
+ありうるため、レッスンの一意制約は `(class_id, date, start_at)` とする。
 
 **再生成の禁止ルール（重要）**
 

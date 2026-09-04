@@ -19,3 +19,33 @@ export function dayLabel(dayOfWeek: number): string {
 export function hhmm(time: string): string {
   return time.slice(0, 5);
 }
+
+/**
+ * 開催枠（class_meetings）の表示
+ * ────────────────────────────────────────────────
+ * クラスは週に何回開いてもよい（設計書 4.2）。
+ * 「初級クラス（週2回）」は1クラスで、開催枠を2件持つ。
+ */
+export type Meeting = {
+  day_of_week: number;
+  start_time: string;
+  end_time: string;
+};
+
+/** 毎週火 16:00–17:00 */
+export function meetingLabel(m: Meeting): string {
+  return `毎週${dayLabel(m.day_of_week)} ${hhmm(m.start_time)}–${hhmm(m.end_time)}`;
+}
+
+/** 火 16:00 / 土 10:00 のように短くまとめる。一覧の副題向け */
+export function meetingsShortLabel(meetings: Meeting[]): string {
+  if (meetings.length === 0) return "開催枠なし";
+  return meetings
+    .map((m) => `${dayLabel(m.day_of_week)} ${hhmm(m.start_time)}`)
+    .join(" / ");
+}
+
+/** 週N回。1回のときは回数を出さない */
+export function weeklyCountLabel(meetings: Meeting[]): string {
+  return meetings.length > 1 ? `週${meetings.length}回` : "";
+}

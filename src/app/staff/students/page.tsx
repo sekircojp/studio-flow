@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { requireStaff } from "@/lib/auth/staff";
 import { createClient } from "@/lib/supabase/server";
 import { ageFrom, statusLabel, statusTone } from "@/lib/students";
-import { dayLabel, hhmm } from "@/lib/schedule";
+import { meetingLabel, type Meeting } from "@/lib/schedule";
 import { todayInTokyo } from "@/lib/date";
 import { Card, EmptyState, SectionHeading } from "@/components/ui";
 
@@ -44,18 +44,17 @@ export default async function StaffStudentsPage() {
   // 自分が担当しているクラス
   const { data: classes } = await supabase
     .from("classes")
-    .select("id, name, day_of_week, start_time, end_time")
+    .select(
+      "id, name, class_meetings(day_of_week, start_time, end_time, is_active)",
+    )
     .eq("organization_id", orgId)
     .eq("instructor_id", instructor.id)
-    .order("day_of_week")
-    .order("start_time");
+    .order("created_at");
 
   const classList = (classes ?? []) as {
     id: string;
     name: string;
-    day_of_week: number;
-    start_time: string;
-    end_time: string;
+    class_meetings: (Meeting & { is_active: boolean })[];
   }[];
 
   const { data: enrollments } =
@@ -118,7 +117,10 @@ export default async function StaffStudentsPage() {
           return (
             <Card key={c.id} className="p-4 sm:p-5">
               <SectionHeading
-                kicker={`${dayLabel(c.day_of_week)}曜 ${hhmm(c.start_time)}–${hhmm(c.end_time)}`}
+                kicker={(c.class_meetings ?? [])
+                  .filter((m) => m.is_active)
+                  .map(meetingLabel)
+                  .join("・")}
                 title={`${c.name}（${students.length}）`}
               />
               <div className="mt-4">
