@@ -264,7 +264,8 @@ export async function setClassMeetingActive(
  * 同じトランザクションで行い、途中で失敗しても「消えただけ」の
  * 状態を残さないため。
  *
- * 出欠が記録された回と、実施済み・休講にした回は作り直しの対象から外れる。
+ * 出欠・欠席連絡・振替・キャンセル待ちが付いた回と、実施済み・休講にした回は
+ * 作り直しの対象から外れる。
  */
 export async function generateLessons(
   _prev: ClassState,
@@ -288,7 +289,7 @@ export async function generateLessons(
   const r = Array.isArray(data) ? data[0] : data;
   const parts = [`${r?.created ?? 0} 回を作成`];
   if (r?.skipped_closures) parts.push(`休講日 ${r.skipped_closures} 日を除外`);
-  if (r?.kept_attendance) parts.push(`出欠済み ${r.kept_attendance} 回はそのまま`);
+  if (r?.kept_attendance) parts.push(`記録のある ${r.kept_attendance} 回はそのまま`);
 
   revalidatePath("/admin/classes");
   revalidatePath("/admin");

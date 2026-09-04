@@ -269,7 +269,7 @@ export default async function ClassesPage() {
         <strong className="font-medium text-sf-body">作り直しについて</strong>
         ：曜日や時間を変えたあとに「作り直す」を押すと、まだ予定のままの回だけが
         作り直されます。<strong className="font-medium text-sf-body">出欠を記録した回、
-        実施済みにした回、休講にした回は消えません。</strong>
+        欠席連絡や振替の入った回、実施済みにした回、休講にした回は消えません。</strong>
         講師は{" "}
         <Link href="/admin/instructors" className="underline">
           講師の画面
