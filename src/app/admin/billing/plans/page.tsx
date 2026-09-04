@@ -8,14 +8,15 @@ import { paymentMethodLabel } from "@/lib/billing";
 import { ContractForm, PlanForm } from "./forms";
 import { Card, EmptyState, SectionHeading } from "@/components/ui";
 
-export const metadata: Metadata = { title: "料金プランと月謝契約" };
+export const metadata: Metadata = { title: "料金プランと月謝" };
 
 /**
- * 料金プランと月謝契約（設計書 4.5）
+ * 料金プランと、生徒ごとの月謝（設計書 4.5）
  *
- * プラン → 契約 → 請求 → 入金 を別のものとして分けている。
- * 契約はプランから金額を複写するので、あとでプランを変えても
- * 契約済みの生徒の月謝は変わらない。
+ * プラン → 生徒の月謝 → 請求 → 入金 を別のものとして分けている。
+ * DB では student_contracts（月謝契約）という名前だが、画面では
+ * 「生徒ごとの月謝」と呼ぶ。小規模スタジオで書面を交わすわけではないので、
+ * 「契約」は運営者の言葉づかいから離れている。
  */
 export default async function PlansPage() {
   const { membership } = await requireAdmin();
@@ -65,7 +66,7 @@ export default async function PlansPage() {
   const contractList = (contracts ?? []) as unknown as ContractRow[];
   const studentList = (students ?? []) as { id: string; name: string }[];
 
-  // 有効な契約がある生徒は、契約フォームの候補から外す（二重契約の防止）
+  // 月謝が決まっている生徒は候補から外す（二重に作られるのを防ぐ）
   const contracted = new Set(
     contractList.filter((c) => c.status !== "ended").map((c) => c.student_id),
   );
@@ -89,11 +90,11 @@ export default async function PlansPage() {
           月謝・請求
         </Link>
         <h1 className="mt-2 text-2xl font-bold tracking-tight text-sf-ink">
-          料金プランと月謝契約
+          料金プランと月謝
         </h1>
         <p className="mt-1 max-w-2xl text-[13px] leading-relaxed text-sf-body">
-          契約はプランから金額を写し取ります。あとでプランの金額を変えても、
-          契約済みの生徒の月謝は変わりません。
+          生徒の月謝はプランから金額を写し取ります。あとでプランの金額を変えても、
+          登録済みの生徒の月謝は変わりません。
         </p>
       </div>
 
@@ -103,7 +104,7 @@ export default async function PlansPage() {
           {planList.length === 0 ? (
             <EmptyState
               title="料金プランがありません"
-              description="よく使う金額をプランにしておくと、契約を作るときに選ぶだけで済みます。個別の金額だけで運用することもできます。"
+              description="よく使う金額をプランにしておくと、生徒の月謝を決めるときに選ぶだけで済みます。プランを使わず個別の金額だけで運用することもできます。"
             />
           ) : (
             <ul className="divide-y divide-sf-border rounded-xl border border-sf-border">
@@ -140,18 +141,18 @@ export default async function PlansPage() {
 
       <Card className="p-5">
         <SectionHeading
-          kicker="Contracts"
-          title={`月謝契約（${contractList.filter((c) => c.status !== "ended").length}）`}
+          kicker="Monthly fees"
+          title={`生徒ごとの月謝（${contractList.filter((c) => c.status !== "ended").length}）`}
         />
         <p className="mt-2 text-[12px] leading-relaxed text-sf-muted">
-          請求は、有効な契約と「休会（請求あり）」の契約に対して作られます。
-          「休会（請求停止）」には作られません。
+          請求は「有効」と「休会（請求あり）」の生徒に対して作られます。
+          「休会（請求停止）」には作られません。生徒名を押すと詳細に移動します。
         </p>
         <div className="mt-4">
           {contractList.length === 0 ? (
             <EmptyState
-              title="月謝契約がありません"
-              description="契約が無いと請求が作られません。生徒ごとに1件ずつ作ります。"
+              title="月謝が決まっている生徒がいません"
+              description="月謝が決まっていない生徒には請求が作られません。生徒ごとに1件ずつ設定します。"
             />
           ) : (
             <ul className="divide-y divide-sf-border rounded-xl border border-sf-border">
@@ -163,9 +164,12 @@ export default async function PlansPage() {
                   }`}
                 >
                   <span className="min-w-0 flex-1">
-                    <span className="block font-medium text-sf-ink">
+                    <Link
+                      href={`/admin/students/${c.student_id}`}
+                      className="block font-medium text-sf-ink underline decoration-sf-border underline-offset-4 hover:decoration-sf-accent"
+                    >
                       {c.students?.name ?? "（生徒不明）"}
-                    </span>
+                    </Link>
                     <span className="sf-num block text-[12px] text-sf-muted">
                       {formatDateJa(c.start_date)} 〜 ・{" "}
                       {paymentMethodLabel(c.payment_method)} ・{" "}

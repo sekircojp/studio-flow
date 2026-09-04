@@ -52,9 +52,9 @@ export async function createPricingPlan(
 }
 
 /**
- * 月謝契約の作成
+ * 生徒ごとの月謝を決める（DB 上は student_contracts）
  *
- * プランから金額を複写する。あとでプランの金額を変えても、契約済みの
+ * プランから金額を複写する。あとでプランの金額を変えても、登録済みの
  * 生徒の月謝が勝手に変わらないようにするため（設計書 4.5）。
  */
 export async function createContract(
@@ -102,9 +102,9 @@ export async function createContract(
   });
 
   if (error) {
-    console.error("月謝契約の登録に失敗しました", error);
+    console.error("生徒の月謝の登録に失敗しました", error);
     if (error.code === "23505") {
-      return { error: "この生徒には既に有効な契約があります。" };
+      return { error: "この生徒の月謝は既に決まっています。" };
     }
     return { error: "登録できませんでした。" };
   }

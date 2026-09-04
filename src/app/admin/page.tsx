@@ -5,7 +5,6 @@ import {
   Building2,
   CalendarDays,
   DoorOpen,
-  Home,
   Settings,
   Users,
   Wallet,
@@ -39,9 +38,8 @@ export default async function AdminHome() {
     return q;
   };
 
-  const [students, households, locations, rooms] = await Promise.all([
+  const [students, locations, rooms] = await Promise.all([
     count("students", ["status", "active"]),
-    count("households"),
     count("locations", ["is_active", "true"]),
     count("rooms", ["is_active", "true"]),
   ]);
@@ -150,7 +148,7 @@ export default async function AdminHome() {
           <>
             <p className="sf-num mt-2 text-3xl font-bold">まだ請求はありません</p>
             <p className="mt-2 max-w-xl text-[13px] leading-relaxed text-sf-nav-muted">
-              月謝契約を登録して「この月の請求を作る」を押すと、ここに回収状況が出ます。
+              生徒の月謝を決めて「この月の請求を作る」を押すと、ここに回収状況が出ます。
             </p>
             <Link
               href="/admin/billing"
@@ -188,7 +186,7 @@ export default async function AdminHome() {
         )}
       </div>
 
-      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="grid gap-3 sm:grid-cols-3">
         <StatCard
           icon={Users}
           tone="accent"
@@ -196,13 +194,6 @@ export default async function AdminHome() {
           value={students.count ?? 0}
           unit="名"
           note="休会・退会・体験は含めません"
-        />
-        <StatCard
-          icon={Home}
-          label="世帯"
-          value={households.count ?? 0}
-          unit="世帯"
-          note="兄弟割の判定単位"
         />
         <StatCard
           icon={Building2}

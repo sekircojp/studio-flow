@@ -176,7 +176,7 @@ export default async function BillingPage({
         <div className="mt-3 flex flex-wrap items-center gap-x-6 gap-y-1 text-[12px]">
           <span className="text-sf-ok">回収率 {rate}%</span>
           <span className="text-sf-nav-muted">
-            請求 {billable.length} 件 / 契約 {contracts.count ?? 0} 件
+            請求 {billable.length} 件 / 対象 {contracts.count ?? 0} 名
           </span>
           {unpaidList.length > 0 && (
             <span className="rounded-lg bg-white/10 px-2.5 py-1">
@@ -215,7 +215,7 @@ export default async function BillingPage({
           {invoiceList.length === 0 ? (
             <EmptyState
               title="この月の請求はまだありません"
-              description="月謝契約のある生徒に対して、この月の請求をまとめて作ります。作成済みの月は作り直されません。"
+              description="月謝が決まっている生徒に対して、この月の請求をまとめて作ります。作成済みの月は作り直されません。"
             />
           ) : (
             <ul className="divide-y divide-sf-border rounded-xl border border-sf-border">
@@ -280,7 +280,7 @@ export default async function BillingPage({
 
       <p className="flex flex-wrap gap-4 text-[12px] text-sf-muted">
         <Link href="/admin/billing/plans" className="underline">
-          料金プランと月謝契約
+          料金プランと月謝
         </Link>
         <Link href="/admin/billing/settings" className="underline">
           兄弟割・支払期限の設定
