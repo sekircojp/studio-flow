@@ -61,9 +61,14 @@
   --color-sf-warn: var(--sf-warn);
   --color-sf-danger: var(--sf-danger);
 
-  /* 日本語グリフを持たない Geist の後段に、OS 標準の日本語フォントを並べる */
-  --font-sans: var(--font-geist-sans), "Hiragino Kaku Gothic ProN", "Hiragino Sans",
-    "Noto Sans JP", "Yu Gothic UI", "Meiryo", sans-serif;
+  /*
+   * 英数字は Geist、日本語は Zen Kaku Gothic New。
+   * Geist は日本語グリフを持たないので、かなと漢字だけが後段に落ちる。
+   * 金額や時刻の見た目を変えずに、日本語だけを少し柔らかくできる。
+   * webfont が届くまでは OS 標準で表示する。
+   */
+  --font-sans: var(--font-geist-sans), var(--font-jp), "Hiragino Kaku Gothic ProN",
+    "Hiragino Sans", "Yu Gothic UI", "Meiryo", sans-serif;
   --font-mono: var(--font-geist-mono), monospace;
 }
 
