@@ -62,7 +62,7 @@
   --color-sf-danger: var(--sf-danger);
 
   /*
-   * 英数字は Geist、日本語は Zen Kaku Gothic New。
+   * 英数字は Geist、日本語は Zen Maru Gothic（丸ゴシック）。
    * Geist は日本語グリフを持たないので、かなと漢字だけが後段に落ちる。
    * 金額や時刻の見た目を変えずに、日本語だけを少し柔らかくできる。
    * webfont が届くまでは OS 標準で表示する。

@@ -3,6 +3,8 @@ import { Lock } from "lucide-react";
 import { requireAdmin } from "@/lib/auth/guards";
 import { getBrand } from "@/lib/brand.server";
 import SettingsForm from "./settings-form";
+import LogoForm from "./logo-form";
+import { BrandMark } from "@/components/brand-mark";
 import { Card, SectionHeading } from "@/components/ui";
 
 export const metadata: Metadata = { title: "基本設定" };
@@ -30,6 +32,32 @@ export default async function SettingsPage() {
           差出人名・返信先に使われます。
         </p>
       </div>
+
+      <Card className="p-5 sm:p-6">
+        <SectionHeading
+          kicker="Logo"
+          title="ロゴ"
+          action={
+            <span className="text-[12px] text-sf-muted">
+              サイドバーと保護者の画面に出ます
+            </span>
+          }
+        />
+        <div className="mt-5">
+          {isOwner ? (
+            <LogoForm brand={brand} />
+          ) : (
+            <div className="flex items-center gap-4">
+              <div className="flex size-20 items-center justify-center rounded-xl border border-sf-border bg-white p-2">
+                <BrandMark brand={brand} size={64} />
+              </div>
+              <p className="text-[13px] text-sf-muted">
+                ロゴを変更できるのはオーナーのみです。
+              </p>
+            </div>
+          )}
+        </div>
+      </Card>
 
       <Card className="p-5 sm:p-6">
         <SectionHeading kicker="Brand" title="基本情報" />

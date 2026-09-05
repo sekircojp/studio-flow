@@ -25,6 +25,7 @@ MarcheBase と同じく、適用済みかどうかをこの表で管理する。
 | 19 | `20260904000200_generate_lessons_v2.sql` | レッスン生成を開催枠ごとに回すよう書き換え | 済 2026-09-04 |
 | 20 | `20260904000300_create_class.sql` | クラスと開催枠を同じトランザクションで作る | 済 2026-09-04 |
 | 21 | `20260904000400_generate_lessons_keep_referenced.sql` | 作り直しで欠席連絡・振替の付いた回を残す | 済 2026-09-04 |
+| 22 | `20260905000100_brand_logo_storage.sql` | ロゴ画像の Storage バケットと権限 | 済 2026-09-05 |
 
 適用先: Supabase プロジェクト `studio-flow`（ref: fterpqyvzeqcaltfkpuc / Tokyo）
 
