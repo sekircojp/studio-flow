@@ -16,6 +16,11 @@ function orNull(v: FormDataEntryValue | null): string | null {
  *
  * スタジオ・ルームはオーナーとスタッフが編集できる（設計書 7章のスタッフの担当店舗に対応）。
  * 個別権限の仕組みはフェーズ1に無いため、いまは両者を同じ扱いにしている。
+ *
+ * 最初のルームは DB 関数 create_location() が一緒に作る。1部屋しかない
+ * スタジオの人に「ルーム名」を考えさせないため（設計書 4.1）。
+ * 2件の INSERT を同じトランザクションに入れて、ルームの無いスタジオを
+ * 残さないようにしている。
  */
 export async function createLocation(
   _prev: LocationState,
@@ -27,11 +32,12 @@ export async function createLocation(
   if (!name) return { error: "スタジオ名を入力してください。" };
 
   const supabase = await createClient();
-  const { error } = await supabase.from("locations").insert({
-    organization_id: membership.organizationId,
-    name,
-    address: orNull(formData.get("address")),
-    tel: orNull(formData.get("tel")),
+  const { error } = await supabase.rpc("create_location", {
+    p_organization_id: membership.organizationId,
+    p_name: name,
+    p_address: orNull(formData.get("address")),
+    p_tel: orNull(formData.get("tel")),
+    p_room_name: orNull(formData.get("room_name")),
   });
 
   if (error) {
@@ -40,6 +46,7 @@ export async function createLocation(
   }
 
   revalidatePath("/admin/locations");
+  revalidatePath("/admin");
   return { ok: true };
 }
 

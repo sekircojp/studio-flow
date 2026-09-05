@@ -28,6 +28,7 @@ type Location = {
  *
  * ルームが1つしかなくても、スタジオの下にルームを1件作る。
  * 後から2つ目のルームができたときに構造が壊れないようにするため。
+ * ただし入力はさせない。スタジオを登録すると1件が自動で作られる。
  *
  * 閉じたスタジオは別枠に移す。一覧からは消えるが、過去のデータは残る。
  */
@@ -102,7 +103,7 @@ export default async function LocationsPage() {
           <p className="sf-kicker">Rooms</p>
           {inRoom.length === 0 ? (
             <p className="mt-1.5 text-[13px] text-sf-warn">
-              ルームがありません。1件登録してください。
+              ルームがありません。下の「ルームを追加」から1件登録してください。
             </p>
           ) : (
             <ul className="mt-2 flex flex-wrap gap-2">
@@ -135,8 +136,8 @@ export default async function LocationsPage() {
           スタジオ・ルーム
         </h1>
         <p className="mt-1 max-w-2xl text-[13px] leading-relaxed text-sf-body">
-          ルームが1つだけでも、スタジオの下にルームを1件作ってください。
-          あとから2つ目のルームが増えても、設定を作り直さずに済みます。
+          スタジオを登録すると、ルームが1件いっしょに作られます。部屋が分かれて
+          いないスタジオは、そのままで構いません。あとから増えても作り直しは不要です。
         </p>
       </div>
 
@@ -184,7 +185,15 @@ export default async function LocationsPage() {
         </Card>
 
         <Card className="p-5">
-          <SectionHeading kicker="Add" title="ルームを追加" />
+          <SectionHeading
+            kicker="Add"
+            title="ルームを追加"
+            action={
+              <span className="text-[12px] text-sf-muted">
+                部屋が分かれているスタジオだけ
+              </span>
+            }
+          />
           <div className="mt-4">
             <RoomForm
               locations={openList.map((l) => ({ id: l.id, name: l.name }))}

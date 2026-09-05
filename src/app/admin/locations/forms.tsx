@@ -13,6 +13,13 @@ function Message({ state }: { state: LocationState }) {
   return null;
 }
 
+/**
+ * スタジオの登録
+ *
+ * ルーム名は任意。空なら「メインルーム」で1件が自動で作られる。
+ * 1部屋しかないスタジオの人にとって「ルーム名」は無い概念なので、
+ * 必須にすると答えようがない（設計書 4.1）。
+ */
 export function LocationForm() {
   const [state, action, pending] = useActionState<LocationState, FormData>(
     createLocation,
@@ -27,7 +34,7 @@ export function LocationForm() {
         </label>
         <input id="loc-name" name="name" required className={fieldClass} />
       </div>
-      <div className="grid gap-4 sm:grid-cols-2">
+      <div className="grid gap-4 sm:grid-cols-3">
         <div>
           <label htmlFor="loc-address" className={labelClass}>
             住所
@@ -39,6 +46,20 @@ export function LocationForm() {
             電話番号
           </label>
           <input id="loc-tel" name="tel" type="tel" className={fieldClass} />
+        </div>
+        <div>
+          <label htmlFor="loc-room" className={labelClass}>
+            ルーム名（任意）
+          </label>
+          <input
+            id="loc-room"
+            name="room_name"
+            placeholder="メインルーム"
+            className={fieldClass}
+          />
+          <p className="mt-1 text-[11px] text-sf-muted">
+            分かれていなければ空のままで構いません
+          </p>
         </div>
       </div>
       <div className="flex items-center gap-3">
@@ -56,6 +77,12 @@ export function LocationForm() {
   );
 }
 
+/**
+ * ルームの追加
+ *
+ * スタジオを作った時点で1件は入っているので、ここを使うのは
+ * 部屋が実際に分かれているスタジオだけ。
+ */
 export function RoomForm({
   locations,
 }: {
@@ -69,7 +96,7 @@ export function RoomForm({
   if (locations.length === 0) {
     return (
       <p className="text-[13px] text-sf-muted">
-        先にスタジオを1件登録すると、ルームを追加できます。
+        先にスタジオを1件登録してください。
       </p>
     );
   }
