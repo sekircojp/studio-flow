@@ -14,7 +14,7 @@ import {
 
 export const metadata: Metadata = { title: "スタジオ・ルーム" };
 
-type Room = { id: string; name: string; capacity: number | null; location_id: string };
+type Room = { id: string; name: string; location_id: string };
 type Location = {
   id: string;
   name: string;
@@ -46,7 +46,7 @@ export default async function LocationsPage() {
       .order("created_at"),
     supabase
       .from("rooms")
-      .select("id, name, capacity, location_id")
+      .select("id, name, location_id")
       .eq("organization_id", orgId)
       .eq("is_active", true)
       .order("display_order")
@@ -114,11 +114,6 @@ export default async function LocationsPage() {
                 >
                   <DoorOpen className="size-3.5 text-sf-muted" aria-hidden />
                   {r.name}
-                  {r.capacity != null && (
-                    <span className="sf-num text-[11px] text-sf-muted">
-                      {r.capacity}人
-                    </span>
-                  )}
                 </li>
               ))}
             </ul>

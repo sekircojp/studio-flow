@@ -55,6 +55,9 @@ export async function createLocation(
  *
  * organization_id は locations と揃える必要がある。DB 側にも複合外部キーが
  * あるため食い違えば弾かれるが、アプリ層でも所属を確認してから入れる。
+ *
+ * 収容人数は受け取らない。定員の判定はクラス側の2つの数字で行うため
+ * （設計書 5.2）。rooms.capacity の列は残してあるが、画面からは触らない。
  */
 export async function createRoom(
   _prev: LocationState,
@@ -66,12 +69,6 @@ export async function createRoom(
   const locationId = orNull(formData.get("location_id"));
   if (!name) return { error: "ルーム名を入力してください。" };
   if (!locationId) return { error: "スタジオを選んでください。" };
-
-  const capacityRaw = orNull(formData.get("capacity"));
-  const capacity = capacityRaw ? Number(capacityRaw) : null;
-  if (capacity !== null && (!Number.isInteger(capacity) || capacity <= 0)) {
-    return { error: "収容人数は1以上の整数で入力してください。" };
-  }
 
   const supabase = await createClient();
 
@@ -89,7 +86,6 @@ export async function createRoom(
     organization_id: membership.organizationId,
     location_id: locationId,
     name,
-    capacity,
   });
 
   if (error) {

@@ -101,7 +101,9 @@ export function ClassForm({
             min={1}
             className={fieldClass}
           />
-          <p className="mt-1 text-[11px] text-sf-muted">新規入会の可否に使います</p>
+          <p className="mt-1 text-[11px] text-sf-muted">
+            この人数まで新しく入会できます
+          </p>
         </div>
         <div>
           <label htmlFor="cls-roomcap" className={labelClass}>
@@ -114,7 +116,9 @@ export function ClassForm({
             min={1}
             className={fieldClass}
           />
-          <p className="mt-1 text-[11px] text-sf-muted">体験・振替の受入に使います</p>
+          <p className="mt-1 text-[11px] text-sf-muted">
+            1回に入れる人数。在籍が満席でも、ここまでは体験・振替を受けられます
+          </p>
         </div>
         <div>
           <label htmlFor="cls-fee" className={labelClass}>

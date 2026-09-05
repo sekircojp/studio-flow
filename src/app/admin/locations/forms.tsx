@@ -82,6 +82,10 @@ export function LocationForm() {
  *
  * スタジオを作った時点で1件は入っているので、ここを使うのは
  * 部屋が実際に分かれているスタジオだけ。
+ *
+ * 収容人数はここでは訊かない。定員の判定はクラス側の2つの数字
+ * （在籍定員 / 1回の上限）で行うため（設計書 5.2）。ルームにも数字を
+ * 置くと、どれが効いているのか分からなくなる。
  */
 export function RoomForm({
   locations,
@@ -103,7 +107,7 @@ export function RoomForm({
 
   return (
     <form action={action} className="space-y-4">
-      <div className="grid gap-4 sm:grid-cols-3">
+      <div className="grid gap-4 sm:grid-cols-2">
         <div>
           <label htmlFor="room-location" className={labelClass}>
             スタジオ
@@ -126,19 +130,6 @@ export function RoomForm({
             ルーム名
           </label>
           <input id="room-name" name="name" required className={fieldClass} />
-        </div>
-        <div>
-          <label htmlFor="room-capacity" className={labelClass}>
-            収容人数
-          </label>
-          <input
-            id="room-capacity"
-            name="capacity"
-            type="number"
-            min={1}
-            inputMode="numeric"
-            className={fieldClass}
-          />
         </div>
       </div>
       <div className="flex items-center gap-3">
