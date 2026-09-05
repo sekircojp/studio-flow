@@ -115,7 +115,7 @@ export default async function AttendancePage({
           {lessonList.length === 0 ? (
             <EmptyState
               title="この日のレッスンはありません"
-              description="定期クラスを登録して「レッスンを作る」を押すと、開催日が自動で並びます。休講日として登録した日には作られません。"
+              description="クラスを登録して「レッスンを作る」を押すと、開催日が自動で並びます。休講日として登録した日には作られません。"
             />
           ) : (
             <ul className="divide-y divide-sf-border rounded-xl border border-sf-border">

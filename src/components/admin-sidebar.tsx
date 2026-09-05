@@ -51,7 +51,7 @@ const GROUPS: { kicker: string; items: Item[] }[] = [
     items: [
       { href: "/admin/calendar", label: "カレンダー", icon: CalendarDays },
       { href: "/admin/seasons", label: "期・休講日", icon: CalendarRange },
-      { href: "/admin/classes", label: "定期クラス", icon: LayoutGrid },
+      { href: "/admin/classes", label: "クラス", icon: LayoutGrid },
       { href: "/admin/attendance", label: "出欠管理", icon: CheckSquare },
       { href: "/admin/transfers", label: "欠席・振替", icon: Repeat },
     ],

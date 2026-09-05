@@ -319,7 +319,7 @@ export default async function AdminHome() {
                 description={
                   hasAnyLesson
                     ? "今日は開催予定のクラスがない日です。"
-                    : "期（シーズン）と定期クラスを登録すると、開催日が自動で作られ、ここに今日の予定が並びます。"
+                    : "期（シーズン）とクラスを登録すると、開催日が自動で作られ、ここに今日の予定が並びます。"
                 }
               />
             ) : (
@@ -414,7 +414,7 @@ export default async function AdminHome() {
               期と休講日の登録
             </p>
             <p className="mt-1 text-[11px] leading-relaxed text-sf-muted">
-              定期クラスとレッスンの一括生成に必要な土台です。次はここを作ります。
+              クラスとレッスンの一括生成に必要な土台です。次はここを作ります。
             </p>
           </div>
         </Card>

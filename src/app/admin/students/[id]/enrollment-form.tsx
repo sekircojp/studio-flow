@@ -28,7 +28,7 @@ export function EnrollmentForm({
   if (classes.length === 0) {
     return (
       <p className="text-[13px] text-sf-muted">
-        登録できるクラスがありません。定期クラスの画面で先に作成してください。
+        登録できるクラスがありません。クラスの画面で先に作成してください。
       </p>
     );
   }

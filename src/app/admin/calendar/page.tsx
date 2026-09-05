@@ -124,7 +124,7 @@ export default async function CalendarPage({
           {lessonList.length === 0 && closureList.length === 0 ? (
             <EmptyState
               title="この月には何もありません"
-              description="定期クラスを登録して「レッスンを作る」を押すと、開催日がここに並びます。"
+              description="クラスを登録して「レッスンを作る」を押すと、開催日がここに並びます。"
             />
           ) : (
             /* 小さい画面では横にはみ出すので、この枠の中だけスクロールさせる */

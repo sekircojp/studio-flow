@@ -13,7 +13,7 @@ import {
 import { meetingLabel, weeklyCountLabel } from "@/lib/schedule";
 import { Card, EmptyState, SectionHeading } from "@/components/ui";
 
-export const metadata: Metadata = { title: "定期クラス" };
+export const metadata: Metadata = { title: "クラス" };
 
 type ClassRow = {
   id: string;
@@ -37,7 +37,7 @@ type MeetingRow = {
 };
 
 /**
- * 定期クラス（設計書 4.2）とレッスン一括生成（設計書 5.1）
+ * クラス（設計書 4.2）とレッスン一括生成（設計書 5.1）
  *
  * クラスは週に何回開いてもよい。開催枠（class_meetings）を複数持てる。
  * 「初級クラス（週2回レッスン）」は1クラスで、開催枠が2件。
@@ -117,7 +117,7 @@ export default async function ClassesPage() {
       <div className="pb-1">
         <p className="sf-kicker">Lessons</p>
         <h1 className="mt-1.5 text-2xl font-bold tracking-tight text-sf-ink">
-          定期クラス
+          クラス
         </h1>
         <p className="mt-1 max-w-2xl text-[13px] leading-relaxed text-sf-body">
           毎週決まった曜日・時間に開くクラスです。1つのクラスが週に何回あっても構いません

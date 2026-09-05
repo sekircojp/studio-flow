@@ -74,7 +74,7 @@ export default async function SeasonsPage() {
           期・休講日
         </h1>
         <p className="mt-1 max-w-2xl text-[13px] leading-relaxed text-sf-body">
-          期はレッスンを作る対象期間です。定期クラスを登録すると、この期間のうち
+          期はレッスンを作る対象期間です。クラスを登録すると、この期間のうち
           クラスの曜日に当たる日が自動でレッスンになり、休講日として登録した日は除かれます。
         </p>
       </div>
