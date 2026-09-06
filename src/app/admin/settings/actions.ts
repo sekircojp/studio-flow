@@ -27,7 +27,17 @@ export async function saveBrandSettings(
   const orgId = membership.organizationId;
 
   const studioName = orNull(formData.get("studio_name"));
+  const email = orNull(formData.get("email"));
   const brandColor = orNull(formData.get("brand_color"));
+
+  // 画面側の required だけに頼らない。直接叩かれても空では保存させない
+  if (!studioName) return { error: "スクール名を入力してください。" };
+  if (!email) {
+    return {
+      error:
+        "メールアドレスを入力してください。保護者がメールに返信したときの宛先になります。",
+    };
+  }
 
   if (brandColor && !/^#[0-9A-Fa-f]{6}$/.test(brandColor)) {
     return { error: "ブランドカラーは #RRGGBB の形式で入力してください。" };
@@ -42,7 +52,7 @@ export async function saveBrandSettings(
       studio_name: studioName,
       brand_color: brandColor,
       tel: orNull(formData.get("tel")),
-      email: orNull(formData.get("email")),
+      email,
       address: orNull(formData.get("address")),
       website: orNull(formData.get("website")),
       invoice_registration_number: orNull(
