@@ -112,7 +112,12 @@ npx supabase secrets set --project-ref fterpqyvzeqcaltfkpuc   MAIL_FROM="新し�
 ```bash
 npx supabase functions deploy send-verification-code
 npx supabase functions deploy verify-code
+npx supabase functions deploy send-invoice-notice
+npx supabase functions deploy send-trial-notice
 ```
+
+`supabase link` を通していない場合は、`--project-ref <ref>` を付けて
+`SUPABASE_ACCESS_TOKEN` を環境変数で渡す。
 
 ### Edge Function のシークレット
 

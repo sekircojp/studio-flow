@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ArrowLeft, Mail, Phone } from "lucide-react";
+import { ArrowLeft, Mail, MailCheck, MailWarning, Phone } from "lucide-react";
 import { requireAdmin } from "@/lib/auth/guards";
 import { createClient } from "@/lib/supabase/server";
 import { formatDateJa, formatShortDateJa, formatTimeJa, todayInTokyo } from "@/lib/date";
@@ -30,10 +30,14 @@ type TrialRow = {
 };
 
 /**
- * 体験・見学の申込（設計書 4.6）
+ * 体験・見学の申込（設計書 4.6 / 4.6.2）
  *
- * 公開ページから届いた申込。入会申込と違い、承認は要らない。
- * 定員に空きがあれば、その場で確定している。ここでは当日の結果を記録する。
+ * 公開ページから届いた申込。承認すると予約が確定し、保護者へメールが飛ぶ。
+ *
+ * ★ 連絡が届いたかどうかを一覧に出す。
+ *   送信は非同期なので、承認した直後は「送信中」に見える。届かなかった
+ *   ことに気づけないと、運営が保護者に何と答えればよいか分からなくなる
+ *   （設計書 4.8）。
  */
 export default async function TrialsPage() {
   const { membership } = await requireAdmin();
@@ -54,6 +58,23 @@ export default async function TrialsPage() {
   const list = (data ?? []) as unknown as TrialRow[];
   const today = todayInTokyo();
 
+  // 承認・見送りの連絡が届いたか（設計書 4.8）
+  const { data: deliveryRows } = await supabase
+    .from("deliveries")
+    .select("trial_id, status, error")
+    .eq("organization_id", membership.organizationId)
+    .not("trial_id", "is", null)
+    .order("created_at", { ascending: false });
+
+  // 同じ申込に複数行あることがある（承認のあと見送りに変えた場合など）。
+  // 新しい順に取ってあるので、最初に見た1件だけを残す
+  const delivery = new Map<string, { status: string; error: string | null }>();
+  for (const d of deliveryRows ?? []) {
+    if (d.trial_id && !delivery.has(d.trial_id)) {
+      delivery.set(d.trial_id, { status: d.status, error: d.error });
+    }
+  }
+
   const pending = list.filter((t) => t.status === "pending");
   const upcoming = list.filter(
     (t) => t.status === "booked" && (t.lessons?.date ?? "") >= today,
@@ -61,6 +82,38 @@ export default async function TrialsPage() {
   const rest = list.filter(
     (t) => !pending.includes(t) && !upcoming.includes(t),
   );
+
+  // 連絡の結果。送るのは承認・見送りのときだけなので、それ以外には出さない
+  const TrialDelivery = ({ t }: { t: TrialRow }) => {
+    if (t.status !== "booked" && t.status !== "declined") return null;
+    const d = delivery.get(t.id);
+
+    if (!d) {
+      return (
+        <p className="mt-1.5 flex items-center gap-1 text-[11px] text-sf-muted">
+          <Mail className="size-3.5" aria-hidden />
+          お知らせを送信中です
+        </p>
+      );
+    }
+    if (d.status === "sent") {
+      return (
+        <p className="mt-1.5 flex items-center gap-1 text-[11px] text-sf-ok">
+          <MailCheck className="size-3.5" aria-hidden />
+          お知らせを送りました
+        </p>
+      );
+    }
+    return (
+      <p className="mt-1.5 flex items-start gap-1 text-[11px] text-sf-danger">
+        <MailWarning className="mt-px size-3.5 shrink-0" aria-hidden />
+        <span>
+          お知らせを送れませんでした。お電話でご連絡ください
+          {d.error && `（${d.error}）`}
+        </span>
+      </p>
+    );
+  };
 
   const Line = ({ t, approval }: { t: TrialRow; approval?: boolean }) => (
     <div className="flex flex-wrap items-start gap-3">
@@ -101,6 +154,7 @@ export default async function TrialsPage() {
             {t.note}
           </p>
         )}
+        <TrialDelivery t={t} />
       </div>
       {approval ? (
         <TrialApproval trialId={t.id} />

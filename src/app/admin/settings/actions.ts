@@ -255,3 +255,52 @@ export async function saveTerms(
   revalidatePath("/my/terms");
   return { ok: true };
 }
+
+/**
+ * 公開ページの URL（設計書 4.6.1 / 4.6.2）
+ * ────────────────────────────────────────────────
+ * /apply/<slug> と /apply/<slug>/trial の <slug> にあたる部分。
+ * これまで SQL でしか入れられず、オーナーが自分の申込ページの URL を
+ * 知る手段が無かった。
+ *
+ * ★ 空にはできるが、変えるときは注意が要る。
+ *   案内済みのチラシや LINE のリンクが切れる。画面側にもその断りを出す。
+ *
+ * ★ 使える文字を絞る。
+ *   大文字・記号・日本語が混ざると、印刷物に書き写せない URL になる。
+ *   DB 側にも同じ検査があるが、ここで弾いて分かる言葉で返す。
+ */
+export async function savePublicSlug(
+  _prev: SettingsState,
+  formData: FormData,
+): Promise<SettingsState> {
+  const { membership } = await requireOwner();
+
+  const raw = formData.get("slug");
+  const slug = typeof raw === "string" ? raw.trim().toLowerCase() : "";
+
+  if (slug !== "" && !/^[a-z0-9][a-z0-9-]{1,48}[a-z0-9]$/.test(slug)) {
+    return {
+      error:
+        "半角の英小文字・数字・ハイフンで、3文字以上50文字以内にしてください。先頭と末尾はハイフン以外です。",
+    };
+  }
+
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("organizations")
+    .update({ slug: slug === "" ? null : slug })
+    .eq("id", membership.organizationId);
+
+  if (error) {
+    console.error("公開ページの URL の保存に失敗しました", error);
+    // unique 制約。他のスクールが同じ文字列を使っている
+    if (error.code === "23505") {
+      return { error: "その URL はすでに使われています。別の文字列にしてください。" };
+    }
+    return { error: "保存できませんでした。" };
+  }
+
+  revalidatePath("/admin/settings");
+  return { ok: true };
+}

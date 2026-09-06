@@ -1,10 +1,12 @@
 import type { Metadata } from "next";
 import { Lock } from "lucide-react";
 import { requireAdmin } from "@/lib/auth/guards";
+import { createClient } from "@/lib/supabase/server";
 import { getBrand } from "@/lib/brand.server";
 import SettingsForm from "./settings-form";
 import LogoForm from "./logo-form";
 import TermsForm from "./terms-form";
+import PublicPageForm from "./public-page-form";
 import { BrandMark } from "@/components/brand-mark";
 import { Card, SectionHeading } from "@/components/ui";
 
@@ -20,6 +22,17 @@ export default async function SettingsPage() {
   const { membership } = await requireAdmin();
   const brand = await getBrand(membership.organizationId);
   const isOwner = membership.role === "owner";
+
+  // 公開ページの URL（設計書 4.6.1 / 4.6.2）
+  const supabase = await createClient();
+  const { data: org } = await supabase
+    .from("organizations")
+    .select("slug")
+    .eq("id", membership.organizationId)
+    .maybeSingle();
+
+  // 本番では NEXT_PUBLIC_SITE_URL を設定する。未設定でも画面は壊さない
+  const baseUrl = (process.env.NEXT_PUBLIC_SITE_URL ?? "").replace(/\/$/, "");
 
   return (
     <div className="space-y-6">
@@ -76,6 +89,29 @@ export default async function SettingsPage() {
           ) : (
             <p className="whitespace-pre-wrap text-[13px] leading-relaxed text-sf-body">
               {brand.terms || "まだ登録されていません。"}
+            </p>
+          )}
+        </div>
+      </Card>
+
+      <Card className="p-5 sm:p-6">
+        <SectionHeading
+          kicker="Public"
+          title="公開ページ"
+          action={
+            <span className="text-[12px] text-sf-muted">
+              入会・体験の申込先になります
+            </span>
+          }
+        />
+        <div className="mt-5">
+          {isOwner ? (
+            <PublicPageForm slug={org?.slug ?? null} baseUrl={baseUrl} />
+          ) : (
+            <p className="text-[13px] text-sf-body">
+              {org?.slug
+                ? `${baseUrl}/apply/${org.slug}`
+                : "まだ公開されていません。"}
             </p>
           )}
         </div>

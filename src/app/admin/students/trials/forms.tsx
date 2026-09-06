@@ -71,6 +71,10 @@ export const TRIAL_STATUS_LABEL: Record<string, string> = Object.fromEntries(
  * 承認待ちの申込にだけ出す。席は申込の時点で押さえてあるので、
  * 承認しても定員を超えることはない（設計書 5.2）。
  * 見送ると、その席がすぐ空く。
+ *
+ * ★ どちらを押しても、保護者へメールが飛ぶ（設計書 4.6.2）。
+ *   押す前にそれが分かるように、ボタンの下に書いておく。あとから
+ *   「送るつもりはなかった」となるのが一番まずい。
  */
 export function TrialApproval({ trialId }: { trialId: string }) {
   const [state, action, pending] = useActionState<TrialAdminState, FormData>(
@@ -79,7 +83,8 @@ export function TrialApproval({ trialId }: { trialId: string }) {
   );
 
   return (
-    <div className="flex flex-wrap items-center gap-2">
+    <div className="flex flex-col items-end gap-1.5">
+      <div className="flex flex-wrap items-center gap-2">
       <form action={action} className="flex items-center gap-2">
         <input type="hidden" name="trial_id" value={trialId} />
         <input type="hidden" name="status" value="booked" />
@@ -96,7 +101,11 @@ export function TrialApproval({ trialId }: { trialId: string }) {
       <form
         action={action}
         onSubmit={(e) => {
-          if (!confirm("この申込を見送りにします。よろしいですか。")) {
+          if (
+            !confirm(
+              "この申込を見送りにします。保護者へお断りのメールが送られます。よろしいですか。",
+            )
+          ) {
             e.preventDefault();
           }
         }}
@@ -113,6 +122,10 @@ export function TrialApproval({ trialId }: { trialId: string }) {
       {state.error && (
         <span className="text-[12px] text-sf-danger">{state.error}</span>
       )}
+      </div>
+      <p className="text-[11px] text-sf-muted">
+        どちらもメールでお知らせします
+      </p>
     </div>
   );
 }
