@@ -53,6 +53,7 @@ export async function saveBrandSettings(
       brand_color: brandColor,
       tel: orNull(formData.get("tel")),
       email,
+      postal_code: orNull(formData.get("postal_code")),
       address: orNull(formData.get("address")),
       website: orNull(formData.get("website")),
       invoice_registration_number: orNull(

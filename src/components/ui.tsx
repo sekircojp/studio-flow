@@ -126,7 +126,7 @@ export function EmptyState({
 }
 
 export const fieldClass =
-  "mt-1 w-full rounded-lg border border-sf-border-strong bg-white px-3 py-2 text-[15px] text-sf-ink outline-none transition focus:border-sf-accent focus:ring-2 focus:ring-sf-accent/20";
+  "mt-1 w-full rounded-lg border border-sf-border-strong bg-white px-2.5 py-1.5 text-[14px] text-sf-ink outline-none transition focus:border-sf-accent focus:ring-2 focus:ring-sf-accent/20";
 
 export const labelClass = "block text-[13px] font-medium text-sf-body";
 

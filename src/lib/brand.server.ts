@@ -22,7 +22,7 @@ export async function getBrand(organizationId: string): Promise<Brand> {
     supabase
       .from("brand_settings")
       .select(
-        "studio_name, logo_url, brand_color, tel, email, address, website, invoice_registration_number",
+        "studio_name, logo_url, brand_color, tel, email, postal_code, address, website, invoice_registration_number",
       )
       .eq("organization_id", organizationId)
       .maybeSingle(),
@@ -34,6 +34,7 @@ export async function getBrand(organizationId: string): Promise<Brand> {
     brandColor: brand?.brand_color ?? null,
     tel: brand?.tel ?? null,
     email: brand?.email ?? null,
+    postalCode: brand?.postal_code ?? null,
     address: brand?.address ?? null,
     website: brand?.website ?? null,
     invoiceRegistrationNumber: brand?.invoice_registration_number ?? null,

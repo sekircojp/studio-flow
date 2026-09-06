@@ -75,6 +75,7 @@ export default async function SettingsPage() {
                   ["スクール名", brand.studioName],
                   ["電話番号", brand.tel],
                   ["メールアドレス", brand.email],
+                  ["郵便番号", brand.postalCode],
                   ["住所", brand.address],
                   ["ウェブサイト", brand.website],
                   ["登録番号", brand.invoiceRegistrationNumber],

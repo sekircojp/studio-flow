@@ -14,6 +14,7 @@ export type Brand = {
   brandColor: string | null;
   tel: string | null;
   email: string | null;
+  postalCode: string | null;
   address: string | null;
   website: string | null;
   invoiceRegistrationNumber: string | null;
