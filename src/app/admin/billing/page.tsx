@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { FileText, ReceiptText } from "lucide-react";
 import { requireAdmin } from "@/lib/auth/guards";
 import { createClient } from "@/lib/supabase/server";
 import { formatYen, todayInTokyo } from "@/lib/date";
@@ -257,6 +258,29 @@ export default async function BillingPage({
                           </span>
                         )}
                       </span>
+
+                      {!canceled && (
+                        <span className="flex items-center gap-2 text-[12px]">
+                          <Link
+                            href={`/print/invoices/${i.id}`}
+                            target="_blank"
+                            className="inline-flex items-center gap-1 rounded-md border border-sf-border-strong px-2 py-1 text-sf-body transition hover:border-sf-muted"
+                          >
+                            <FileText className="size-3.5" aria-hidden />
+                            請求書
+                          </Link>
+                          {paid > 0 && (
+                            <Link
+                              href={`/print/invoices/${i.id}?doc=receipt`}
+                              target="_blank"
+                              className="inline-flex items-center gap-1 rounded-md border border-sf-border-strong px-2 py-1 text-sf-body transition hover:border-sf-muted"
+                            >
+                              <ReceiptText className="size-3.5" aria-hidden />
+                              領収書
+                            </Link>
+                          )}
+                        </span>
+                      )}
 
                       {!canceled && remaining > 0 && (
                         <PaymentForm
