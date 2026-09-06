@@ -246,7 +246,17 @@ export async function cancelInvoice(
   return { ok: true };
 }
 
-/** 兄弟割などの請求設定（オーナーのみ） */
+/**
+ * 日にちは 1〜28 に収める。
+ * 29〜31 にすると、2月や30日までの月で「その日が来ない」ことになり、
+ * 請求が作られない月が生まれる。
+ */
+function clampDay(value: number | null, fallback: number): number {
+  if (value === null) return fallback;
+  return Math.min(Math.max(value, 1), 28);
+}
+
+/** 請求日・兄弟割・支払期限の設定（オーナーのみ） */
 export async function saveBillingSettings(
   _prev: BillingState,
   formData: FormData,
@@ -268,7 +278,8 @@ export async function saveBillingSettings(
       sibling_discount_rate: Number.isFinite(rate) ? Math.min(Math.max(rate / 100, 0), 1) : 0,
       count_suspended_in_siblings:
         formData.get("count_suspended_in_siblings") === "on",
-      due_day: toInt(formData.get("due_day")) ?? 27,
+      issue_day: clampDay(toInt(formData.get("issue_day")), 1),
+      due_day: clampDay(toInt(formData.get("due_day")), 27),
     },
     { onConflict: "organization_id" },
   );

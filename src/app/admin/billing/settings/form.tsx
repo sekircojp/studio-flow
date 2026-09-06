@@ -129,22 +129,42 @@ export function BillingSettingsForm({ settings }: { settings: BillingSettings })
         </div>
       )}
 
-      <div className="max-w-xs">
-        <label htmlFor="due-day" className={labelClass}>
-          支払期限（請求月の何日）
-        </label>
-        <input
-          id="due-day"
-          name="due_day"
-          type="number"
-          min={1}
-          max={28}
-          defaultValue={settings.due_day}
-          className={fieldClass}
-        />
-        <p className="mt-1 text-[11px] text-sf-muted">
-          月末の日数が月ごとに違うため、28日までにしています
-        </p>
+      <div className="grid max-w-lg gap-4 sm:grid-cols-2">
+        <div>
+          <label htmlFor="issue-day" className={labelClass}>
+            請求を作る日（毎月）
+          </label>
+          <input
+            id="issue-day"
+            name="issue_day"
+            type="number"
+            min={1}
+            max={28}
+            defaultValue={settings.issue_day}
+            className={fieldClass}
+          />
+          <p className="mt-1 text-[11px] leading-relaxed text-sf-muted">
+            この日の朝に、その月の請求が自動で作られます
+          </p>
+        </div>
+
+        <div>
+          <label htmlFor="due-day" className={labelClass}>
+            支払期限（請求月の何日）
+          </label>
+          <input
+            id="due-day"
+            name="due_day"
+            type="number"
+            min={1}
+            max={28}
+            defaultValue={settings.due_day}
+            className={fieldClass}
+          />
+          <p className="mt-1 text-[11px] leading-relaxed text-sf-muted">
+            月末の日数が月ごとに違うため、どちらも28日までにしています
+          </p>
+        </div>
       </div>
 
       <div className="flex items-center gap-3 border-t border-sf-border pt-5">

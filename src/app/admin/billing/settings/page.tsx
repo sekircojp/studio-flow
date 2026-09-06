@@ -15,6 +15,7 @@ export type BillingSettings = {
   sibling_discount_amount: number;
   sibling_discount_rate: number;
   count_suspended_in_siblings: boolean;
+  issue_day: number;
   due_day: number;
 };
 
@@ -25,6 +26,7 @@ const DEFAULTS: BillingSettings = {
   sibling_discount_amount: 0,
   sibling_discount_rate: 0,
   count_suspended_in_siblings: true,
+  issue_day: 1,
   due_day: 27,
 };
 
@@ -40,7 +42,7 @@ export default async function BillingSettingsPage() {
   const { data } = await supabase
     .from("billing_settings")
     .select(
-      "sibling_discount_enabled, sibling_discount_target, sibling_discount_type, sibling_discount_amount, sibling_discount_rate, count_suspended_in_siblings, due_day",
+      "sibling_discount_enabled, sibling_discount_target, sibling_discount_type, sibling_discount_amount, sibling_discount_rate, count_suspended_in_siblings, issue_day, due_day",
     )
     .eq("organization_id", membership.organizationId)
     .maybeSingle();
@@ -62,12 +64,12 @@ export default async function BillingSettingsPage() {
           請求の設定
         </h1>
         <p className="mt-1 max-w-2xl text-[13px] leading-relaxed text-sf-body">
-          兄弟割と支払期限を決めます。請求を作るときに、この設定が使われます。
+          請求を作る日、兄弟割、支払期限を決めます。請求を作るときに、この設定が使われます。
         </p>
       </div>
 
       <Card className="p-5 sm:p-6">
-        <SectionHeading kicker="Billing" title="兄弟割と支払期限" />
+        <SectionHeading kicker="Billing" title="請求日・兄弟割・支払期限" />
         <div className="mt-5">
           {isOwner ? (
             <BillingSettingsForm settings={settings} />

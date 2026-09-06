@@ -2,7 +2,7 @@ import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { requireAdmin } from "@/lib/auth/guards";
 import { createClient } from "@/lib/supabase/server";
-import { formatDateJa, formatYen } from "@/lib/date";
+import { formatDateJa, formatYen, todayInTokyo } from "@/lib/date";
 import { billingMonthLabel, paymentMethodLabel } from "@/lib/billing";
 import { getBrand } from "@/lib/brand.server";
 import { PrintSheet } from "@/components/print-sheet";
@@ -46,6 +46,12 @@ type InvoiceRow = {
  *
  * ★ 金額は保存された値をそのまま出す。ここで計算し直さない。
  *   税率が変わっても過去の帳票が変わらないようにするため（設計書 2.2）。
+ *
+ * ★ 領収書は入金前でも出せる。
+ *   「明日月謝を持っていく」と言われたときに、その場で刷って渡せないと
+ *   後日渡しになる。現金回収の現場では、先に書いておいて受け取った日に
+ *   渡すのが普通。日付は ?date= で指定でき、既定は今日。
+ *   入金が登録されていない場合は、画面にだけその旨を出す（紙には出ない）。
  */
 export default async function InvoicePrintPage({
   params,
@@ -111,6 +117,16 @@ export default async function InvoicePrintPage({
   const paidTotal = paymentRows.reduce((s, p) => s + p.amount, 0);
   const lastPaidAt = paymentRows.at(-1)?.paid_at ?? null;
 
+  // 領収日。入金があればその日、無ければ指定日（既定は今日）
+  const requestedDate =
+    typeof query.date === "string" && /^\d{4}-\d{2}-\d{2}$/.test(query.date)
+      ? query.date
+      : todayInTokyo();
+  const receiptDate = lastPaidAt ?? requestedDate;
+
+  // 入金前は請求額をそのまま領収額として刷る
+  const receiptAmount = paidTotal > 0 ? paidTotal : inv.total;
+
   const itemRows = (items ?? []) as {
     id: string;
     kind: string;
@@ -121,21 +137,20 @@ export default async function InvoicePrintPage({
   const taxPercent = Math.round(inv.tax_rate * 1000) / 10;
   const netAmount = inv.total - inv.tax_amount;
 
-  // 領収書は入金があってこそ成り立つ。無いのに出せてしまうと事故になる
-  if (isReceipt && paidTotal === 0) {
-    return (
-      <PrintSheet backHref="/admin/billing">
-        <h1 className="text-lg font-bold">領収書はまだ発行できません</h1>
-        <p className="mt-3 text-[13px]">
-          この請求にはまだ入金が登録されていません。入金を登録してから、
-          もう一度開いてください。
-        </p>
-      </PrintSheet>
-    );
-  }
-
   return (
-    <PrintSheet backHref="/admin/billing">
+    <PrintSheet
+      backHref="/admin/billing"
+      dateControl={
+        isReceipt && paidTotal === 0
+          ? { value: requestedDate, label: `領収日` }
+          : undefined
+      }
+      notice={
+        isReceipt && paidTotal === 0
+          ? "入金がまだ登録されていません。受け取ったら「入金を登録」してください。"
+          : undefined
+      }
+    >
       <h1 className="text-center text-2xl font-bold tracking-[0.3em]">
         {isReceipt ? "領収書" : "請求書"}
       </h1>
@@ -155,9 +170,7 @@ export default async function InvoicePrintPage({
         <div className="shrink-0 text-right text-[12px] leading-relaxed">
           <p>
             {isReceipt
-              ? lastPaidAt
-                ? formatDateJa(lastPaidAt)
-                : ""
+              ? formatDateJa(receiptDate)
               : inv.issued_at
                 ? formatDateJa(inv.issued_at)
                 : ""}
@@ -181,7 +194,7 @@ export default async function InvoicePrintPage({
             {isReceipt ? "領収金額" : "ご請求金額"}
           </span>
           <span className="sf-num text-3xl font-bold">
-            {formatYen(isReceipt ? paidTotal : inv.total)}
+            {formatYen(isReceipt ? receiptAmount : inv.total)}
           </span>
         </div>
         <p className="mt-1 text-right text-[11px]">（税込）</p>
@@ -241,25 +254,31 @@ export default async function InvoicePrintPage({
       </table>
 
       {isReceipt ? (
-        <div className="mt-6 text-[12px]">
-          <p className="font-medium">入金の内訳</p>
-          <ul className="mt-1">
-            {paymentRows.map((p) => (
-              <li key={p.id} className="flex justify-between border-b border-sf-border py-1.5">
-                <span>
-                  {formatDateJa(p.paid_at)} ・ {paymentMethodLabel(p.method)}
-                </span>
-                <span className="sf-num">{formatYen(p.amount)}</span>
-              </li>
-            ))}
-          </ul>
-          {paidTotal < inv.total && (
-            <p className="mt-2">
-              残額 {formatYen(inv.total - paidTotal)}（この領収書は入金済みの
-              分のみを証明するものです）
-            </p>
-          )}
-        </div>
+        paymentRows.length > 0 && (
+          <div className="mt-6 text-[12px]">
+            <p className="font-medium">入金の内訳</p>
+            <ul className="mt-1">
+              {paymentRows.map((p) => (
+                <li
+                  key={p.id}
+                  className="flex justify-between border-b border-sf-border py-1.5"
+                >
+                  <span>
+                    {formatDateJa(p.paid_at)} ・{" "}
+                    {paymentMethodLabel(p.method)}
+                  </span>
+                  <span className="sf-num">{formatYen(p.amount)}</span>
+                </li>
+              ))}
+            </ul>
+            {paidTotal < inv.total && (
+              <p className="mt-2">
+                残額 {formatYen(inv.total - paidTotal)}（この領収書は入金済みの
+                分のみを証明するものです）
+              </p>
+            )}
+          </div>
+        )
       ) : (
         inv.due_date && (
           <p className="mt-6 text-[12px]">
