@@ -117,3 +117,14 @@ npx supabase secrets set --project-ref fterpqyvzeqcaltfkpuc \
 | メール送信 | ⚠️ `take@sekir.co.jp` 宛のみ（Resend のテストモード） |
 | 保護者・講師のログイン | ⏸ 上記の制限により未確認 |
 | 独自ドメイン | ⏸ 未取得 |
+
+## 取得後に片付ける宿題（2026-09-06 時点）
+
+- **請求のお知らせメールの実地確認。** 仕組みは完成していて、本番で送信までは
+  確認済み（`deliveries` に `sent` が残る）。保護者の実アドレス宛に届くことの
+  確認だけが残っている
+- **Vercel の `NEXT_PUBLIC_SITE_URL`** が仮値 `https://studio-flow.vercel.app`
+  のまま。取得したドメインに直す
+- 講師・保護者のテスト用アドレス（`maya@example.com` など）に届かないため、
+  手元では `DEV_LOGIN=1` の開発用ログインで画面を確認している。実アドレスに
+  差し替えられるようになったら、この迂回は不要になる

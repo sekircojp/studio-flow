@@ -32,6 +32,7 @@ MarcheBase と同じく、適用済みかどうかをこの表で管理する。
 | 26 | `20260906000300_billing_timing.sql` | 対象月のずらし方と「末日」指定 | 済 2026-09-06 |
 | 27 | `20260906000400_notifications.sql` | 通知と配信結果（notifications / deliveries） | 済 2026-09-06 |
 | 28 | `20260906000500_invoice_notice_dispatch.sql` | 請求作成後にお知らせを自動送信（pg_net） | 済 2026-09-06 |
+| 29 | `20260906000600_import_students.sql` | 生徒の一括取り込み（CSV 移行） | 済 2026-09-06 |
 
 適用先: Supabase プロジェクト `studio-flow`（ref: fterpqyvzeqcaltfkpuc / Tokyo）
 

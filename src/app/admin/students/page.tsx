@@ -1,11 +1,16 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ChevronRight, Users } from "lucide-react";
+import { ChevronRight, FileUp, Users } from "lucide-react";
 import { requireAdmin } from "@/lib/auth/guards";
 import { createClient } from "@/lib/supabase/server";
 import { ageFrom, STUDENT_STATUSES, statusLabel, statusTone } from "@/lib/students";
 import { StudentForm } from "./forms";
-import { Card, EmptyState, SectionHeading } from "@/components/ui";
+import {
+  Card,
+  EmptyState,
+  SectionHeading,
+  secondaryButtonClass,
+} from "@/components/ui";
 
 export const metadata: Metadata = { title: "生徒・保護者" };
 
@@ -83,15 +88,21 @@ export default async function StudentsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="pb-1">
-        <p className="sf-kicker">Members</p>
-        <h1 className="mt-1.5 text-2xl font-bold tracking-tight text-sf-ink">
-          生徒・保護者
-        </h1>
-        <p className="mt-1 max-w-2xl text-[13px] leading-relaxed text-sf-body">
-          生徒は必ず世帯に属します。世帯は兄弟割の判定単位なので、兄弟は同じ世帯に
-          入れてください。退会しても記録は消さず、状態の変更で表します。
-        </p>
+      <div className="flex flex-wrap items-start justify-between gap-4 pb-1">
+        <div>
+          <p className="sf-kicker">Members</p>
+          <h1 className="mt-1.5 text-2xl font-bold tracking-tight text-sf-ink">
+            生徒・保護者
+          </h1>
+          <p className="mt-1 max-w-2xl text-[13px] leading-relaxed text-sf-body">
+            生徒は必ず世帯に属します。世帯は兄弟割の判定単位なので、兄弟は同じ世帯に
+            入れてください。退会しても記録は消さず、状態の変更で表します。
+          </p>
+        </div>
+        <Link href="/admin/students/import" className={secondaryButtonClass}>
+          <FileUp className="size-3.5" aria-hidden />
+          CSV から取り込む
+        </Link>
       </div>
 
       <div className="flex flex-wrap gap-2">
