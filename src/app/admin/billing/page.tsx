@@ -16,6 +16,7 @@ import {
 import {
   CancelInvoiceForm,
   GenerateInvoicesButton,
+  SendNoticesButton,
   PaymentForm,
 } from "./forms";
 import {
@@ -193,10 +194,13 @@ export default async function BillingPage({
             kicker="Invoices"
             title={`${billingMonthLabel(month)}の請求（${invoiceList.length}）`}
           />
-          <GenerateInvoicesButton
-            month={month}
-            hasInvoices={invoiceList.length > 0}
-          />
+          <div className="flex flex-wrap items-center gap-3">
+            <GenerateInvoicesButton
+              month={month}
+              hasInvoices={invoiceList.length > 0}
+            />
+            {invoiceList.length > 0 && <SendNoticesButton month={month} />}
+          </div>
         </div>
 
         {byStatus.length > 0 && (

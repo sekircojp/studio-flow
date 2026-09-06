@@ -303,3 +303,49 @@ export async function saveBillingSettings(
   revalidatePath("/admin/billing/settings");
   return { ok: true };
 }
+
+/**
+ * 請求のお知らせメールを送る（設計書 5.4 / 11章）
+ *
+ * 実処理は Edge Function（send-invoice-notice）。Resend の鍵はサーバー側に
+ * しか無く、送信結果を deliveries に1行ずつ残すため、DB に近い場所で行う。
+ *
+ * 既に送れている請求は飛ばされるので、何度押しても二重には届かない。
+ * 保護者が未登録・メール未入力の生徒は「送れなかった件数」として返る。
+ */
+export async function sendInvoiceNotices(
+  _prev: BillingState,
+  formData: FormData,
+): Promise<BillingState> {
+  const { membership } = await requireAdmin();
+
+  const month = orNull(formData.get("month"));
+  if (!month) return { error: "対象月が指定されていません。" };
+
+  const supabase = await createClient();
+  const { data, error } = await supabase.functions.invoke(
+    "send-invoice-notice",
+    {
+      body: {
+        organization_id: membership.organizationId,
+        billing_month: monthStart(month),
+      },
+    },
+  );
+
+  if (error) {
+    console.error("請求のお知らせ送信に失敗しました", error);
+    return { error: "送信できませんでした。" };
+  }
+
+  if (data?.reason === "no_invoices") {
+    return { error: "送る請求がありません。先に請求を作ってください。" };
+  }
+
+  const parts = [`${data?.sent ?? 0} 件を送信`];
+  if (data?.skipped) parts.push(`送れなかった ${data.skipped} 件`);
+  if (data?.failed) parts.push(`失敗 ${data.failed} 件`);
+
+  revalidatePath("/admin/billing");
+  return { ok: true, message: parts.join(" / ") };
+}

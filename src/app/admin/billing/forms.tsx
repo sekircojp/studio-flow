@@ -1,11 +1,12 @@
 "use client";
 
 import { useActionState, useState } from "react";
-import { Loader2, RefreshCw, Wallet, X } from "lucide-react";
+import { Loader2, Mail, RefreshCw, Wallet, X } from "lucide-react";
 import {
   cancelInvoice,
   generateInvoices,
   recordPayment,
+  sendInvoiceNotices,
   type BillingState,
 } from "./actions";
 import { PAYMENT_METHODS } from "@/lib/billing";
@@ -43,6 +44,44 @@ export function GenerateInvoicesButton({
           <RefreshCw className="size-3.5" aria-hidden />
         )}
         {hasInvoices ? "未作成分を作る" : "この月の請求を作る"}
+      </button>
+      {state.message && (
+        <span className="text-[12px] text-sf-ok">{state.message}</span>
+      )}
+      {state.error && (
+        <span className="text-[12px] text-sf-danger">{state.error}</span>
+      )}
+    </form>
+  );
+}
+
+/**
+ * 請求のお知らせメール（設計書 5.4 / 11章）
+ *
+ * 既に送れている請求は飛ばされるので、押し直しても二重には届かない。
+ * 保護者が未登録・メール未入力の生徒は「送れなかった件数」として返る。
+ */
+export function SendNoticesButton({ month }: { month: string }) {
+  const [state, action, pending] = useActionState<BillingState, FormData>(
+    sendInvoiceNotices,
+    {},
+  );
+
+  return (
+    <form action={action} className="flex flex-wrap items-center gap-3">
+      <input type="hidden" name="month" value={month} />
+      <button
+        type="submit"
+        disabled={pending}
+        className={secondaryButtonClass}
+        title="請求先の保護者に、金額と支払期限をメールで知らせます"
+      >
+        {pending ? (
+          <Loader2 className="size-4 animate-spin" aria-hidden />
+        ) : (
+          <Mail className="size-3.5" aria-hidden />
+        )}
+        お知らせを送る
       </button>
       {state.message && (
         <span className="text-[12px] text-sf-ok">{state.message}</span>

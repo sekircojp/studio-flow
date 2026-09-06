@@ -30,6 +30,8 @@ MarcheBase と同じく、適用済みかどうかをこの表で管理する。
 | 24 | `20260906000100_brand_postal_code.sql` | brand_settings に郵便番号を追加 | 済 2026-09-06 |
 | 25 | `20260906000200_billing_issue_day.sql` | 請求を作る日を組織ごとの設定にする | 済 2026-09-06 |
 | 26 | `20260906000300_billing_timing.sql` | 対象月のずらし方と「末日」指定 | 済 2026-09-06 |
+| 27 | `20260906000400_notifications.sql` | 通知と配信結果（notifications / deliveries） | 済 2026-09-06 |
+| 28 | `20260906000500_invoice_notice_dispatch.sql` | 請求作成後にお知らせを自動送信（pg_net） | 済 2026-09-06 |
 
 適用先: Supabase プロジェクト `studio-flow`（ref: fterpqyvzeqcaltfkpuc / Tokyo）
 
@@ -54,6 +56,19 @@ curl -s -X POST "https://api.supabase.com/v1/projects/fterpqyvzeqcaltfkpuc/datab
 どちらの方法でも、成功したらこの表の「適用」を「済（YYYY-MM-DD）」に書き換える。
 
 **順番を守ること。** 2 は 1 で作ったテーブルに、3 は 1 の organizations に依存している。
+
+## Vault に入れる値
+
+移行 028 の自動送信は、鍵と URL を Vault から読む。**マイグレーションには
+書かない**（git に残るため）。プロジェクトを作り直したときは、次の2件を
+入れ直すこと。
+
+```sql
+select vault.create_secret('https://<ref>.supabase.co', 'project_url', '');
+select vault.create_secret('<service_role の鍵>', 'service_role_key', '');
+```
+
+未設定でも請求の生成は止まらない。送信の呼び出しだけが飛ばされ、警告が残る。
 
 ## ルール
 
