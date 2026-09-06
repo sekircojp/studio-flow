@@ -1,5 +1,5 @@
 import { LogOut } from "lucide-react";
-import { BrandMark } from "@/components/brand-mark";
+import { BrandLockup } from "@/components/brand-mark";
 import { signOut } from "@/app/actions/auth";
 import type { Brand } from "@/lib/brand";
 
@@ -22,14 +22,13 @@ export function AdminTopBar({
 
   return (
     <header className="flex items-center gap-3 px-5 py-4 sm:px-8">
-      <div className="flex min-w-0 items-center gap-2 lg:hidden">
-        <BrandMark brand={brand} size={26} maxWidth={160} />
-        {!brand.logoUrl && (
-          <span className="truncate text-sm font-bold text-sf-ink">
-            {brand.studioName}
-          </span>
-        )}
-      </div>
+      <BrandLockup
+        brand={brand}
+        size={26}
+        maxWidth={160}
+        nameClassName="text-sm font-bold text-sf-ink"
+        className="lg:hidden"
+      />
 
       <div className="ml-auto flex items-center gap-3">
         <div className="hidden text-right sm:block">

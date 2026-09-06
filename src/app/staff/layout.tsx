@@ -2,7 +2,7 @@ import Link from "next/link";
 import { CalendarCheck, Users } from "lucide-react";
 import { requireStaff } from "@/lib/auth/staff";
 import { getBrand } from "@/lib/brand.server";
-import { BrandMark } from "@/components/brand-mark";
+import { BrandLockup } from "@/components/brand-mark";
 import { signOut } from "@/app/actions/auth";
 import { APP_NAME } from "@/config/app";
 
@@ -38,17 +38,14 @@ export default async function StaffLayout({
     >
       <header className="border-b border-sf-border bg-sf-card">
         <div className="mx-auto flex max-w-2xl items-center gap-2.5 px-4 py-3">
-          <BrandMark brand={brand} size={28} maxWidth={168} />
-          <span className="min-w-0 flex-1">
-            {!brand.logoUrl && (
-              <span className="block truncate text-[15px] font-bold text-sf-ink">
-                {brand.studioName}
-              </span>
-            )}
-            <span className="block text-[11px] text-sf-muted">
-              {instructor ? `${instructor.name} 先生` : "講師"}
-            </span>
-          </span>
+          <BrandLockup
+            brand={brand}
+            size={28}
+            maxWidth={168}
+            nameClassName="text-[15px] font-bold text-sf-ink"
+            subLabel={instructor ? `${instructor.name} 先生` : "講師"}
+            className="flex-1"
+          />
           <form action={signOut}>
             <button
               type="submit"

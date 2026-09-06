@@ -15,7 +15,7 @@ import {
   Users,
   Wallet,
 } from "lucide-react";
-import { BrandMark } from "@/components/brand-mark";
+import { BrandLockup } from "@/components/brand-mark";
 import type { Brand } from "@/lib/brand";
 import { APP_NAME } from "@/config/app";
 
@@ -86,19 +86,12 @@ export function AdminSidebar({
 
   return (
     <aside className="hidden w-60 shrink-0 flex-col bg-sf-nav px-3 py-4 lg:flex">
-      {/*
-        ロゴがあるときは名前を出さない。ロゴはたいてい社名を並べた形なので、
-        隣に同じ文字を置くと重複し、どちらも幅が足りず切れる。
-        ロゴが無いときだけ、頭文字とスクール名を並べる（設計書 12章）。
-      */}
-      <div className="flex items-center gap-2 rounded-xl bg-white px-3 py-2.5">
-        <BrandMark brand={brand} size={26} maxWidth={192} />
-        {!brand.logoUrl && (
-          <span className="truncate text-[13px] font-bold text-sf-ink">
-            {brand.studioName}
-          </span>
-        )}
-      </div>
+      <BrandLockup
+        brand={brand}
+        size={26}
+        maxWidth={192}
+        className="rounded-xl bg-white px-3 py-2.5"
+      />
 
       {/* スタジオの表示。スタジオをまたいだ絞り込みは、クラスを作る段階で足す */}
       <Link

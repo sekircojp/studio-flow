@@ -2,7 +2,7 @@ import Link from "next/link";
 import { CalendarDays, Repeat, Wallet } from "lucide-react";
 import { requireMy } from "@/lib/auth/my";
 import { getBrand } from "@/lib/brand.server";
-import { BrandMark } from "@/components/brand-mark";
+import { BrandLockup } from "@/components/brand-mark";
 import { signOut } from "@/app/actions/auth";
 import { POWERED_BY } from "@/config/app";
 
@@ -40,13 +40,13 @@ export default async function MyLayout({
     >
       <header className="border-b border-sf-border bg-sf-card">
         <div className="mx-auto flex max-w-2xl items-center gap-2.5 px-4 py-3">
-          <BrandMark brand={brand} size={28} maxWidth={168} />
-          {!brand.logoUrl && (
-            <span className="min-w-0 flex-1 truncate text-[15px] font-bold text-sf-ink">
-              {brand.studioName}
-            </span>
-          )}
-          <span className="flex-1" />
+          <BrandLockup
+            brand={brand}
+            size={28}
+            maxWidth={168}
+            nameClassName="text-[15px] font-bold text-sf-ink"
+            className="flex-1"
+          />
           <form action={signOut}>
             <button
               type="submit"
