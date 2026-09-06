@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { CalendarDays, Repeat, Wallet } from "lucide-react";
+import { CalendarDays, FileText, Repeat, Wallet } from "lucide-react";
 import { requireMy } from "@/lib/auth/my";
 import { getBrand } from "@/lib/brand.server";
 import { BrandLockup } from "@/components/brand-mark";
@@ -19,6 +19,7 @@ const NAV = [
   { href: "/my", label: "スケジュール", icon: CalendarDays },
   { href: "/my/transfers", label: "欠席・振替", icon: Repeat },
   { href: "/my/billing", label: "月謝", icon: Wallet },
+  { href: "/my/terms", label: "規約", icon: FileText },
 ];
 
 export default async function MyLayout({

@@ -4,6 +4,7 @@ import { requireAdmin } from "@/lib/auth/guards";
 import { getBrand } from "@/lib/brand.server";
 import SettingsForm from "./settings-form";
 import LogoForm from "./logo-form";
+import TermsForm from "./terms-form";
 import { BrandMark } from "@/components/brand-mark";
 import { Card, SectionHeading } from "@/components/ui";
 
@@ -55,6 +56,27 @@ export default async function SettingsPage() {
                 ロゴを変更できるのはオーナーのみです。
               </p>
             </div>
+          )}
+        </div>
+      </Card>
+
+      <Card className="p-5 sm:p-6">
+        <SectionHeading
+          kicker="Terms"
+          title="スタジオ規約"
+          action={
+            <span className="text-[12px] text-sf-muted">
+              保護者のマイページに出ます
+            </span>
+          }
+        />
+        <div className="mt-5">
+          {isOwner ? (
+            <TermsForm brand={brand} />
+          ) : (
+            <p className="whitespace-pre-wrap text-[13px] leading-relaxed text-sf-body">
+              {brand.terms || "まだ登録されていません。"}
+            </p>
           )}
         </div>
       </Card>

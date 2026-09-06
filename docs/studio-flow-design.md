@@ -113,7 +113,8 @@ organizations (テナント = 契約スタジオ)
 brand_settings
   organization_id, studio_name, logo_url, brand_color,
   tel, email, address, website,
-  invoice_registration_number  -- 適格請求書発行事業者の登録番号（任意）
+  invoice_registration_number, -- 適格請求書発行事業者の登録番号（任意）
+  terms, terms_updated_at      -- スタジオ規約。保護者のマイページに出す
 
 locations (スタジオ = 場所)
   id, organization_id, name, address, tel, is_active
@@ -150,6 +151,8 @@ DB のテーブル名は `locations` / `rooms` のまま、画面の表記を次
 **Room は必ず持つ。** 部屋が1つしかないスタジオでも Location 配下に Room を1件作る。後から2部屋目ができても構造が壊れないようにするため。
 
 ただし**運営者に入力させない**（2026-09-05 追記）。1部屋しかないスタジオにとって「ルーム名」は存在しない概念で、必須にすると答えようがない。スタジオを登録した時点で `public.create_location()` が既定のルーム（「メインルーム」）を同じトランザクションで作る。ルームを分けているスタジオだけが、あとから名前を変えたり足したりする。
+
+`terms` は入会案内・受講規約・キャンセル規定などの文章（2026-09-06 追加）。保護者のマイページ `/my/terms` にそのまま表示する。**同意の記録は持たない。** 対象業種を「スタジオと名のつく業態」に絞っており（1.1）、特定継続的役務提供の7業種は外してあるため、契約書面の交付義務が無く、同意日時を証拠として残す必要が現時点で無い。必要になったら規約の版と同意記録を別テーブルで足す。
 
 `invoice_registration_number` は**任意項目**。免税事業者のスタジオが多数を占めるため、未登録なら帳票に表記を出さない。
 

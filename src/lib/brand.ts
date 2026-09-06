@@ -18,6 +18,8 @@ export type Brand = {
   address: string | null;
   website: string | null;
   invoiceRegistrationNumber: string | null;
+  terms: string | null;
+  termsUpdatedAt: string | null;
 };
 
 /** ロゴもスタジオ名も未登録のときに使う既定値 */

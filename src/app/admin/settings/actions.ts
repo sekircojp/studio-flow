@@ -219,3 +219,39 @@ async function removeStoredLogo(
   const { error } = await supabase.storage.from("brand").remove([path]);
   if (error) console.error("古いロゴを消せませんでした", error);
 }
+
+/**
+ * スタジオ規約の保存（設計書 4.1）
+ *
+ * 保護者のマイページに出す文章。空にすると、保護者側でも表示されなくなる。
+ * 最終更新の日時を持たせるのは、「いつの版を読んだか」を保護者が判断できる
+ * ようにするため。
+ */
+export async function saveTerms(
+  _prev: SettingsState,
+  formData: FormData,
+): Promise<SettingsState> {
+  const { membership } = await requireOwner();
+
+  const raw = formData.get("terms");
+  const terms = typeof raw === "string" && raw.trim() !== "" ? raw : null;
+
+  const supabase = await createClient();
+  const { error } = await supabase.from("brand_settings").upsert(
+    {
+      organization_id: membership.organizationId,
+      terms,
+      terms_updated_at: terms ? new Date().toISOString() : null,
+    },
+    { onConflict: "organization_id" },
+  );
+
+  if (error) {
+    console.error("規約の保存に失敗しました", error);
+    return { error: "保存できませんでした。" };
+  }
+
+  revalidatePath("/admin/settings");
+  revalidatePath("/my/terms");
+  return { ok: true };
+}
