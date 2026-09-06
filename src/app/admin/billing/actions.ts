@@ -256,6 +256,12 @@ function clampDay(value: number | null, fallback: number): number {
   return Math.min(Math.max(value, 1), 28);
 }
 
+/** 対象月のずらし幅。-1 前月に作る / 0 当月 / +1 翌月 */
+function clampOffset(value: number | null): number {
+  if (value === null) return 0;
+  return Math.min(Math.max(value, -1), 1);
+}
+
 /** 請求日・兄弟割・支払期限の設定（オーナーのみ） */
 export async function saveBillingSettings(
   _prev: BillingState,
@@ -278,8 +284,13 @@ export async function saveBillingSettings(
       sibling_discount_rate: Number.isFinite(rate) ? Math.min(Math.max(rate / 100, 0), 1) : 0,
       count_suspended_in_siblings:
         formData.get("count_suspended_in_siblings") === "on",
+      issue_month_offset: clampOffset(
+        toInt(formData.get("issue_month_offset")),
+      ),
       issue_day: clampDay(toInt(formData.get("issue_day")), 1),
+      issue_on_month_end: formData.get("issue_on_month_end") === "on",
       due_day: clampDay(toInt(formData.get("due_day")), 27),
+      due_on_month_end: formData.get("due_on_month_end") === "on",
     },
     { onConflict: "organization_id" },
   );

@@ -129,26 +129,55 @@ export function BillingSettingsForm({ settings }: { settings: BillingSettings })
         </div>
       )}
 
-      <div className="grid max-w-lg gap-4 sm:grid-cols-2">
-        <div>
-          <label htmlFor="issue-day" className={labelClass}>
-            請求を作る日（毎月）
-          </label>
-          <input
-            id="issue-day"
-            name="issue_day"
-            type="number"
-            min={1}
-            max={28}
-            defaultValue={settings.issue_day}
-            className={fieldClass}
-          />
-          <p className="mt-1 text-[11px] leading-relaxed text-sf-muted">
-            この日の朝に、その月の請求が自動で作られます
-          </p>
+      <div className="space-y-4 rounded-xl bg-sf-bg p-4">
+        <p className="text-[13px] font-medium text-sf-body">請求のタイミング</p>
+
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div>
+            <label htmlFor="issue-offset" className={labelClass}>
+              いつの分を作るか
+            </label>
+            <select
+              id="issue-offset"
+              name="issue_month_offset"
+              defaultValue={settings.issue_month_offset}
+              className={fieldClass}
+            >
+              <option value={0}>当月分（8月1日に8月分）</option>
+              <option value={-1}>翌月分を前月に（7月に8月分）</option>
+              <option value={1}>前月分を翌月に（9月に8月分）</option>
+            </select>
+            <p className="mt-1 text-[11px] leading-relaxed text-sf-muted">
+              ほとんどのスタジオは「当月分」です
+            </p>
+          </div>
+
+          <div>
+            <label htmlFor="issue-day" className={labelClass}>
+              作る日
+            </label>
+            <input
+              id="issue-day"
+              name="issue_day"
+              type="number"
+              min={1}
+              max={28}
+              defaultValue={settings.issue_day}
+              className={fieldClass}
+            />
+            <label className="mt-2 flex items-center gap-2 text-[12px] text-sf-body">
+              <input
+                type="checkbox"
+                name="issue_on_month_end"
+                defaultChecked={settings.issue_on_month_end}
+                className="size-4"
+              />
+              末日に作る（日付の指定を無視します）
+            </label>
+          </div>
         </div>
 
-        <div>
+        <div className="max-w-xs border-t border-sf-border pt-4">
           <label htmlFor="due-day" className={labelClass}>
             支払期限（請求月の何日）
           </label>
@@ -161,8 +190,19 @@ export function BillingSettingsForm({ settings }: { settings: BillingSettings })
             defaultValue={settings.due_day}
             className={fieldClass}
           />
-          <p className="mt-1 text-[11px] leading-relaxed text-sf-muted">
-            月末の日数が月ごとに違うため、どちらも28日までにしています
+          <label className="mt-2 flex items-center gap-2 text-[12px] text-sf-body">
+            <input
+              type="checkbox"
+              name="due_on_month_end"
+              defaultChecked={settings.due_on_month_end}
+              className="size-4"
+            />
+            月末払いにする
+          </label>
+          <p className="mt-2 text-[11px] leading-relaxed text-sf-muted">
+            日付で指定する場合は28日までです。月ごとに日数が違うので、29〜31日を
+            指定すると来ない月ができてしまいます。末日にしたいときは上の
+            チェックを使ってください。
           </p>
         </div>
       </div>

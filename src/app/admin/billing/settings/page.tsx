@@ -15,8 +15,11 @@ export type BillingSettings = {
   sibling_discount_amount: number;
   sibling_discount_rate: number;
   count_suspended_in_siblings: boolean;
+  issue_month_offset: number;
   issue_day: number;
+  issue_on_month_end: boolean;
   due_day: number;
+  due_on_month_end: boolean;
 };
 
 const DEFAULTS: BillingSettings = {
@@ -26,8 +29,11 @@ const DEFAULTS: BillingSettings = {
   sibling_discount_amount: 0,
   sibling_discount_rate: 0,
   count_suspended_in_siblings: true,
+  issue_month_offset: 0,
   issue_day: 1,
+  issue_on_month_end: false,
   due_day: 27,
+  due_on_month_end: false,
 };
 
 /**
@@ -42,7 +48,7 @@ export default async function BillingSettingsPage() {
   const { data } = await supabase
     .from("billing_settings")
     .select(
-      "sibling_discount_enabled, sibling_discount_target, sibling_discount_type, sibling_discount_amount, sibling_discount_rate, count_suspended_in_siblings, issue_day, due_day",
+      "sibling_discount_enabled, sibling_discount_target, sibling_discount_type, sibling_discount_amount, sibling_discount_rate, count_suspended_in_siblings, issue_month_offset, issue_day, issue_on_month_end, due_day, due_on_month_end",
     )
     .eq("organization_id", membership.organizationId)
     .maybeSingle();

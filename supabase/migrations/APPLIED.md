@@ -29,6 +29,7 @@ MarcheBase と同じく、適用済みかどうかをこの表で管理する。
 | 23 | `20260905000200_create_location.sql` | スタジオ登録時に最初のルームを同時に作る | 済 2026-09-05 |
 | 24 | `20260906000100_brand_postal_code.sql` | brand_settings に郵便番号を追加 | 済 2026-09-06 |
 | 25 | `20260906000200_billing_issue_day.sql` | 請求を作る日を組織ごとの設定にする | 済 2026-09-06 |
+| 26 | `20260906000300_billing_timing.sql` | 対象月のずらし方と「末日」指定 | 済 2026-09-06 |
 
 適用先: Supabase プロジェクト `studio-flow`（ref: fterpqyvzeqcaltfkpuc / Tokyo）
 
