@@ -366,6 +366,41 @@ monthly_compensations
 
 講師1名に複数の `compensation_rules` を紐づけられる構造とする。月給制でもスポット歩合や代講を加算できるようにするため。
 
+### 4.6.1 入会申込と保護者の結びつけ（2026-09-06 追加）
+
+公開ページ `/apply/<organizations.slug>` から申し込み、オーナーが承認すると
+世帯・保護者・生徒ができる。申込で受け取ったメールアドレスがそのまま
+`guardians.email` に入る。
+
+```
+enrollment_applications
+  id, organization_id,
+  student_name, student_name_kana, birth_date, gender, grade,
+  guardian_name, guardian_name_kana, relationship,
+  email,                      -- 必須。保護者を結びつける鍵
+  tel, address, desired_class_id, note,
+  status,                     -- pending / approved / declined
+  reviewed_at, reviewed_by, decline_reason, student_id
+```
+
+**結びつけの鍵はメールアドレスだけにする。** 名前や生年月日で突き合わせると、
+それを知っているだけで他人の子どもの出欠・住所・月謝が見える。メールアドレスは
+受信できる本人しか使えないので、確認コード方式のログインがそのまま本人確認に
+なる。`public.link_guardian_by_email()` が、ログイン中の利用者を同じ
+アドレスの保護者行に結びつけ、保護者ロールの所属を作る。
+
+**承認するまで名簿には入らない。** 誰でも投稿できる入口なので、いたずらや
+重複がそのまま生徒として登録されると困る。
+
+**公開の入口は `submit_enrollment_application()` の1つに絞る。** anon に
+insert 権限を与えると列を自由に指定できてしまうため、受け取る値と作れる行の
+形を関数側で固定する。同じアドレスからの連投も関数内で止める。
+
+**memberships は「同じスタジオで複数ロール」を許す**（移行 033）。オーナーや
+講師の子どもが同じスタジオに通っている場合があるため。
+
+---
+
 ### 4.8 通知
 
 ```
@@ -675,7 +710,7 @@ MarcheBase は Stripe を一切利用していないため、**Stripe アカウ�
 
 - カード自動決済・口座振替
 - LINE 連携
-- 体験・見学の公開申込フォーム、WEB 入会
+- ~~体験・見学の公開申込フォーム、WEB 入会~~（2026-09-06 実装。体験の公開申込は未着手、WEB 入会のみ）
 - 見込み顧客管理
 - スポットレッスン・イベント・チケット販売
 - 講師報酬の自動計算

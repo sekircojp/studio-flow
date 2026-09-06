@@ -34,6 +34,9 @@ MarcheBase と同じく、適用済みかどうかをこの表で管理する。
 | 28 | `20260906000500_invoice_notice_dispatch.sql` | 請求作成後にお知らせを自動送信（pg_net） | 済 2026-09-06 |
 | 29 | `20260906000600_import_students.sql` | 生徒の一括取り込み（CSV 移行） | 済 2026-09-06 |
 | 30 | `20260906000700_studio_terms.sql` | スタジオ規約（保護者向け） | 済 2026-09-06 |
+| 31 | `20260906000800_enrollment_applications.sql` | WEB 入会申込（公開フォーム・承認） | 済 2026-09-06 |
+| 32 | `20260906000900_link_guardian_on_login.sql` | ログイン時にメールで保護者を結びつける | 済 2026-09-06 |
+| 33 | `20260906001000_memberships_multi_role.sql` | 同じスタジオで複数ロールを持てるようにする | 済 2026-09-06 |
 
 適用先: Supabase プロジェクト `studio-flow`（ref: fterpqyvzeqcaltfkpuc / Tokyo）
 

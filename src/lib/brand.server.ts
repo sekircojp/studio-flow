@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { FALLBACK_STUDIO_NAME, type Brand } from "@/lib/brand";
 
 /**
@@ -38,6 +39,44 @@ export async function getBrand(organizationId: string): Promise<Brand> {
     address: brand?.address ?? null,
     website: brand?.website ?? null,
     invoiceRegistrationNumber: brand?.invoice_registration_number ?? null,
+    terms: brand?.terms ?? null,
+    termsUpdatedAt: brand?.terms_updated_at ?? null,
+  };
+}
+
+/**
+ * 未ログインのページ用のブランド設定（入会申込ページなど）
+ *
+ * anon には brand_settings を1行も見せていないため、service_role で引く。
+ * 返すのは公開してよい項目だけ（スタジオ名・ロゴ・色・規約）。
+ * 連絡先や登録番号は、ここでは返さない。
+ */
+export async function getPublicBrand(organizationId: string): Promise<Brand> {
+  const admin = createAdminClient();
+
+  const [{ data: org }, { data: brand }] = await Promise.all([
+    admin
+      .from("organizations")
+      .select("name")
+      .eq("id", organizationId)
+      .maybeSingle(),
+    admin
+      .from("brand_settings")
+      .select("studio_name, logo_url, brand_color, terms, terms_updated_at")
+      .eq("organization_id", organizationId)
+      .maybeSingle(),
+  ]);
+
+  return {
+    studioName: brand?.studio_name || org?.name || FALLBACK_STUDIO_NAME,
+    logoUrl: brand?.logo_url ?? null,
+    brandColor: brand?.brand_color ?? null,
+    tel: null,
+    email: null,
+    postalCode: null,
+    address: null,
+    website: null,
+    invoiceRegistrationNumber: null,
     terms: brand?.terms ?? null,
     termsUpdatedAt: brand?.terms_updated_at ?? null,
   };

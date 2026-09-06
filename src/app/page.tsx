@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { ArrowRight } from "lucide-react";
 import { getSessionContext, homePathForRole } from "@/lib/auth/session";
+import { linkGuardianByEmail } from "@/lib/auth/link-guardian";
 import { signOut } from "@/app/actions/auth";
 import { Card, primaryButtonClass, secondaryButtonClass } from "@/components/ui";
 import { APP_DESCRIPTION, APP_NAME } from "@/config/app";
@@ -22,7 +23,27 @@ const ROLE_LABELS: Record<string, string> = {
 };
 
 export default async function Home() {
-  const session = await getSessionContext();
+  let session = await getSessionContext();
+
+  /**
+   * 保護者としての所属がまだ無い人は、同じメールアドレスの保護者行を探して
+   * 結びつける。
+   *
+   * WEB 入会申込で受け取ったアドレスは guardians.email に入っている。
+   * 保護者がそのアドレスでログインしてきたら、ここで自分の子どもの世帯に
+   * つながる（設計書 4.3）。名前では突き合わせない。
+   *
+   * 「所属が1件も無い人」に限らないのは、オーナーや講師の子どもが同じ
+   * スタジオに通っている場合があるため。既に結びついている行は関数側で
+   * 触らないので、繰り返し呼んでも増えない。
+   */
+  const hasFamilyRole = session?.memberships.some(
+    (m) => m.role === "guardian" || m.role === "student",
+  );
+  if (session && !hasFamilyRole) {
+    const linked = await linkGuardianByEmail();
+    if (linked > 0) session = await getSessionContext();
+  }
 
   // ロールに対応する画面ができていれば、そのまま送る（設計書 3章・7章）
   const admin = session?.memberships.find(
