@@ -40,10 +40,13 @@ export default async function MyLayout({
     >
       <header className="border-b border-sf-border bg-sf-card">
         <div className="mx-auto flex max-w-2xl items-center gap-2.5 px-4 py-3">
-          <BrandMark brand={brand} size={28} />
-          <span className="min-w-0 flex-1 truncate text-[15px] font-bold text-sf-ink">
-            {brand.studioName}
-          </span>
+          <BrandMark brand={brand} size={28} maxWidth={168} />
+          {!brand.logoUrl && (
+            <span className="min-w-0 flex-1 truncate text-[15px] font-bold text-sf-ink">
+              {brand.studioName}
+            </span>
+          )}
+          <span className="flex-1" />
           <form action={signOut}>
             <button
               type="submit"

@@ -48,8 +48,8 @@ export default async function SettingsPage() {
             <LogoForm brand={brand} />
           ) : (
             <div className="flex items-center gap-4">
-              <div className="flex size-20 items-center justify-center rounded-xl border border-sf-border bg-white p-2">
-                <BrandMark brand={brand} size={64} />
+              <div className="flex h-24 w-56 shrink-0 items-center justify-center rounded-xl border border-sf-border bg-white p-3">
+                <BrandMark brand={brand} size={56} maxWidth={200} />
               </div>
               <p className="text-[13px] text-sf-muted">
                 ロゴを変更できるのはオーナーのみです。

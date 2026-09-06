@@ -38,11 +38,13 @@ export default async function StaffLayout({
     >
       <header className="border-b border-sf-border bg-sf-card">
         <div className="mx-auto flex max-w-2xl items-center gap-2.5 px-4 py-3">
-          <BrandMark brand={brand} size={28} />
+          <BrandMark brand={brand} size={28} maxWidth={168} />
           <span className="min-w-0 flex-1">
-            <span className="block truncate text-[15px] font-bold text-sf-ink">
-              {brand.studioName}
-            </span>
+            {!brand.logoUrl && (
+              <span className="block truncate text-[15px] font-bold text-sf-ink">
+                {brand.studioName}
+              </span>
+            )}
             <span className="block text-[11px] text-sf-muted">
               {instructor ? `${instructor.name} 先生` : "講師"}
             </span>
