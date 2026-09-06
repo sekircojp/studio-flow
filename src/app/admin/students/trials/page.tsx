@@ -1,0 +1,162 @@
+import type { Metadata } from "next";
+import Link from "next/link";
+import { ArrowLeft, Mail, Phone } from "lucide-react";
+import { requireAdmin } from "@/lib/auth/guards";
+import { createClient } from "@/lib/supabase/server";
+import { formatDateJa, formatShortDateJa, formatTimeJa, todayInTokyo } from "@/lib/date";
+import { Card, EmptyState, SectionHeading } from "@/components/ui";
+import { TrialStatusSelect } from "./forms";
+
+export const metadata: Metadata = { title: "体験・見学" };
+
+type TrialRow = {
+  id: string;
+  kind: string;
+  student_name: string;
+  student_name_kana: string | null;
+  birth_date: string | null;
+  grade: string | null;
+  guardian_name: string;
+  email: string;
+  tel: string | null;
+  note: string | null;
+  status: string;
+  created_at: string;
+  lessons: {
+    date: string;
+    start_at: string;
+    classes: { name: string } | null;
+  } | null;
+};
+
+/**
+ * 体験・見学の申込（設計書 4.6）
+ *
+ * 公開ページから届いた申込。入会申込と違い、承認は要らない。
+ * 定員に空きがあれば、その場で確定している。ここでは当日の結果を記録する。
+ */
+export default async function TrialsPage() {
+  const { membership } = await requireAdmin();
+  const supabase = await createClient();
+
+  // RLS でも絞られるが、アプリ層でも organization_id で絞る（設計書 3章）
+  const { data, error } = await supabase
+    .from("trials")
+    .select(
+      "id, kind, student_name, student_name_kana, birth_date, grade, guardian_name, email, tel, note, status, created_at, lessons(date, start_at, classes(name))",
+    )
+    .eq("organization_id", membership.organizationId)
+    .order("created_at", { ascending: false });
+
+  // 黙って空の一覧を出すと、届いた申込を見落とす
+  if (error) console.error("体験申込の取得に失敗しました", error);
+
+  const list = (data ?? []) as unknown as TrialRow[];
+  const today = todayInTokyo();
+
+  const upcoming = list.filter(
+    (t) => t.status === "booked" && (t.lessons?.date ?? "") >= today,
+  );
+  const rest = list.filter((t) => !upcoming.includes(t));
+
+  const Line = ({ t }: { t: TrialRow }) => (
+    <div className="flex flex-wrap items-start gap-3">
+      <div className="min-w-0 flex-1">
+        <p className="font-semibold text-sf-ink">
+          {t.student_name}
+          {t.student_name_kana && (
+            <span className="ml-2 text-[12px] font-normal text-sf-muted">
+              {t.student_name_kana}
+            </span>
+          )}
+          <span className="ml-2 rounded-md bg-sf-ink/8 px-1.5 py-0.5 text-[11px] font-medium text-sf-body">
+            {t.kind === "observation" ? "見学" : "体験"}
+          </span>
+        </p>
+        <p className="sf-num mt-0.5 text-[12px] text-sf-muted">
+          {t.lessons
+            ? `${formatShortDateJa(t.lessons.date)} ${formatTimeJa(t.lessons.start_at)} ・ ${t.lessons.classes?.name ?? ""}`
+            : "（回が見つかりません）"}
+          {t.grade && ` ・ ${t.grade}`}
+          {t.birth_date && ` ・ ${formatDateJa(t.birth_date)}生`}
+        </p>
+        <p className="mt-1 flex flex-wrap items-center gap-x-4 gap-y-1 text-[12px] text-sf-body">
+          <span>{t.guardian_name}</span>
+          <span className="flex items-center gap-1">
+            <Mail className="size-3.5 text-sf-muted" aria-hidden />
+            {t.email}
+          </span>
+          {t.tel && (
+            <span className="flex items-center gap-1">
+              <Phone className="size-3.5 text-sf-muted" aria-hidden />
+              {t.tel}
+            </span>
+          )}
+        </p>
+        {t.note && (
+          <p className="mt-1 whitespace-pre-wrap text-[12px] leading-relaxed text-sf-muted">
+            {t.note}
+          </p>
+        )}
+      </div>
+      <TrialStatusSelect trialId={t.id} status={t.status} />
+    </div>
+  );
+
+  return (
+    <div className="space-y-6">
+      <div>
+        <Link
+          href="/admin/students"
+          className="inline-flex items-center gap-1 text-[12px] text-sf-muted hover:text-sf-ink"
+        >
+          <ArrowLeft className="size-3.5" aria-hidden />
+          生徒・保護者
+        </Link>
+        <h1 className="mt-2 text-2xl font-bold tracking-tight text-sf-ink">
+          体験・見学
+        </h1>
+        <p className="mt-1 max-w-2xl text-[13px] leading-relaxed text-sf-body">
+          公開ページから届いた申込です。定員に空きがある回だけを出しているので、
+          承認は要りません。当日の結果をここに記録してください。
+        </p>
+      </div>
+
+      <Card className="p-5">
+        <SectionHeading kicker="Upcoming" title={`これからの回（${upcoming.length}）`} />
+        <div className="mt-4">
+          {upcoming.length === 0 ? (
+            <EmptyState
+              title="これからの体験はありません"
+              description="公開ページのURLを案内すると、ここに申込が届きます。"
+            />
+          ) : (
+            <ul className="space-y-3">
+              {upcoming.map((t) => (
+                <li key={t.id} className="rounded-xl border border-sf-border p-4">
+                  <Line t={t} />
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      </Card>
+
+      {rest.length > 0 && (
+        <Card className="p-5">
+          <SectionHeading kicker="Past" title={`過去の申込（${rest.length}）`} />
+          <ul className="mt-4 space-y-3">
+            {rest.map((t) => (
+              <li
+                key={t.id}
+                className="rounded-xl border border-sf-border p-4 opacity-80"
+              >
+                <Line t={t} />
+              </li>
+            ))}
+          </ul>
+        </Card>
+      )}
+    </div>
+  );
+}

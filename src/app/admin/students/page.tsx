@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ChevronRight, FileUp, Users } from "lucide-react";
+import { ChevronRight, FileUp, Inbox, Sparkles, Users } from "lucide-react";
 import { requireAdmin } from "@/lib/auth/guards";
 import { createClient } from "@/lib/supabase/server";
 import { ageFrom, STUDENT_STATUSES, statusLabel, statusTone } from "@/lib/students";
@@ -99,10 +99,23 @@ export default async function StudentsPage() {
             入れてください。退会しても記録は消さず、状態の変更で表します。
           </p>
         </div>
-        <Link href="/admin/students/import" className={secondaryButtonClass}>
-          <FileUp className="size-3.5" aria-hidden />
-          CSV から取り込む
-        </Link>
+        <div className="flex flex-wrap gap-2">
+          <Link href="/admin/students/trials" className={secondaryButtonClass}>
+            <Sparkles className="size-3.5" aria-hidden />
+            体験・見学
+          </Link>
+          <Link
+            href="/admin/students/applications"
+            className={secondaryButtonClass}
+          >
+            <Inbox className="size-3.5" aria-hidden />
+            入会申込
+          </Link>
+          <Link href="/admin/students/import" className={secondaryButtonClass}>
+            <FileUp className="size-3.5" aria-hidden />
+            CSV から取り込む
+          </Link>
+        </div>
       </div>
 
       <div className="flex flex-wrap gap-2">

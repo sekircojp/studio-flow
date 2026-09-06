@@ -37,6 +37,8 @@ MarcheBase と同じく、適用済みかどうかをこの表で管理する。
 | 31 | `20260906000800_enrollment_applications.sql` | WEB 入会申込（公開フォーム・承認） | 済 2026-09-06 |
 | 32 | `20260906000900_link_guardian_on_login.sql` | ログイン時にメールで保護者を結びつける | 済 2026-09-06 |
 | 33 | `20260906001000_memberships_multi_role.sql` | 同じスタジオで複数ロールを持てるようにする | 済 2026-09-06 |
+| 34 | `20260906001100_trials.sql` | 体験・見学の申込（公開フォーム・定員判定） | 済 2026-09-06 |
+| 35 | `20260906001200_trial_seats_public.sql` | 空き枠を公開ページから問い合わせる入口 | 済 2026-09-06 |
 
 適用先: Supabase プロジェクト `studio-flow`（ref: fterpqyvzeqcaltfkpuc / Tokyo）
 

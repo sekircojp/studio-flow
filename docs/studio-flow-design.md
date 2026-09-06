@@ -401,6 +401,38 @@ insert 権限を与えると列を自由に指定できてしまうため、受�
 
 ---
 
+### 4.6.2 体験・見学の申込（2026-09-06 追加）
+
+公開ページ `/apply/<slug>/trial` から、ログインせずに申し込める。入会申込と
+違い、体験は「どの回に出るか」が決まっているので `lessons` に紐づく。
+
+```
+trials
+  id, organization_id, lesson_id,
+  kind,                       -- trial 体験 / observation 見学
+  student_name, student_name_kana, birth_date, grade,
+  guardian_name, email, tel, note,
+  status,                     -- booked / attended / no_show
+                              -- / enrolled / declined / canceled
+  intent
+```
+
+**定員の判定は、行を作るのと同じトランザクションで行う**（5.2）。公開の入口
+なので、2人が同時に最後の1枠へ申し込むことがある。画面に「空きあり」と出した
+時点の数字は当てにならない。表示用の空き枠は
+`public.trial_seats_left_public()` で引くが、確定の判定は
+`submit_trial_application()` の中で改めて行う。
+
+**承認は要らない。** 入会申込と違い、体験は名簿に入らず「その回に来てもらう」
+だけ。定員に空きがあるなら、その場で確定してよい。
+
+**同じ回に同じアドレスで二重に申し込ませない**（`unique (lesson_id, email)`）。
+
+**`leads` は作らない。** 見込み顧客管理は 9.1 のまま対象外で、体験の申込
+そのものが名簿の役割を果たす。必要になったら `lead_id` を足す。
+
+---
+
 ### 4.8 通知
 
 ```
@@ -710,7 +742,7 @@ MarcheBase は Stripe を一切利用していないため、**Stripe アカウ�
 
 - カード自動決済・口座振替
 - LINE 連携
-- ~~体験・見学の公開申込フォーム、WEB 入会~~（2026-09-06 実装。体験の公開申込は未着手、WEB 入会のみ）
+- ~~体験・見学の公開申込フォーム、WEB 入会~~（2026-09-06 実装）
 - 見込み顧客管理
 - スポットレッスン・イベント・チケット販売
 - 講師報酬の自動計算
