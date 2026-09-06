@@ -1,11 +1,16 @@
 "use client";
 
 import { useActionState } from "react";
-import { Loader2 } from "lucide-react";
+import { Check, Loader2, X } from "lucide-react";
 import { setTrialStatus, type TrialAdminState } from "./actions";
+import {
+  primaryButtonClass,
+  secondaryButtonClass,
+} from "@/components/ui";
 
 const OPTIONS = [
-  { value: "booked", label: "予約済み" },
+  { value: "pending", label: "承認待ち" },
+  { value: "booked", label: "予約確定" },
   { value: "attended", label: "参加した" },
   { value: "no_show", label: "来なかった" },
   { value: "enrolled", label: "入会した" },
@@ -59,3 +64,55 @@ export function TrialStatusSelect({
 export const TRIAL_STATUS_LABEL: Record<string, string> = Object.fromEntries(
   OPTIONS.map((o) => [o.value, o.label]),
 );
+
+/**
+ * 承認と見送り
+ *
+ * 承認待ちの申込にだけ出す。席は申込の時点で押さえてあるので、
+ * 承認しても定員を超えることはない（設計書 5.2）。
+ * 見送ると、その席がすぐ空く。
+ */
+export function TrialApproval({ trialId }: { trialId: string }) {
+  const [state, action, pending] = useActionState<TrialAdminState, FormData>(
+    setTrialStatus,
+    {},
+  );
+
+  return (
+    <div className="flex flex-wrap items-center gap-2">
+      <form action={action} className="flex items-center gap-2">
+        <input type="hidden" name="trial_id" value={trialId} />
+        <input type="hidden" name="status" value="booked" />
+        <button type="submit" disabled={pending} className={primaryButtonClass}>
+          {pending ? (
+            <Loader2 className="size-4 animate-spin" aria-hidden />
+          ) : (
+            <Check className="size-4" aria-hidden />
+          )}
+          承認
+        </button>
+      </form>
+
+      <form
+        action={action}
+        onSubmit={(e) => {
+          if (!confirm("この申込を見送りにします。よろしいですか。")) {
+            e.preventDefault();
+          }
+        }}
+        className="flex items-center gap-2"
+      >
+        <input type="hidden" name="trial_id" value={trialId} />
+        <input type="hidden" name="status" value="declined" />
+        <button type="submit" disabled={pending} className={secondaryButtonClass}>
+          <X className="size-3.5" aria-hidden />
+          見送る
+        </button>
+      </form>
+
+      {state.error && (
+        <span className="text-[12px] text-sf-danger">{state.error}</span>
+      )}
+    </div>
+  );
+}

@@ -41,8 +41,9 @@ export default function TrialForm({
           お申し込みを受け付けました
         </p>
         <p className="mt-2 text-[13px] leading-relaxed text-sf-body">
-          当日お待ちしています。ご不明な点があれば、スタジオへお問い合わせ
-          ください。
+          スタジオが内容を確認したうえで、ご入力いただいたメールアドレスへ
+          ご連絡します。<strong className="font-medium text-sf-ink">
+          この時点ではまだ確定していません。</strong>しばらくお待ちください。
         </p>
       </div>
     );
@@ -67,6 +68,10 @@ export default function TrialForm({
 
       <section className="space-y-3">
         <h2 className="text-[15px] font-bold text-sf-ink">参加したい回</h2>
+        <p className="text-[12px] leading-relaxed text-sf-muted">
+          お申し込みのあと、スタジオが確認してからご連絡します。この場では
+          確定しません。
+        </p>
         <ul className="space-y-2">
           {slots.map((slot) => (
             <li key={slot.id}>

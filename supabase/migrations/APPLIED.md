@@ -39,6 +39,7 @@ MarcheBase と同じく、適用済みかどうかをこの表で管理する。
 | 33 | `20260906001000_memberships_multi_role.sql` | 同じスタジオで複数ロールを持てるようにする | 済 2026-09-06 |
 | 34 | `20260906001100_trials.sql` | 体験・見学の申込（公開フォーム・定員判定） | 済 2026-09-06 |
 | 35 | `20260906001200_trial_seats_public.sql` | 空き枠を公開ページから問い合わせる入口 | 済 2026-09-06 |
+| 36 | `20260906001300_trial_approval.sql` | 体験の申込を承認制にする | 済 2026-09-06 |
 
 適用先: Supabase プロジェクト `studio-flow`（ref: fterpqyvzeqcaltfkpuc / Tokyo）
 

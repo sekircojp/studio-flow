@@ -5,7 +5,7 @@ import { requireAdmin } from "@/lib/auth/guards";
 import { createClient } from "@/lib/supabase/server";
 import { formatDateJa, formatShortDateJa, formatTimeJa, todayInTokyo } from "@/lib/date";
 import { Card, EmptyState, SectionHeading } from "@/components/ui";
-import { TrialStatusSelect } from "./forms";
+import { TrialApproval, TrialStatusSelect } from "./forms";
 
 export const metadata: Metadata = { title: "体験・見学" };
 
@@ -54,12 +54,15 @@ export default async function TrialsPage() {
   const list = (data ?? []) as unknown as TrialRow[];
   const today = todayInTokyo();
 
+  const pending = list.filter((t) => t.status === "pending");
   const upcoming = list.filter(
     (t) => t.status === "booked" && (t.lessons?.date ?? "") >= today,
   );
-  const rest = list.filter((t) => !upcoming.includes(t));
+  const rest = list.filter(
+    (t) => !pending.includes(t) && !upcoming.includes(t),
+  );
 
-  const Line = ({ t }: { t: TrialRow }) => (
+  const Line = ({ t, approval }: { t: TrialRow; approval?: boolean }) => (
     <div className="flex flex-wrap items-start gap-3">
       <div className="min-w-0 flex-1">
         <p className="font-semibold text-sf-ink">
@@ -99,7 +102,11 @@ export default async function TrialsPage() {
           </p>
         )}
       </div>
-      <TrialStatusSelect trialId={t.id} status={t.status} />
+      {approval ? (
+        <TrialApproval trialId={t.id} />
+      ) : (
+        <TrialStatusSelect trialId={t.id} status={t.status} />
+      )}
     </div>
   );
 
@@ -117,18 +124,50 @@ export default async function TrialsPage() {
           体験・見学
         </h1>
         <p className="mt-1 max-w-2xl text-[13px] leading-relaxed text-sf-body">
-          公開ページから届いた申込です。定員に空きがある回だけを出しているので、
-          承認は要りません。当日の結果をここに記録してください。
+          公開ページから届いた申込です。承認すると予約が確定します。
+          承認待ちの間も席は1つ押さえてあるので、見送れば空きます。
+          当日の結果もここに記録してください。
         </p>
       </div>
+
+      <Card className="p-5">
+        <SectionHeading
+          kicker="Pending"
+          title={`承認待ち（${pending.length}）`}
+          action={
+            <span className="text-[12px] text-sf-muted">
+              承認するまで確定しません
+            </span>
+          }
+        />
+        <div className="mt-4">
+          {pending.length === 0 ? (
+            <EmptyState
+              title="承認待ちの申込はありません"
+              description="公開ページのURLを案内すると、ここに申込が届きます。"
+            />
+          ) : (
+            <ul className="space-y-3">
+              {pending.map((t) => (
+                <li
+                  key={t.id}
+                  className="rounded-xl border border-sf-warn/40 bg-sf-warn/5 p-4"
+                >
+                  <Line t={t} approval />
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      </Card>
 
       <Card className="p-5">
         <SectionHeading kicker="Upcoming" title={`これからの回（${upcoming.length}）`} />
         <div className="mt-4">
           {upcoming.length === 0 ? (
             <EmptyState
-              title="これからの体験はありません"
-              description="公開ページのURLを案内すると、ここに申込が届きます。"
+              title="確定している体験はありません"
+              description="承認した申込がここに並びます。"
             />
           ) : (
             <ul className="space-y-3">

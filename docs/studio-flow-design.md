@@ -412,7 +412,8 @@ trials
   kind,                       -- trial 体験 / observation 見学
   student_name, student_name_kana, birth_date, grade,
   guardian_name, email, tel, note,
-  status,                     -- booked / attended / no_show
+  status,                     -- pending 承認待ち / booked 予約確定
+                              -- / attended / no_show
                               -- / enrolled / declined / canceled
   intent
 ```
@@ -423,8 +424,13 @@ trials
 `public.trial_seats_left_public()` で引くが、確定の判定は
 `submit_trial_application()` の中で改めて行う。
 
-**承認は要らない。** 入会申込と違い、体験は名簿に入らず「その回に来てもらう」
-だけ。定員に空きがあるなら、その場で確定してよい。
+**承認制にする**（2026-09-06 変更）。当初は「定員に空きがあれば、その場で
+確定」としていたが、誰でも投稿できる入口である以上、当日その回に人が来る
+ことをスタジオが把握してから確定する。
+
+**承認待ちの申込も席を1つ押さえる。** 押さえないと、5席の回に10件の承認待ちが
+並び、全部承認できてしまう。いたずらで席が埋まるのは、連投の制限（10分に3件）
+と、見送りですぐ空けられることで抑える。過剰に受けてしまうよりは軽い。
 
 **同じ回に同じアドレスで二重に申し込ませない**（`unique (lesson_id, email)`）。
 
