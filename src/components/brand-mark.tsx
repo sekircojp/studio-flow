@@ -38,6 +38,22 @@ export function BrandMark({
   /** 読み込めた時点で、横長かどうかを親に知らせる */
   onAspect?: (wide: boolean) => void;
 }) {
+  /**
+   * 縦横比を親に伝える。
+   *
+   * ★ onLoad だけでは足りない。
+   *   画像はサーバーが返した HTML の時点で読み込みが始まるので、React が
+   *   ハイドレーションで onLoad を張る前に読み終わっていることがある。
+   *   その場合 load は二度と起きず、ずっと判定がつかないままになる
+   *   （スクール名が出ないという不具合になった）。
+   *   ref が付いた時点でも complete を見て、済んでいればそこで伝える。
+   */
+  const measure = (el: HTMLImageElement | null) => {
+    if (el && el.complete && el.naturalHeight > 0) {
+      onAspect?.(el.naturalWidth / el.naturalHeight >= WIDE_RATIO);
+    }
+  };
+
   if (brand.logoUrl) {
     return (
       // 外部ストレージの URL を扱うため next/image ではなく img を使う。
@@ -46,6 +62,7 @@ export function BrandMark({
       <img
         src={brand.logoUrl}
         alt={brand.studioName}
+        ref={measure}
         style={{ height: size, maxWidth, width: "auto" }}
         className="shrink-0 object-contain"
         onLoad={(e) => {
