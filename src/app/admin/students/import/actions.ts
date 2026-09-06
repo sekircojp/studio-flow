@@ -12,6 +12,7 @@ export type ImportState = {
   preview?: {
     rows: ImportRow[];
     issues: { line: number; message: string }[];
+    fixes: { line: number; message: string }[];
     households: number;
   };
 };

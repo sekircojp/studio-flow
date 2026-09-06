@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState, useState } from "react";
-import { AlertCircle, FileUp, Loader2, Upload } from "lucide-react";
+import { AlertCircle, FileUp, Loader2, Upload, Wand2 } from "lucide-react";
 import { previewImport, runImport, type ImportState } from "./actions";
 import { CSV_COLUMNS } from "@/lib/csv";
 import { primaryButtonClass, secondaryButtonClass } from "@/components/ui";
@@ -114,6 +114,39 @@ export default function ImportForm() {
               </span>
             )}
           </p>
+
+          {preview.fixes.length > 0 && (
+            <div className="rounded-xl border border-sf-border bg-sf-bg p-4">
+              <p className="text-[12px] font-medium text-sf-ink">
+                こちらで直した箇所（{preview.fixes.length} 件）
+              </p>
+              <p className="mt-0.5 text-[11px] text-sf-muted">
+                書き方のゆれを読み替えました。取り違えが無いか確認してください。
+              </p>
+              <ul className="mt-2 space-y-1">
+                {preview.fixes.slice(0, 30).map((fix, i) => (
+                  <li
+                    key={`${fix.line}-${i}`}
+                    className="flex gap-2 text-[12px] text-sf-body"
+                  >
+                    <Wand2
+                      className="mt-0.5 size-3.5 shrink-0 text-sf-muted"
+                      aria-hidden
+                    />
+                    <span>
+                      <span className="sf-num font-medium">{fix.line} 行目</span>
+                      ：{fix.message}
+                    </span>
+                  </li>
+                ))}
+                {preview.fixes.length > 30 && (
+                  <li className="text-[12px] text-sf-muted">
+                    ほか {preview.fixes.length - 30} 件
+                  </li>
+                )}
+              </ul>
+            </div>
+          )}
 
           {preview.issues.length > 0 && (
             <ul className="space-y-1 rounded-xl border border-sf-danger/40 bg-sf-danger/5 p-4">

@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Download } from "lucide-react";
 import { requireAdmin } from "@/lib/auth/guards";
 import { CSV_COLUMNS, METHOD_MAP, STATUS_MAP } from "@/lib/csv";
-import { Card, SectionHeading } from "@/components/ui";
+import { Card, SectionHeading, secondaryButtonClass } from "@/components/ui";
 import ImportForm from "./import-form";
 
 export const metadata: Metadata = { title: "生徒の取り込み" };
@@ -46,6 +46,28 @@ export default async function ImportPage() {
       </div>
 
       <Card className="p-5">
+        <SectionHeading
+          kicker="Template"
+          title="テンプレートを使う"
+          action={
+            <a
+              href="/admin/students/import/template/"
+              download
+              className={secondaryButtonClass}
+            >
+              <Download className="size-3.5" aria-hidden />
+              テンプレートをダウンロード
+            </a>
+          }
+        />
+        <p className="mt-3 text-[13px] leading-relaxed text-sf-body">
+          いま使っている名簿や申込フォームの書き出しを、このテンプレートの列に
+          貼り替えてください。列の並びを合わせるのがいちばん確実です。見本の
+          2行は消して構いません。Excel でそのまま開けます。
+        </p>
+      </Card>
+
+      <Card className="p-5">
         <SectionHeading kicker="Upload" title="CSV を選ぶ" />
         <div className="mt-4">
           <ImportForm />
@@ -84,18 +106,34 @@ export default async function ImportPage() {
               <dt className="font-medium text-sf-ink">日付</dt>
               <dd className="text-sf-muted">
                 <code className="rounded bg-sf-ink/8 px-1">2024-04-01</code>{" "}
-                の形だけです。
-                <code className="rounded bg-sf-ink/8 px-1">2024/4/1</code>{" "}
-                や和暦は受け付けません。どちらの解釈か分からない行が出るためです。
+                が基本ですが、
+                <code className="rounded bg-sf-ink/8 px-1">2018/6/1</code>
+                <code className="ml-1 rounded bg-sf-ink/8 px-1">2015.8.10</code>
+                <code className="ml-1 rounded bg-sf-ink/8 px-1">20170513</code>
+                <code className="ml-1 rounded bg-sf-ink/8 px-1">令和1年6月12日</code>{" "}
+                なども読み替えます。読み替えた内容は確認画面に出るので、
+                取り違えが無いか見てください。
+                <code className="ml-1 rounded bg-sf-ink/8 px-1">6/1/2018</code>{" "}
+                のように年が後ろに来る書き方は、解釈が割れるので弾きます。
+              </dd>
+            </div>
+            <div>
+              <dt className="font-medium text-sf-ink">名前とふりがな</dt>
+              <dd className="text-sf-muted">
+                <code className="rounded bg-sf-ink/8 px-1">
+                  長嶋芙実(ながしまふみ)
+                </code>{" "}
+                のように1つの欄に両方入っている場合は、括弧で分けます。ふりがなの
+                欄が既に埋まっていれば、そちらを優先します。
               </dd>
             </div>
             <div>
               <dt className="font-medium text-sf-ink">月謝</dt>
               <dd className="text-sf-muted">
                 税込の数字だけ（
-                <code className="rounded bg-sf-ink/8 px-1">8800</code>）。カンマや
-                「円」は入れないでください。黙って直すと、金額の取り違えに
-                気付けなくなります。
+                <code className="rounded bg-sf-ink/8 px-1">8800</code>）。
+                <code className="ml-1 rounded bg-sf-ink/8 px-1">4,000円</code>{" "}
+                のような書き方も読み替えます。
               </dd>
             </div>
             <div>
@@ -120,6 +158,11 @@ export default async function ImportPage() {
                 </strong>
                 表記のゆれでクラスが増えると、あとの片付けが手作業になります。
                 先にクラスを登録しておいてください。
+                <code className="ml-1 rounded bg-sf-ink/8 px-1">
+                  高学年クラス（水曜日 18:15〜19:15）月謝：4,000円
+                </code>{" "}
+                のように後ろに情報が付いている場合は、括弧より前で照合し直します
+                （それでも一致しなければ弾きます）。
               </dd>
             </div>
           </dl>
