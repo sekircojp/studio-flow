@@ -1,30 +1,38 @@
 "use client";
 
 import { useActionState } from "react";
-import { Check, Loader2, X } from "lucide-react";
+import { Check, Loader2, PauseCircle, X } from "lucide-react";
 import { answerEvent, type MyEventState } from "./actions";
 
 /**
- * 保護者の出欠回答（設計書 4.6）
+ * 保護者の出欠回答（設計書 4.6.3）
  *
- * ★ 「参加する」「参加しない」の2つだけを大きく置く。
- *   スマートフォンで開かれる前提で、押し間違えない大きさにする。
- *   選び直せるので、確認のダイアログは出さない。
+ * ★ 「保留」を置く。
+ *   発表会は数か月先で、仕事や家族の予定が読めないことが多い。保留が
+ *   無いと「とりあえず参加」を押されて、直前に減る。
+ *
+ * ★ 「未回答」に戻すボタンは置かない。
+ *   何も押していない状態が未回答で、押し直せば選び直せる。答えを消す
+ *   ためだけのボタンは要らない。
  */
 
 const OPTIONS = [
   {
-    going: "yes",
+    value: "entered",
     label: "参加します",
     icon: Check,
-    match: "entered",
     on: "border-sf-ok bg-sf-ok text-white",
   },
   {
-    going: "no",
+    value: "undecided",
+    label: "保留",
+    icon: PauseCircle,
+    on: "border-sf-warn bg-sf-warn text-white",
+  },
+  {
+    value: "declined",
     label: "参加しません",
     icon: X,
-    match: "declined",
     on: "border-sf-muted bg-sf-muted text-white",
   },
 ] as const;
@@ -44,18 +52,18 @@ export function AnswerForm({
   return (
     <form action={action} className="mt-3">
       <input type="hidden" name="entry_id" value={entryId} />
-      <div className="flex gap-2">
+      <div className="grid grid-cols-3 gap-2">
         {OPTIONS.map((o) => {
-          const active = status === o.match;
+          const active = status === o.value;
           return (
             <button
-              key={o.going}
+              key={o.value}
               type="submit"
-              name="going"
-              value={o.going}
+              name="answer"
+              value={o.value}
               disabled={pending}
               aria-pressed={active}
-              className={`flex flex-1 items-center justify-center gap-1.5 rounded-xl border py-3 text-[14px] font-semibold transition disabled:opacity-40 ${
+              className={`flex flex-col items-center justify-center gap-1 rounded-xl border px-1 py-3 text-[13px] font-semibold transition disabled:opacity-40 ${
                 active ? o.on : "border-sf-border-strong bg-white text-sf-body"
               }`}
             >

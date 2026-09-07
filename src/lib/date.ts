@@ -70,6 +70,14 @@ export function todayInTokyo(now: Date = new Date()): string {
   }).format(now);
 }
 
+/**
+ * JST の「N日前」を YYYY-MM-DD で返す。
+ * date 型の列（採寸日など）と文字列のまま比べるために使う。
+ */
+export function daysAgoInTokyo(days: number, now: Date = new Date()): string {
+  return todayInTokyo(new Date(now.getTime() - days * 24 * 60 * 60 * 1000));
+}
+
 export function greetingJa(now: Date = new Date()): string {
   const h = hourInTokyo(now);
   if (h < 4) return "こんばんは";

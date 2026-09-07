@@ -114,6 +114,7 @@ npx supabase functions deploy send-verification-code
 npx supabase functions deploy verify-code
 npx supabase functions deploy send-invoice-notice
 npx supabase functions deploy send-trial-notice
+npx supabase functions deploy send-event-invite
 ```
 
 `supabase link` を通していない場合は、`--project-ref <ref>` を付けて

@@ -5,7 +5,7 @@ import { requireStaff } from "@/lib/auth/staff";
 import { createClient } from "@/lib/supabase/server";
 import type { EventAttendance } from "@/components/event-roster";
 
-const ATTENDANCES: EventAttendance[] = ["present", "absent", "late", "unconfirmed"];
+const ATTENDANCES: EventAttendance[] = ["present", "absent", "unconfirmed"];
 
 /**
  * 講師による発表会・イベントの出欠記録（設計書 4.6 / 9章 項目6）

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
-import { CalendarHeart, MapPin } from "lucide-react";
+import { CalendarClock, CalendarHeart, ChevronRight, MapPin, Ruler } from "lucide-react";
+import Link from "next/link";
 import { pickStudent, requireMy } from "@/lib/auth/my";
 import { createClient } from "@/lib/supabase/server";
 import { formatDateJa, formatTimeJa, formatYen } from "@/lib/date";
@@ -20,7 +21,10 @@ type Row = {
     venue: string | null;
     start_at: string;
     end_at: string | null;
+    answer_deadline_at: string | null;
     price: number | null;
+    fee_collection: string;
+    fee_note: string | null;
     status: string;
     cancel_reason: string | null;
     description: string | null;
@@ -30,20 +34,32 @@ type Row = {
 
 const ANSWER_LABEL: Record<string, string> = {
   entered: "参加します",
+  undecided: "保留",
   declined: "参加しません",
   canceled: "取り消しました",
 };
 
+const FEE_LABEL: Record<string, string> = {
+  on_site: "当日、会場でお支払いください",
+  with_tuition: "翌月の月謝と一緒にご請求します",
+  bank_transfer: "事前にお振り込みください",
+  other: "",
+  none: "",
+};
+
 /**
- * 保護者の発表会・イベント（設計書 4.6 / 9章 項目10）
+ * 保護者の発表会・イベント（設計書 4.6.3 / 9章 項目10）
  *
- * ★ 声をかけられた回だけが出る。
+ * ★ ご案内した回だけが出る。
  *   名簿に入っていない回は表示しない。関係のない回に「参加しますか」と
- *   聞かれても答えようがない。
+ *   聞かれても答えようがない。きょうだいはタブで切り替える。
+ *
+ * ★ 回答期限を大きく出す。
+ *   衣装の発注や座席の都合があるので、期限を過ぎると答えられなくなる。
+ *   「いつまでに答えるのか」が分からないまま置かれるのがいちばん困る。
  *
  * ★ 過ぎた回も残す。
  *   「あの発表会はいつだったか」を後から見たいことがある。
- *   ただし回答のボタンは出さない。
  */
 export default async function MyEventsPage({
   searchParams,
@@ -68,7 +84,7 @@ export default async function MyEventsPage({
   const { data, error } = await supabase
     .from("event_entries")
     .select(
-      "id, status, attendance, events(id, kind, title, venue, start_at, end_at, price, status, cancel_reason, description, is_public)",
+      "id, status, attendance, events(id, kind, title, venue, start_at, end_at, answer_deadline_at, price, fee_collection, fee_note, status, cancel_reason, description, is_public)",
     )
     .eq("student_id", student.id)
     .eq("organization_id", membership.organizationId);
@@ -91,6 +107,10 @@ export default async function MyEventsPage({
     const e = r.events;
     if (!e) return null;
     const canceled = e.status === "canceled";
+    const deadline = e.answer_deadline_at ?? e.start_at;
+    const closed = deadline < now;
+    const canAnswer =
+      answerable && !canceled && !closed && r.status !== "canceled";
 
     return (
       <li className="rounded-xl border border-sf-border p-4">
@@ -115,9 +135,11 @@ export default async function MyEventsPage({
             {e.venue}
           </p>
         )}
-        {e.price != null && e.price > 0 && (
+        {e.price != null && e.price > 0 && e.fee_collection !== "none" && (
           <p className="sf-num mt-1 text-[12px] text-sf-body">
             参加費 {formatYen(e.price)}
+            {FEE_LABEL[e.fee_collection] && `・${FEE_LABEL[e.fee_collection]}`}
+            {e.fee_note && `（${e.fee_note}）`}
           </p>
         )}
         {e.description && (
@@ -129,11 +151,18 @@ export default async function MyEventsPage({
           <p className="mt-2 text-[12px] text-sf-danger">{e.cancel_reason}</p>
         )}
 
-        {answerable && !canceled ? (
+        {canAnswer ? (
           <>
-            <p className="mt-3 text-[12px] text-sf-muted">
+            {e.answer_deadline_at && (
+              <p className="mt-3 flex items-center gap-1 rounded-lg bg-sf-warn/10 px-2.5 py-2 text-[12px] font-medium text-sf-ink">
+                <CalendarClock className="size-3.5 shrink-0 text-sf-warn" aria-hidden />
+                {formatDateJa(e.answer_deadline_at)}{" "}
+                {formatTimeJa(e.answer_deadline_at)} までにお返事ください
+              </p>
+            )}
+            <p className="mt-2 text-[12px] text-sf-muted">
               {r.status === "invited"
-                ? "参加されるかお知らせください。あとから変更できます。"
+                ? "あとから変更できます。"
                 : `いまのお返事: ${ANSWER_LABEL[r.status] ?? "未回答"}`}
             </p>
             <AnswerForm entryId={r.id} status={r.status} />
@@ -143,7 +172,11 @@ export default async function MyEventsPage({
             {ANSWER_LABEL[r.status] ?? "未回答"}
             {r.attendance === "present" && " ・ 当日ご参加"}
             {r.attendance === "absent" && " ・ 当日欠席"}
-            {r.attendance === "late" && " ・ 当日遅刻"}
+            {answerable && closed && !canceled && (
+              <span className="block text-sf-danger">
+                回答の期限が過ぎています。変更はスタジオへご連絡ください。
+              </span>
+            )}
           </p>
         )}
       </li>
@@ -190,6 +223,27 @@ export default async function MyEventsPage({
           )}
         </div>
       </Card>
+
+      {/* 衣装サイズは下のタブに増やさず、ここから入れるようにする。
+          スマートフォンでタブが6つ並ぶと、どれも押しにくくなる */}
+      <Link
+        href="/my/sizes"
+        className="flex items-center gap-3 rounded-2xl border border-sf-border bg-sf-card p-4"
+      >
+        <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-sf-accent/12 text-sf-accent">
+          <Ruler className="size-4" aria-hidden />
+        </span>
+        <span className="min-w-0 flex-1">
+          <span className="block text-[14px] font-medium text-sf-ink">
+            衣装サイズを登録する
+          </span>
+          <span className="block text-[12px] leading-relaxed text-sf-muted">
+            発表会の衣装を用意するときに使います。先に入れておくと、直前に
+            慌てずにすみます。
+          </span>
+        </span>
+        <ChevronRight className="size-4 shrink-0 text-sf-muted" aria-hidden />
+      </Link>
 
       {past.length > 0 && (
         <Card className="p-4">

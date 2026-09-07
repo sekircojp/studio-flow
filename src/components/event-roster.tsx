@@ -1,28 +1,38 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { Check, Clock3, CircleSlash, HelpCircle, Minus, Undo2, X } from "lucide-react";
+import { Check, CircleSlash, Minus, PauseCircle, Undo2, X } from "lucide-react";
 
 /**
- * 発表会・イベントの名簿（設計書 4.6）
+ * 発表会・イベントの名簿（設計書 4.6.3）
  *
  * ★ 「参加するか」と「当日来たか」を別の行として並べる。
  *   1つにまとめると「出ると言っていたのに来なかった」が表せない。
- *   衣装や立ち位置を用意する発表会では、この区別がいちばん重要になる
- *   （移行 038）。
+ *   衣装や立ち位置を用意する発表会では、この区別がいちばん重要になる。
+ *
+ * ★ 「未回答」のボタンは置かない。
+ *   参加にも不参加にも押していなければ未回答だと見れば分かる。押せる選択肢
+ *   として並べても、答えを消す操作が増えるだけになる。間違えたときは
+ *   別の選択肢を押し直せばよい。
+ *
+ * ★ 当日の出欠は出席と欠席だけ。
+ *   学校ではないので、発表会に何分遅れたかを記録しても使い道がない。
  *
  * ★ 押した瞬間に画面を変え、保存はその裏で走らせる。
  *   当日の会場で「押したのに変わらない」と何度も押されるのを防ぐ。
- *   出欠の名簿（components/roster.tsx）と同じ考え方。
  *
  * ★ 記録する処理はサーバーアクションを props で受け取る。
  *   管理画面（/admin）と講師の画面（/staff）で認可の入口が違うため、
- *   部品側では決めない。講師には参加可否を渡さない（運営の判断なので、
- *   setStatus を省くと「当日の出欠」だけの名簿になる）。
+ *   部品側では決めない。講師には参加可否を渡さない。
  */
 
-export type EntryStatus = "invited" | "entered" | "declined" | "canceled";
-export type EventAttendance = "present" | "absent" | "late" | "unconfirmed";
+export type EntryStatus =
+  | "invited"
+  | "entered"
+  | "undecided"
+  | "declined"
+  | "canceled";
+export type EventAttendance = "present" | "absent" | "unconfirmed";
 
 export type EntryRow = {
   id: string;
@@ -33,14 +43,15 @@ export type EntryRow = {
   answeredAt: string | null;
 };
 
+/** 押せる選択肢。invited（未回答）は入れない（上のコメントを参照） */
 const ENTRY_OPTIONS: {
   value: EntryStatus;
   label: string;
   icon: typeof Check;
   on: string;
 }[] = [
-  { value: "invited", label: "未回答", icon: HelpCircle, on: "bg-sf-ink text-white border-sf-ink" },
   { value: "entered", label: "参加", icon: Check, on: "bg-sf-ok text-white border-sf-ok" },
+  { value: "undecided", label: "保留", icon: PauseCircle, on: "bg-sf-warn text-white border-sf-warn" },
   { value: "declined", label: "不参加", icon: X, on: "bg-sf-muted text-white border-sf-muted" },
   { value: "canceled", label: "取消", icon: CircleSlash, on: "bg-sf-danger text-white border-sf-danger" },
 ];
@@ -52,14 +63,14 @@ const ATTENDANCE_OPTIONS: {
   on: string;
 }[] = [
   { value: "present", label: "出席", icon: Check, on: "bg-sf-ok text-white border-sf-ok" },
-  { value: "late", label: "遅刻", icon: Clock3, on: "bg-sf-warn text-white border-sf-warn" },
   { value: "absent", label: "欠席", icon: X, on: "bg-sf-danger text-white border-sf-danger" },
   { value: "unconfirmed", label: "未", icon: Minus, on: "bg-sf-ink text-white border-sf-ink" },
 ];
 
-const ENTRY_LABEL: Record<EntryStatus, string> = {
+export const ENTRY_LABEL: Record<EntryStatus, string> = {
   invited: "未回答",
   entered: "参加",
+  undecided: "保留",
   declined: "不参加",
   canceled: "取消",
 };
@@ -105,7 +116,8 @@ export function EventRoster({
   return (
     <ul className="divide-y divide-sf-border rounded-xl border border-sf-border">
       {entries.map((e) => {
-        const canceled = status[e.id] === "canceled";
+        const current = status[e.id];
+        const canceled = current === "canceled";
         return (
           <li
             key={e.id}
@@ -118,14 +130,11 @@ export function EventRoster({
               {e.studentKana && (
                 <span className="text-[11px] text-sf-muted">{e.studentKana}</span>
               )}
-              {/* 参加可否を触れない画面では、いまの返事を文字で見せる */}
-              {!setStatus && (
+              {/* 未回答はボタンが無いので、状態を文字で見せる */}
+              {(current === "invited" || !setStatus) && (
                 <span className="text-[11px] text-sf-muted">
-                  {ENTRY_LABEL[status[e.id]]}
+                  {ENTRY_LABEL[current]}
                 </span>
-              )}
-              {setStatus && e.answeredAt && (
-                <span className="text-[11px] text-sf-muted">回答済み</span>
               )}
             </p>
 
@@ -134,7 +143,7 @@ export function EventRoster({
                 <p className="mb-1 text-[11px] font-medium text-sf-muted">参加</p>
                 <div className="grid grid-cols-4 gap-2">
                   {ENTRY_OPTIONS.map((o) => {
-                    const active = status[e.id] === o.value;
+                    const active = current === o.value;
                     return (
                       <button
                         key={o.value}
@@ -161,7 +170,7 @@ export function EventRoster({
               <p className="mb-1 text-[11px] font-medium text-sf-muted">
                 当日の出欠
               </p>
-              <div className="grid grid-cols-4 gap-2">
+              <div className="grid grid-cols-3 gap-2">
                 {ATTENDANCE_OPTIONS.map((o) => {
                   const active = attendance[e.id] === o.value;
                   return (

@@ -58,10 +58,17 @@ export default async function EventsPage() {
   const list = (data ?? []) as EventRow[];
 
   // 名簿の人数。1件ずつ数えると回数が増えるので、まとめて引いて集計する
-  const { data: entries } = await supabase
-    .from("event_entries")
-    .select("event_id, status, attendance")
-    .eq("organization_id", orgId);
+  const [{ data: entries }, { data: classes }] = await Promise.all([
+    supabase
+      .from("event_entries")
+      .select("event_id, status, attendance")
+      .eq("organization_id", orgId),
+    supabase
+      .from("classes")
+      .select("id, name")
+      .eq("organization_id", orgId)
+      .order("name"),
+  ]);
 
   const counts = new Map<string, { entered: number; total: number }>();
   for (const e of entries ?? []) {
@@ -104,9 +111,9 @@ export default async function EventsPage() {
                   {STATUS_LABEL[e.status]}
                 </span>
               )}
-              {!e.is_public && (
+              {!e.is_public && e.status === "planned" && (
                 <span className="rounded-md bg-sf-warn/14 px-1.5 py-0.5 text-[11px] font-medium text-sf-warn">
-                  保護者に非公開
+                  未案内
                 </span>
               )}
             </p>
@@ -185,7 +192,7 @@ export default async function EventsPage() {
           }
         />
         <div className="mt-5">
-          <EventForm />
+          <EventForm classes={classes ?? []} />
         </div>
       </Card>
 
