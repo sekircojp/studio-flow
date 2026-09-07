@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { CalendarDays, FileText, Repeat, Wallet } from "lucide-react";
+import { CalendarDays, CalendarHeart, FileText, Repeat, Wallet } from "lucide-react";
 import { requireMy } from "@/lib/auth/my";
 import { getBrand } from "@/lib/brand.server";
 import { BrandLockup } from "@/components/brand-mark";
@@ -18,6 +18,7 @@ import { POWERED_BY } from "@/config/app";
 const NAV = [
   { href: "/my", label: "スケジュール", icon: CalendarDays },
   { href: "/my/transfers", label: "欠席・振替", icon: Repeat },
+  { href: "/my/events", label: "発表会", icon: CalendarHeart },
   { href: "/my/billing", label: "月謝", icon: Wallet },
   { href: "/my/terms", label: "規約", icon: FileText },
 ];

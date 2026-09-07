@@ -346,6 +346,60 @@ event_entries
   id, event_id, student_id, amount, status, entered_at
 ```
 
+### 4.6.3 発表会・イベントの出欠（2026-09-07 追加）
+
+9.1 では「発表会・衣装管理」を対象外としていたが、**出欠を取る部分だけ**を
+フェーズ1に入れた。演目・衣装・発注・チケットは対象外のまま（10章）。
+
+```
+events
+  id, organization_id,
+  kind,                       -- recital 発表会 / event その他
+  title, venue,
+  start_at, end_at,
+  capacity, price,
+  status,                     -- planned 予定 / held 開催済み / canceled 中止
+  cancel_reason,
+  is_public,                  -- 保護者のマイページに出すか
+  description
+
+event_entries
+  id, organization_id, event_id, student_id,
+  status,                     -- invited 声をかけた / entered 参加する
+                              -- / declined 参加しない / canceled 取り消し
+  answered_at, answered_by,
+  attendance,                 -- present / absent / late / unconfirmed
+  attendance_recorded_by, attendance_recorded_at,
+  amount, note
+```
+
+**発表会もイベントも同じテーブルにする。** 名簿の作り方も出欠の取り方も同じで、
+分けると同じ画面を2つ作ることになる。違いは呼び名だけなので `kind` で持つ。
+
+**会場は自由入力にして、`locations` には紐づけない。** 発表会は市民ホールなど、
+普段のスタジオ以外で開かれるのが普通。`locations` に紐づけると、1回きりの会場を
+スタジオとして登録することになり、クラスやレッスンの選択肢にまで出てきてしまう。
+
+**「参加するか」と「当日来たか」を別の列で持つ。** `lessons.status` と
+`attendances.status` を分けているのと同じ。1つの列にすると「出ると言っていたのに
+来なかった」が表せない。衣装や立ち位置を用意する発表会では、この区別が実務上
+いちばん重要になる。
+
+**保護者に update 権限を渡さない。** RLS は行単位で、列単位の出し分けができない。
+行を更新させると当日の出欠まで書き換えられる。保護者が触れるのは `status` だけ
+という制限を `public.answer_event_entry()` の中で固定する。
+
+**講師が触れるのは当日の出欠だけ。** 誰を出すかは運営の判断で、当日の会場で
+変えるものではない（休講の判断を講師の画面から外しているのと同じ）。ただし
+講師は組織の中の人なので、こちらは関数化まではせずアプリ層で担保する。
+
+**参加費（`price` / `amount`）は持つが、請求とはまだ繋がない。** 載せるときは
+`invoice_items.kind = 'event'` を使う。どの月の請求に載せるかを決める必要が
+あるため、そこは別に設計する。
+
+**名簿から行を消す操作は作らない。** 出ないことになった生徒は `canceled` に
+する。誰に声をかけたかが残り、次の回の名簿を作るときに使える。
+
 ### 4.7 講師・報酬
 
 ```
@@ -761,7 +815,9 @@ MarcheBase は Stripe を一切利用していないため、**Stripe アカウ�
 - スポットレッスン・イベント・チケット販売
 - 講師報酬の自動計算
 - ~~CSV 移行~~（2026-09-06 実装。移行が必要な引き合いに備え、フェーズ1に入れた）
-- 発表会・衣装管理（採寸履歴のテーブルのみ用意）
+- 発表会の衣装管理（採寸履歴のテーブルのみ用意）
+  ※ ~~発表会・イベントの出欠~~ は 2026-09-07 に実装（4.6.3）。演目・衣装・
+  発注・チケットは対象外のまま
 - 通知の一斉配信
 - 分析・KPI
 - Super Admin 画面（プランは DB に直接入れる）

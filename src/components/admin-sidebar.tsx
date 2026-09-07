@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import {
   Building2,
   CalendarDays,
+  CalendarHeart,
   CalendarRange,
   LayoutGrid,
   CheckSquare,
@@ -22,9 +23,10 @@ import { APP_NAME } from "@/config/app";
 /**
  * 管理画面のサイドバー
  *
- * 並んでいるのはフェーズ1（設計書 9章）の範囲だけ。
- * 見込み顧客・スポットレッスン・体験申込・キャンセル待ち・講師報酬などは
- * 9.1 で「やらない」と決めた機能なので、項目自体を置かない。
+ * 並んでいるのはフェーズ1（設計書 9章）の範囲と、あとから運営の求めで
+ * 足したもの（体験申込・発表会の出欠）だけ。見込み顧客・スポットレッスン・
+ * キャンセル待ち・講師報酬などは 9.1 で「やらない」と決めた機能なので、
+ * 項目自体を置かない。
  *
  * まだ画面が無い項目は、リンクにせず薄く出す。押しても何も起きない
  * リンクを置くと、動かないのか壊れているのか分からなくなるため。
@@ -54,6 +56,7 @@ const GROUPS: { kicker: string; items: Item[] }[] = [
       { href: "/admin/classes", label: "クラス", icon: LayoutGrid },
       { href: "/admin/attendance", label: "出欠管理", icon: CheckSquare },
       { href: "/admin/transfers", label: "欠席・振替", icon: Repeat },
+      { href: "/admin/events", label: "発表会・イベント", icon: CalendarHeart },
     ],
   },
   {

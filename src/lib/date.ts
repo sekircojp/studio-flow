@@ -82,3 +82,36 @@ export function greetingJa(now: Date = new Date()): string {
 export function formatYen(amount: number): string {
   return "¥" + amount.toLocaleString("ja-JP");
 }
+
+/**
+ * 入力欄（datetime-local）の値を、保存できる形に直す
+ * ────────────────────────────────────────────────
+ * datetime-local が返すのは "2026-11-03T14:00" という、タイムゾーンの
+ * 付かない文字列。利用者が見ているのは JST の時刻なので、JST として
+ * 解釈してから UTC に直す（設計書 2.1）。
+ *
+ * ★ new Date("2026-11-03T14:00") と書いてはいけない。
+ *   サーバーのタイムゾーンで解釈される。手元では合っていても、
+ *   Vercel（UTC）では9時間ずれる。日本は夏時間が無いので +09:00 で固定できる。
+ */
+export function tokyoLocalToIso(value: string): string | null {
+  if (!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}/.test(value)) return null;
+  const d = new Date(`${value.slice(0, 16)}:00+09:00`);
+  return Number.isNaN(d.getTime()) ? null : d.toISOString();
+}
+
+/** 逆向き。timestamptz を datetime-local の値（JST）に戻す */
+export function isoToTokyoLocal(value: string | null): string {
+  if (!value) return "";
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: TIME_ZONE,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  }).formatToParts(new Date(value));
+  const get = (t: string) => parts.find((p) => p.type === t)?.value ?? "";
+  return `${get("year")}-${get("month")}-${get("day")}T${get("hour")}:${get("minute")}`;
+}

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { CalendarCheck, Users } from "lucide-react";
+import { CalendarCheck, CalendarHeart, Users } from "lucide-react";
 import { requireStaff } from "@/lib/auth/staff";
 import { getBrand } from "@/lib/brand.server";
 import { BrandLockup } from "@/components/brand-mark";
@@ -16,6 +16,7 @@ import { APP_NAME } from "@/config/app";
 
 const NAV = [
   { href: "/staff", label: "担当レッスン", icon: CalendarCheck },
+  { href: "/staff/events", label: "発表会", icon: CalendarHeart },
   { href: "/staff/students", label: "生徒", icon: Users },
 ];
 
