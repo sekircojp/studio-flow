@@ -22,6 +22,7 @@ import { Resend } from "npm:resend";
 import { corsHeaders, siteUrl } from "../_shared/cors.ts";
 import { mailFrom } from "../_shared/mail-from.ts";
 import { sendMail } from "../_shared/resend-send.ts";
+import { bodyToHtml, renderEmail } from "../_shared/render-email.ts";
 
 const supabase = createClient(
   Deno.env.get("SUPABASE_URL")!,
@@ -78,12 +79,6 @@ function feeLabel(collection: string, billingMonth: string | null): string {
   return "";
 }
 
-function escapeHtml(text: string): string {
-  return text
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;");
-}
 
 type EventRow = {
   id: string;
@@ -160,7 +155,16 @@ Deno.serve(async (req) => {
     const replyTo = brand?.email ?? undefined;
 
     const kindLabel = event.kind === "recital" ? "発表会" : "イベント";
-    const subject = `【${kindLabel}】${event.title} 出欠のお願い`;
+
+    // 件名は通知のまとまりにも残すので、宛先の値を入れずに一度組み立てる
+    const heading = await renderEmail(
+      supabase,
+      event.organization_id,
+      "event_invited",
+      { 種類: kindLabel, イベント名: event.title, スクール名: studioName },
+    );
+    const subject =
+      heading?.subject ?? `【${kindLabel}】${event.title} 出欠のお願い`;
 
     const { data: notification, error: notificationError } = await supabase
       .from("notifications")
@@ -181,10 +185,12 @@ Deno.serve(async (req) => {
       whenLabel(event.start_at) +
       (event.end_at ? `〜${whenLabel(event.end_at).split(" ")[1]}` : "");
 
-    const feeLine =
+    // 「いくらを、どうやって集めるか」を1つの値にする。金額だけでは、
+    // 当日いくら持たせればよいのかが保護者に分からない
+    const feeText =
       event.fee_collection === "none" || event.price == null || event.price === 0
         ? ""
-        : `　参加費　　${yen(event.price)}` +
+        : yen(event.price) +
           (feeLabel(event.fee_collection, event.billing_month)
             ? `（${feeLabel(event.fee_collection, event.billing_month)}）`
             : "");
@@ -235,39 +241,47 @@ Deno.serve(async (req) => {
         continue;
       }
 
-      const lines = [
-        `${guardian.name} 様`,
-        "",
-        `${kindLabel}のご案内です。ご出席の可否をお知らせください。`,
-        "",
-        `　${kindLabel}　　${event.title}`,
-        `　お子さま　${student?.name ?? ""}`,
-        `　日時　　　${when}`,
-        event.venue ? `　会場　　　${event.venue}` : "",
-        feeLine,
-        event.fee_note ? `　　　　　　${event.fee_note}` : "",
-        "",
-        deadline ? `お返事の期限　${deadline}` : "お早めにお知らせください。",
-        "",
-        link ? `マイページからお答えいただけます。` : "",
-        link,
-        "",
-        event.description ?? "",
-        "",
-        studioName,
-      ].filter((l) => l !== "");
+      const rendered = await renderEmail(
+        supabase,
+        event.organization_id,
+        "event_invited",
+        {
+          保護者名: guardian.name,
+          生徒名: student?.name ?? "",
+          種類: kindLabel,
+          イベント名: event.title,
+          日時: when,
+          会場: event.venue ?? "",
+          参加費: feeText,
+          "参加費の補足": event.fee_note ?? "",
+          回答期限: deadline,
+          マイページURL: link,
+          案内文: event.description ?? "",
+          スクール名: studioName,
+        },
+      );
 
-      const text = lines.join("\n");
-      const html = lines
-        .map((l) => `<p style="margin:0 0 8px">${escapeHtml(l)}</p>`)
-        .join("");
+      if (!rendered) {
+        await supabase.from("deliveries").insert({
+          organization_id: event.organization_id,
+          notification_id: notification.id,
+          guardian_id: guardian.id,
+          event_entry_id: entry.id,
+          channel: "email",
+          to_address: guardian.email,
+          status: "failed",
+          error: "メールの文面を組み立てられませんでした",
+        });
+        failed += 1;
+        continue;
+      }
 
       const result = await sendMail(resend, {
         from: mailFrom(studioName),
         to: guardian.email,
-        subject,
-        text,
-        html,
+        subject: rendered.subject,
+        text: rendered.body,
+        html: bodyToHtml(rendered.body),
         ...(replyTo ? { reply_to: replyTo } : {}),
       });
 

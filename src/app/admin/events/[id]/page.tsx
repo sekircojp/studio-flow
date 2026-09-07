@@ -28,6 +28,7 @@ import {
   RosterNote,
   type EntryRow,
 } from "@/components/event-roster";
+import { fetchEntryChanges } from "@/lib/event-changes";
 import { AddEntries, type Candidate } from "./add-entries";
 import { ApplyFees, PublishEvent, RebuildRoster } from "./publish";
 import {
@@ -142,6 +143,13 @@ export default async function EventDetailPage({
         "ja",
       ),
     );
+
+  // 出欠・参加可否の変更履歴（移行 043）
+  const changes = await fetchEntryChanges(
+    supabase,
+    orgId,
+    entries.map((e) => e.id),
+  );
 
   // 案内メールが届いたか（設計書 4.8）
   const { data: deliveryRows } = await supabase
@@ -382,6 +390,7 @@ export default async function EventDetailPage({
               </p>
               <EventRoster
                 entries={entries}
+                changes={changes}
                 disabled={canceled}
                 setStatus={setEntryStatus}
                 recordAttendance={recordEventAttendance}

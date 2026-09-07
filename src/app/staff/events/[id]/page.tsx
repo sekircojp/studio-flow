@@ -6,6 +6,7 @@ import { requireStaff } from "@/lib/auth/staff";
 import { createClient } from "@/lib/supabase/server";
 import { formatDateJa, formatTimeJa } from "@/lib/date";
 import { EventRoster, type EntryRow } from "@/components/event-roster";
+import { fetchEntryChanges } from "@/lib/event-changes";
 import { Card, EmptyState, SectionHeading } from "@/components/ui";
 import { recordEventAttendanceAsStaff } from "../actions";
 
@@ -72,6 +73,13 @@ export default async function StaffEventDetailPage({
       ),
     );
 
+  // 変更履歴（移行 043）。記録するのは講師なので、講師にも見せる
+  const changes = await fetchEntryChanges(
+    supabase,
+    membership.organizationId,
+    entries.map((e) => e.id),
+  );
+
   const canceled = event.status === "canceled";
   const done = entries.filter((e) => e.attendance !== "unconfirmed").length;
 
@@ -129,6 +137,7 @@ export default async function StaffEventDetailPage({
           ) : (
             <EventRoster
               entries={entries}
+              changes={changes}
               disabled={canceled}
               recordAttendance={recordEventAttendanceAsStaff}
             />

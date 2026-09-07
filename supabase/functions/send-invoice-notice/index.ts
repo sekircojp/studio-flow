@@ -23,6 +23,7 @@ import { Resend } from "npm:resend";
 import { corsHeaders } from "../_shared/cors.ts";
 import { mailFrom } from "../_shared/mail-from.ts";
 import { sendMail } from "../_shared/resend-send.ts";
+import { bodyToHtml, renderEmail } from "../_shared/render-email.ts";
 
 const supabase = createClient(
   Deno.env.get("SUPABASE_URL")!,
@@ -55,12 +56,6 @@ function dayLabel(date: string | null): string {
   return `${Number(m)}月${Number(d)}日`;
 }
 
-function escapeHtml(text: string): string {
-  return text
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;");
-}
 
 Deno.serve(async (req) => {
   cors = corsHeaders(req);
@@ -114,7 +109,13 @@ Deno.serve(async (req) => {
     const sentIds = new Set((already ?? []).map((d) => d.invoice_id));
 
     const label = monthLabel(billing_month);
-    const subject = `${label}分の月謝のお知らせ`;
+
+    // 件名は通知のまとまりにも残すので、宛先の値を入れずに一度組み立てる
+    const heading = await renderEmail(supabase, organization_id, "invoice_issued", {
+      対象月: label,
+      スクール名: studioName,
+    });
+    const subject = heading?.subject ?? `${label}分の月謝のお知らせ`;
 
     const { data: notification, error: notificationError } = await supabase
       .from("notifications")
@@ -173,32 +174,41 @@ Deno.serve(async (req) => {
         continue;
       }
 
-      const due = dayLabel(invoice.due_date);
-      const lines = [
-        `${guardian.name} 様`,
-        "",
-        `${label}分の月謝のお知らせです。`,
-        "",
-        `　お子さま　${student?.name ?? ""}`,
-        `　ご請求額　${yen(invoice.total)}（税込）`,
-        due ? `　お支払期限　${due}` : "",
-        "",
-        "内訳はマイページからご確認いただけます。",
-        "",
-        studioName,
-      ].filter((l) => l !== "");
+      const rendered = await renderEmail(
+        supabase,
+        organization_id,
+        "invoice_issued",
+        {
+          保護者名: guardian.name,
+          生徒名: student?.name ?? "",
+          対象月: label,
+          請求金額: `${yen(invoice.total)}（税込）`,
+          支払期限: dayLabel(invoice.due_date),
+          スクール名: studioName,
+        },
+      );
 
-      const text = lines.join("\n");
-      const html = lines
-        .map((l) => `<p style="margin:0 0 8px">${escapeHtml(l)}</p>`)
-        .join("");
+      if (!rendered) {
+        await supabase.from("deliveries").insert({
+          organization_id,
+          notification_id: notification.id,
+          guardian_id: guardian.id,
+          invoice_id: invoice.id,
+          channel: "email",
+          to_address: guardian.email,
+          status: "failed",
+          error: "メールの文面を組み立てられませんでした",
+        });
+        failed += 1;
+        continue;
+      }
 
       const result = await sendMail(resend, {
         from: mailFrom(studioName),
         to: guardian.email,
-        subject,
-        text,
-        html,
+        subject: rendered.subject,
+        text: rendered.body,
+        html: bodyToHtml(rendered.body),
         ...(replyTo ? { reply_to: replyTo } : {}),
       });
 

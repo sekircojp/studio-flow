@@ -23,6 +23,7 @@ import { Resend } from "npm:resend";
 import { corsHeaders } from "../_shared/cors.ts";
 import { mailFrom } from "../_shared/mail-from.ts";
 import { sendMail } from "../_shared/resend-send.ts";
+import { bodyToHtml, renderEmail } from "../_shared/render-email.ts";
 
 const supabase = createClient(
   Deno.env.get("SUPABASE_URL")!,
@@ -61,12 +62,6 @@ function timeLabel(iso: string | null): string {
   return t;
 }
 
-function escapeHtml(text: string): string {
-  return text
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;");
-}
 
 type Lesson = {
   date: string;
@@ -143,58 +138,37 @@ Deno.serve(async (req) => {
         (lesson.end_at ? `〜${timeLabel(lesson.end_at)}` : "")
       : "";
 
-    const subject = approved
-      ? `${kindLabel}のご予約が確定しました`
-      : `${kindLabel}のお申し込みについて`;
+    // 文面はスタジオが管理画面で編集できる（移行 041）
+    const rendered = await renderEmail(
+      supabase,
+      trial.organization_id,
+      notificationKind,
+      {
+        保護者名: trial.guardian_name,
+        生徒名: trial.student_name,
+        種別: kindLabel,
+        クラス: lesson?.classes?.name ?? "",
+        日時: when,
+        会場: location?.name
+          ? `${location.name}${lesson?.rooms?.name ? ` ${lesson.rooms.name}` : ""}`
+          : "",
+        住所: location?.address ?? "",
+        電話: brand?.tel ?? "",
+        スクール名: studioName,
+      },
+    );
 
-    const lines = approved
-      ? [
-          `${trial.guardian_name} 様`,
-          "",
-          `${kindLabel}のお申し込みをありがとうございました。下記のとおり確定しました。`,
-          "",
-          `　お子さま　${trial.student_name}`,
-          lesson?.classes?.name ? `　クラス　　${lesson.classes.name}` : "",
-          when ? `　日時　　　${when}` : "",
-          location?.name
-            ? `　場所　　　${location.name}${lesson?.rooms?.name ? ` ${lesson.rooms.name}` : ""}`
-            : "",
-          location?.address ? `　　　　　　${location.address}` : "",
-          "",
-          "当日は少し早めにお越しください。ご都合が悪くなった場合は、",
-          "このメールへご返信いただくかお電話でお知らせください。",
-          "",
-          brand?.tel ? `お問い合わせ　${brand.tel}` : "",
-          studioName,
-        ]
-      : [
-          `${trial.guardian_name} 様`,
-          "",
-          `${kindLabel}のお申し込みをありがとうございました。`,
-          "たいへん申し訳ございませんが、今回はご希望の回でお受けすることが",
-          "できませんでした。",
-          "",
-          when ? `　お申し込みの回　${when}` : "",
-          "",
-          "別の回でしたらご案内できる場合がございます。ご検討いただける",
-          "ようでしたら、このメールへご返信いただくかお電話でお知らせください。",
-          "",
-          brand?.tel ? `お問い合わせ　${brand.tel}` : "",
-          studioName,
-        ];
-
-    const body = lines.filter((l) => l !== "");
-    const text = body.join("\n");
-    const html = body
-      .map((l) => `<p style="margin:0 0 8px">${escapeHtml(l)}</p>`)
-      .join("");
+    if (!rendered) {
+      console.error("メールの文面を組み立てられませんでした");
+      return json({ error: "server_error" }, 500);
+    }
 
     const { data: notification, error: notificationError } = await supabase
       .from("notifications")
       .insert({
         organization_id: trial.organization_id,
         kind: notificationKind,
-        subject,
+        subject: rendered.subject,
       })
       .select("id")
       .single();
@@ -207,9 +181,9 @@ Deno.serve(async (req) => {
     const result = await sendMail(resend, {
       from: mailFrom(studioName),
       to: trial.email,
-      subject,
-      text,
-      html,
+      subject: rendered.subject,
+      text: rendered.body,
+      html: bodyToHtml(rendered.body),
       ...(replyTo ? { reply_to: replyTo } : {}),
     });
 

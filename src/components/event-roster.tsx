@@ -1,7 +1,15 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { Check, CircleSlash, Minus, PauseCircle, Undo2, X } from "lucide-react";
+import {
+  Check,
+  CircleSlash,
+  History,
+  Minus,
+  PauseCircle,
+  Undo2,
+  X,
+} from "lucide-react";
 
 /**
  * 発表会・イベントの名簿（設計書 4.6.3）
@@ -24,6 +32,10 @@ import { Check, CircleSlash, Minus, PauseCircle, Undo2, X } from "lucide-react";
  * ★ 記録する処理はサーバーアクションを props で受け取る。
  *   管理画面（/admin）と講師の画面（/staff）で認可の入口が違うため、
  *   部品側では決めない。講師には参加可否を渡さない。
+ *
+ * ★ 直したことが分かるように、変更の履歴を各行に出す（移行 043）。
+ *   当日つけた出席をあとから欠席に書き換えても、以前は誰にも分からなかった。
+ *   変更を止めるのではなく、残して見せる。
  */
 
 export type EntryStatus =
@@ -41,6 +53,15 @@ export type EntryRow = {
   status: EntryStatus;
   attendance: EventAttendance;
   answeredAt: string | null;
+};
+
+/** 1回ぶんの変更（audit_logs の1行） */
+export type EntryChange = {
+  at: string;
+  actor: string | null;
+  field: "status" | "attendance";
+  before: string | null;
+  after: string | null;
 };
 
 /** 押せる選択肢。invited（未回答）は入れない（上のコメントを参照） */
@@ -75,13 +96,79 @@ export const ENTRY_LABEL: Record<EntryStatus, string> = {
   canceled: "取消",
 };
 
+export const ATTENDANCE_LABEL: Record<string, string> = {
+  present: "出席",
+  absent: "欠席",
+  unconfirmed: "未記録",
+};
+
+function valueLabel(field: string, value: string | null): string {
+  if (!value) return "未記録";
+  return field === "attendance"
+    ? (ATTENDANCE_LABEL[value] ?? value)
+    : (ENTRY_LABEL[value as EntryStatus] ?? value);
+}
+
+/** 9/8 14:20 のような短い表記。名簿は縦に長いので日付は短く */
+function stamp(iso: string): string {
+  const d = new Date(iso);
+  return d.toLocaleString("ja-JP", {
+    timeZone: "Asia/Tokyo",
+    month: "numeric",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
+/**
+ * 変更の履歴
+ *
+ * ★ 最初の記録は出さない。
+ *   未記録から出席になったのは「記録した」であって「直した」ではない。
+ *   全部並べると、直したものが埋もれる。
+ */
+function ChangeList({ changes }: { changes: EntryChange[] }) {
+  const corrections = changes.filter(
+    (c) => c.before && c.before !== "unconfirmed" && c.before !== "invited",
+  );
+  if (corrections.length === 0) return null;
+
+  return (
+    <ul className="mt-2 space-y-0.5 border-t border-sf-border pt-2">
+      {corrections.slice(0, 5).map((c, i) => (
+        <li
+          key={`${c.at}-${i}`}
+          className="flex flex-wrap items-center gap-x-1.5 text-[11px] text-sf-muted"
+        >
+          <History className="size-3 shrink-0" aria-hidden />
+          <span className="sf-num">{stamp(c.at)}</span>
+          <span>
+            {c.field === "attendance" ? "出欠" : "参加"}{" "}
+            {valueLabel(c.field, c.before)} → {valueLabel(c.field, c.after)}
+          </span>
+          {c.actor && <span>（{c.actor}）</span>}
+        </li>
+      ))}
+      {corrections.length > 5 && (
+        <li className="text-[11px] text-sf-muted">
+          ほか {corrections.length - 5} 件
+        </li>
+      )}
+    </ul>
+  );
+}
+
 export function EventRoster({
   entries,
+  changes,
   disabled,
   setStatus,
   recordAttendance,
 }: {
   entries: EntryRow[];
+  /** 名簿の行ごとの変更履歴。新しい順（移行 043） */
+  changes?: Record<string, EntryChange[]>;
   disabled: boolean;
   /** 渡さなければ参加可否の行を出さない（講師の画面） */
   setStatus?: (entryId: string, status: EntryStatus) => Promise<void>;
@@ -193,6 +280,8 @@ export function EventRoster({
                 })}
               </div>
             </div>
+
+            <ChangeList changes={changes?.[e.id] ?? []} />
           </li>
         );
       })}

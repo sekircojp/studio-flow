@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
-import { Lock } from "lucide-react";
+import { ChevronRight, Lock, Mail } from "lucide-react";
+import Link from "next/link";
 import { requireAdmin } from "@/lib/auth/guards";
 import { createClient } from "@/lib/supabase/server";
 import { getBrand } from "@/lib/brand.server";
@@ -92,6 +93,26 @@ export default async function SettingsPage() {
             </p>
           )}
         </div>
+      </Card>
+
+      <Card className="p-5 sm:p-6">
+        <SectionHeading kicker="Mail" title="メールの文面" />
+        <p className="mt-2 text-[13px] leading-relaxed text-sf-body">
+          請求のお知らせ、体験の承認・見送り、発表会の出欠のお願い。件名も
+          本文もスタジオの言い回しに直せます。
+        </p>
+        <Link
+          href="/admin/settings/emails"
+          className="mt-4 flex items-center gap-3 rounded-xl border border-sf-border p-3.5 transition hover:border-sf-accent/50"
+        >
+          <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-sf-accent/12 text-sf-accent">
+            <Mail className="size-4" aria-hidden />
+          </span>
+          <span className="min-w-0 flex-1 text-[14px] font-medium text-sf-ink">
+            文面を編集する
+          </span>
+          <ChevronRight className="size-4 shrink-0 text-sf-muted" aria-hidden />
+        </Link>
       </Card>
 
       <Card className="p-5 sm:p-6">
