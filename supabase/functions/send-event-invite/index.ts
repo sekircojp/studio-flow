@@ -65,12 +65,18 @@ function whenLabel(iso: string, withTime = true): string {
 
 const yen = (n: number) => `${n.toLocaleString("ja-JP")}円`;
 
-const FEE_LABEL: Record<string, string> = {
-  on_site: "当日、会場でお支払いください",
-  with_tuition: "翌月の月謝と一緒にご請求します",
-  bank_transfer: "事前にお振り込みください",
-  other: "",
-};
+/** 集め方の書き方。月謝に合算するときは、何月分かまで書く。
+ *  「月謝と一緒に」だけでは、いつ引かれるのかが保護者に分からない */
+function feeLabel(collection: string, billingMonth: string | null): string {
+  if (collection === "on_site") return "当日、会場でお支払いください";
+  if (collection === "bank_transfer") return "事前にお振り込みください";
+  if (collection === "with_tuition") {
+    return billingMonth
+      ? `${Number(billingMonth.slice(5, 7))}月分の月謝と一緒にご請求します`
+      : "月謝と一緒にご請求します";
+  }
+  return "";
+}
 
 function escapeHtml(text: string): string {
   return text
@@ -89,6 +95,7 @@ type EventRow = {
   end_at: string | null;
   price: number | null;
   fee_collection: string;
+  billing_month: string | null;
   fee_note: string | null;
   answer_deadline_at: string | null;
   description: string | null;
@@ -107,7 +114,7 @@ Deno.serve(async (req) => {
     const { data: event, error: eventError } = await supabase
       .from("events")
       .select(
-        "id, organization_id, kind, title, venue, start_at, end_at, price, fee_collection, fee_note, answer_deadline_at, description, status, is_public",
+        "id, organization_id, kind, title, venue, start_at, end_at, price, fee_collection, billing_month, fee_note, answer_deadline_at, description, status, is_public",
       )
       .eq("id", event_id)
       .maybeSingle<EventRow>();
@@ -178,8 +185,8 @@ Deno.serve(async (req) => {
       event.fee_collection === "none" || event.price == null || event.price === 0
         ? ""
         : `　参加費　　${yen(event.price)}` +
-          (FEE_LABEL[event.fee_collection]
-            ? `（${FEE_LABEL[event.fee_collection]}）`
+          (feeLabel(event.fee_collection, event.billing_month)
+            ? `（${feeLabel(event.fee_collection, event.billing_month)}）`
             : "");
 
     const deadline = event.answer_deadline_at

@@ -29,7 +29,7 @@ import {
   type EntryRow,
 } from "@/components/event-roster";
 import { AddEntries, type Candidate } from "./add-entries";
-import { PublishEvent, RebuildRoster } from "./publish";
+import { ApplyFees, PublishEvent, RebuildRoster } from "./publish";
 import {
   Card,
   EmptyState,
@@ -48,7 +48,7 @@ const AUDIENCE_LABEL: Record<string, string> = {
 const FEE_LABEL: Record<string, string> = {
   none: "徴収しない",
   on_site: "当日、会場で集める",
-  with_tuition: "翌月の月謝と一緒に集める",
+  with_tuition: "月謝と一緒に集める",
   bank_transfer: "事前に振り込んでもらう",
   other: "その他",
 };
@@ -70,7 +70,7 @@ export default async function EventDetailPage({
   const { data: event } = await supabase
     .from("events")
     .select(
-      "id, kind, title, venue, start_at, end_at, answer_deadline_at, capacity, price, audience, fee_collection, fee_note, status, cancel_reason, is_public, invited_at, description",
+      "id, kind, title, venue, start_at, end_at, answer_deadline_at, capacity, price, audience, fee_collection, billing_month, fee_note, status, cancel_reason, is_public, invited_at, description",
     )
     .eq("id", id)
     .eq("organization_id", orgId)
@@ -194,6 +194,15 @@ export default async function EventDetailPage({
   const unanswered = entries.filter((e) => e.status === "invited").length;
   const present = entries.filter((e) => e.attendance === "present").length;
 
+  // 参加費の請求状況（設計書 4.6.3）
+  const { data: feeStatus } = await supabase.rpc("event_fee_status", {
+    p_event_id: event.id,
+  });
+  const fee = (Array.isArray(feeStatus) ? feeStatus[0] : feeStatus) ?? {
+    billable: 0,
+    billed: 0,
+  };
+
   const canceled = event.status === "canceled";
   const overCapacity = event.capacity != null && entered > event.capacity;
   const targetNames = (targetClasses ?? [])
@@ -246,6 +255,9 @@ export default async function EventDetailPage({
             {event.price != null && event.price > 0
               ? `${formatYen(event.price)}・${FEE_LABEL[event.fee_collection]}`
               : "参加費なし"}
+            {event.fee_collection === "with_tuition" &&
+              event.billing_month &&
+              `（${Number(event.billing_month.slice(5, 7))}月分に合算）`}
             {event.fee_note && `（${event.fee_note}）`}
           </span>
           <span>案内先: {AUDIENCE_LABEL[event.audience]}</span>
@@ -315,6 +327,32 @@ export default async function EventDetailPage({
           {event.audience !== "selected" && <RebuildRoster eventId={event.id} />}
         </div>
       </Card>
+
+      {event.fee_collection === "with_tuition" && event.billing_month && (
+        <Card className="p-5">
+          <SectionHeading
+            kicker="Fee"
+            title="参加費の請求"
+            action={
+              <span className="text-[12px] text-sf-muted">
+                {Number(event.billing_month.slice(5, 7))}月分の月謝に合算
+              </span>
+            }
+          />
+          <p className="mt-2 text-[12px] leading-relaxed text-sf-muted">
+            その月の請求を作るときに、「参加する」と答えた生徒の請求へ
+            自動で明細が入ります。請求を先に作ってしまった場合は、下の
+            ボタンで反映してください。入金済みの請求には足しません。
+          </p>
+          <div className="mt-4">
+            <ApplyFees
+              billingMonth={event.billing_month}
+              billable={fee.billable}
+              billed={fee.billed}
+            />
+          </div>
+        </Card>
+      )}
 
       <Card className="p-4 sm:p-5">
         <SectionHeading

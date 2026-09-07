@@ -28,11 +28,42 @@ const AUDIENCES = [
 
 const FEE_COLLECTIONS = [
   { value: "on_site", label: "当日、会場で集める" },
-  { value: "with_tuition", label: "翌月の月謝と一緒に集める" },
+  { value: "with_tuition", label: "月謝と一緒に集める（月を選ぶ）" },
   { value: "bank_transfer", label: "事前に振り込んでもらう" },
   { value: "other", label: "その他（下に書く）" },
   { value: "none", label: "徴収しない" },
 ];
+
+/**
+ * 合算する月の候補
+ *
+ * ★ 開催月から機械的に決めない。
+ *   発表会は10月に案内して11月開催、集金は12月、という具合にずれる。
+ *   開催月の前後を並べて、運営に選ばせる。
+ *
+ * 既定は開催月の翌月。開催してから請求するのがいちばん多い。
+ */
+function monthsAround(startAt: string) {
+  const base = /^\d{4}-\d{2}/.test(startAt)
+    ? new Date(`${startAt.slice(0, 7)}-01T00:00:00+09:00`)
+    : new Date(`${new Date().toISOString().slice(0, 7)}-01T00:00:00+09:00`);
+
+  const y = base.getUTCFullYear();
+  const m = base.getUTCMonth();
+
+  // 開催月の前々月から3か月後まで
+  return [-2, -1, 0, 1, 2, 3].map((offset) => {
+    const d = new Date(Date.UTC(y, m + offset, 1));
+    const yy = d.getUTCFullYear();
+    const mm = d.getUTCMonth() + 1;
+    return {
+      value: `${yy}-${String(mm).padStart(2, "0")}-01`,
+      label:
+        `${yy}年${mm}月分` +
+        (offset === 0 ? "（開催月）" : offset === 1 ? "（翌月）" : ""),
+    };
+  });
+}
 
 export function EventForm({
   classes,
@@ -46,6 +77,9 @@ export function EventForm({
   const [kind, setKind] = useState("recital");
   const [audience, setAudience] = useState("all");
   const [fee, setFee] = useState("on_site");
+  const [startAt, setStartAt] = useState("");
+
+  const monthOptions = monthsAround(startAt);
 
   return (
     <form action={action} className="space-y-5">
@@ -97,6 +131,8 @@ export function EventForm({
             name="start_at"
             type="datetime-local"
             required
+            value={startAt}
+            onChange={(e) => setStartAt(e.target.value)}
             className={fieldClass}
           />
         </div>
@@ -230,6 +266,30 @@ export function EventForm({
             自動では請求されません。
           </p>
         </div>
+        {fee === "with_tuition" && (
+          <div>
+            <label htmlFor="event-billing-month" className={labelClass}>
+              どの月の月謝に載せるか
+            </label>
+            <select
+              id="event-billing-month"
+              name="billing_month"
+              defaultValue={monthOptions[2]?.value}
+              key={monthOptions[0]?.value}
+              className={fieldClass}
+            >
+              {monthOptions.map((m) => (
+                <option key={m.value} value={m.value}>
+                  {m.label}
+                </option>
+              ))}
+            </select>
+            <p className="mt-1 text-[11px] leading-relaxed text-sf-muted">
+              その月の請求に「参加費」の明細として入ります。載せるのは
+              「参加する」と答えた生徒だけです。
+            </p>
+          </div>
+        )}
         <div>
           <label htmlFor="event-fee-note" className={labelClass}>
             参加費の補足

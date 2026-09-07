@@ -1,8 +1,13 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { Check, Loader2, RefreshCw, Send } from "lucide-react";
-import { publishEvent, rebuildRoster, type EventState } from "../actions";
+import { Check, Loader2, RefreshCw, Send, Wallet } from "lucide-react";
+import {
+  applyEventFees,
+  publishEvent,
+  rebuildRoster,
+  type EventState,
+} from "../actions";
 import { primaryButtonClass, secondaryButtonClass } from "@/components/ui";
 
 /**
@@ -98,6 +103,61 @@ export function RebuildRoster({ eventId }: { eventId: string }) {
         )}
         名簿を作り直す
       </button>
+      {state.message && (
+        <span className="text-[12px] text-sf-ok">{state.message}</span>
+      )}
+      {state.error && (
+        <span className="text-[12px] text-sf-danger">{state.error}</span>
+      )}
+    </div>
+  );
+}
+
+/**
+ * 参加費を対象月の請求に載せる（設計書 4.6.3）
+ *
+ * ★ 月次生成のなかでも自動で載る。
+ *   このボタンは、請求を先に作ってしまったあとで参加の返事が届いた場合や、
+ *   合算する月をあとから変えた場合に使う。
+ */
+export function ApplyFees({
+  billingMonth,
+  billable,
+  billed,
+}: {
+  billingMonth: string;
+  billable: number;
+  billed: number;
+}) {
+  const [state, setState] = useState<EventState>({});
+  const [pending, startTransition] = useTransition();
+
+  const remaining = Math.max(billable - billed, 0);
+
+  return (
+    <div className="flex flex-wrap items-center gap-3">
+      <button
+        type="button"
+        onClick={() => {
+          setState({});
+          startTransition(async () => {
+            setState(await applyEventFees(billingMonth));
+          });
+        }}
+        disabled={pending || remaining === 0}
+        className={secondaryButtonClass}
+      >
+        {pending ? (
+          <Loader2 className="size-3.5 animate-spin" aria-hidden />
+        ) : (
+          <Wallet className="size-3.5" aria-hidden />
+        )}
+        いま請求に載せる
+      </button>
+      <span className="text-[12px] text-sf-muted">
+        請求済み {billed} / 対象 {billable} 人
+        {remaining === 0 && billable > 0 && "（すべて反映済み）"}
+      </span>
       {state.message && (
         <span className="text-[12px] text-sf-ok">{state.message}</span>
       )}

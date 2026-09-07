@@ -24,6 +24,7 @@ type Row = {
     answer_deadline_at: string | null;
     price: number | null;
     fee_collection: string;
+    billing_month: string | null;
     fee_note: string | null;
     status: string;
     cancel_reason: string | null;
@@ -39,13 +40,17 @@ const ANSWER_LABEL: Record<string, string> = {
   canceled: "取り消しました",
 };
 
-const FEE_LABEL: Record<string, string> = {
-  on_site: "当日、会場でお支払いください",
-  with_tuition: "翌月の月謝と一緒にご請求します",
-  bank_transfer: "事前にお振り込みください",
-  other: "",
-  none: "",
-};
+/** 集め方の書き方。月謝に合算するときは、何月分かまで書く */
+function feeLabel(collection: string, billingMonth: string | null): string {
+  if (collection === "on_site") return "当日、会場でお支払いください";
+  if (collection === "bank_transfer") return "事前にお振り込みください";
+  if (collection === "with_tuition") {
+    return billingMonth
+      ? `${Number(billingMonth.slice(5, 7))}月分の月謝と一緒にご請求します`
+      : "月謝と一緒にご請求します";
+  }
+  return "";
+}
 
 /**
  * 保護者の発表会・イベント（設計書 4.6.3 / 9章 項目10）
@@ -84,7 +89,7 @@ export default async function MyEventsPage({
   const { data, error } = await supabase
     .from("event_entries")
     .select(
-      "id, status, attendance, events(id, kind, title, venue, start_at, end_at, answer_deadline_at, price, fee_collection, fee_note, status, cancel_reason, description, is_public)",
+      "id, status, attendance, events(id, kind, title, venue, start_at, end_at, answer_deadline_at, price, fee_collection, billing_month, fee_note, status, cancel_reason, description, is_public)",
     )
     .eq("student_id", student.id)
     .eq("organization_id", membership.organizationId);
@@ -138,7 +143,8 @@ export default async function MyEventsPage({
         {e.price != null && e.price > 0 && e.fee_collection !== "none" && (
           <p className="sf-num mt-1 text-[12px] text-sf-body">
             参加費 {formatYen(e.price)}
-            {FEE_LABEL[e.fee_collection] && `・${FEE_LABEL[e.fee_collection]}`}
+            {feeLabel(e.fee_collection, e.billing_month) &&
+              `・${feeLabel(e.fee_collection, e.billing_month)}`}
             {e.fee_note && `（${e.fee_note}）`}
           </p>
         )}

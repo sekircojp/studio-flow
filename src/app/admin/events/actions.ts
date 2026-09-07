@@ -101,6 +101,16 @@ export async function createEvent(
     ? feeRaw
     : "on_site";
 
+  // 月謝に合算するときだけ、載せる月を持つ（設計書 4.6.3）
+  const monthRaw = String(formData.get("billing_month") ?? "");
+  let billingMonth: string | null = null;
+  if (feeCollection === "with_tuition") {
+    if (!/^\d{4}-\d{2}-01$/.test(monthRaw)) {
+      return { error: "月謝に合算する月を選んでください。" };
+    }
+    billingMonth = monthRaw;
+  }
+
   const classIds = formData
     .getAll("class_id")
     .filter((v): v is string => typeof v === "string" && v !== "");
@@ -124,6 +134,7 @@ export async function createEvent(
       price,
       audience,
       fee_collection: feeCollection,
+      billing_month: billingMonth,
       fee_note: orNull(formData.get("fee_note")),
       // 案内するまでは保護者に見せない（上のコメントを参照）
       is_public: false,
@@ -389,4 +400,50 @@ export async function recordEventAttendance(
 
   if (error) console.error("出欠の記録に失敗しました", error);
   if (entry) revalidatePath(`/admin/events/${entry.event_id}`);
+}
+
+/**
+ * 参加費を対象月の請求に載せる（設計書 4.6.3）
+ *
+ * ★ 月次生成のなかでも自動で載る。
+ *   このボタンは、請求を先に作ってしまったあとで参加の返事が届いた場合や、
+ *   合算する月をあとから変えた場合に使う。
+ *
+ * ★ 入金済みの請求には足さない。
+ *   設計書 5.6 のとおり paid は編集不可。飛ばした件数を画面に返す。
+ */
+export async function applyEventFees(
+  billingMonth: string,
+): Promise<EventState> {
+  const { membership } = await requireAdmin();
+
+  const supabase = await createClient();
+  const { data, error } = await supabase.rpc("apply_event_fees", {
+    p_organization_id: membership.organizationId,
+    p_billing_month: billingMonth,
+  });
+
+  if (error) {
+    console.error("参加費の請求への反映に失敗しました", error);
+    return { error: "請求に載せられませんでした。" };
+  }
+
+  const r = Array.isArray(data) ? data[0] : data;
+  const added = r?.added ?? 0;
+  const skipped = r?.skipped ?? 0;
+
+  revalidatePath("/admin/events", "layout");
+  revalidatePath("/admin/billing");
+
+  if (added === 0 && skipped === 0) {
+    return { ok: true, message: "載せるものはありませんでした" };
+  }
+  return {
+    ok: true,
+    message:
+      `${added} 件を請求に載せました` +
+      (skipped > 0
+        ? `（${skipped} 件は請求が無いか入金済みのため飛ばしました）`
+        : ""),
+  };
 }
