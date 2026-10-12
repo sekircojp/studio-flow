@@ -3,6 +3,8 @@ import type { Metadata } from "next";
 import {
   AlertCircle,
   ArrowRight,
+  CheckCircle2,
+  ChevronRight,
   Building2,
   CalendarDays,
   ClipboardCheck,
@@ -18,6 +20,7 @@ import { billingMonthLabel, monthStart, UNPAID_STATUSES } from "@/lib/billing";
 import { Card, EmptyState, Hero, SectionHeading, StatCard } from "@/components/ui";
 import { LessonFlagBadges } from "@/components/lesson-flags";
 import { fetchLessonFlags } from "@/lib/lessons";
+import { fetchDashboardTodos } from "@/lib/dashboard";
 import { instructorLabel, type InstructorJoin } from "@/lib/instructors";
 
 export const metadata: Metadata = { title: "ダッシュボード" };
@@ -185,6 +188,14 @@ export default async function AdminHome() {
   );
   const carriedStudents = new Set(carriedRows.map((i) => i.student_id)).size;
 
+  // 今日やること。件数が 0 のものは行ごと出ない
+  const todos = await fetchDashboardTodos(supabase, orgId, today, formatYen);
+  const todoTones: Record<string, string> = {
+    warn: "bg-sf-warn/14 text-sf-warn",
+    accent: "bg-sf-accent/12 text-sf-accent",
+    neutral: "bg-sf-ink/6 text-sf-body",
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-end justify-between gap-4 pb-1">
@@ -248,6 +259,53 @@ export default async function AdminHome() {
           </>
         )}
       </Hero>
+
+      {/* 今日やること。運営が手を動かすべきことを上から並べる */}
+      <Card className="p-5">
+        <SectionHeading
+          kicker="To do"
+          title="今日やること"
+          action={
+            todos.length > 0 ? (
+              <span className="sf-num text-[12px] text-sf-muted">
+                {todos.length} 件
+              </span>
+            ) : undefined
+          }
+        />
+        {todos.length === 0 ? (
+          <p className="mt-4 flex items-center gap-2 rounded-xl bg-sf-ok/8 px-4 py-3 text-[13px] text-sf-ink">
+            <CheckCircle2 className="size-4 text-sf-ok" aria-hidden />
+            未処理はありません。承認待ちの申込、期限を過ぎた未納、今週の休講・欠席・振替、発表会の回答待ちが出たらここに並びます。
+          </p>
+        ) : (
+          <ul className="mt-4 divide-y divide-sf-border rounded-xl border border-sf-border">
+            {todos.map((t) => (
+              <li key={t.key}>
+                <Link
+                  href={t.href}
+                  className="flex items-center gap-3 px-4 py-3 transition hover:bg-sf-bg"
+                >
+                  <span
+                    className={`sf-num shrink-0 rounded-lg px-2.5 py-1 text-[13px] font-bold ${todoTones[t.tone]}`}
+                  >
+                    {t.figure}
+                  </span>
+                  <span className="min-w-0 flex-1">
+                    <span className="block truncate text-[13px] font-medium text-sf-ink">
+                      {t.title}
+                    </span>
+                    <span className="block truncate text-[11px] text-sf-muted">
+                      {t.detail}
+                    </span>
+                  </span>
+                  <ChevronRight className="size-4 shrink-0 text-sf-muted" aria-hidden />
+                </Link>
+              </li>
+            ))}
+          </ul>
+        )}
+      </Card>
 
       <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         <StatCard
