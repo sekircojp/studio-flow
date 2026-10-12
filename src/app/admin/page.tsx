@@ -17,7 +17,7 @@ import { requireAdmin } from "@/lib/auth/guards";
 import { createClient } from "@/lib/supabase/server";
 import { formatDateJa, formatTimeJa, formatYen, greetingJa, todayInTokyo } from "@/lib/date";
 import { billingMonthLabel, monthStart, UNPAID_STATUSES } from "@/lib/billing";
-import { Card, EmptyState, Hero, SectionHeading, StatCard } from "@/components/ui";
+import { Card, EmptyState, SectionHeading, StatCard } from "@/components/ui";
 import { LessonFlagBadges } from "@/components/lesson-flags";
 import { fetchLessonFlags } from "@/lib/lessons";
 import { fetchDashboardTodos } from "@/lib/dashboard";
@@ -169,14 +169,10 @@ export default async function AdminHome() {
   const unpaidAmount = unpaid.reduce((s, i) => s + (i.total - paidOf(i.id)), 0);
   const collectRate = billed > 0 ? Math.round((collected / billed) * 1000) / 10 : 0;
 
-  // 何名中何名から受け取れたか。件数だけだと、あと何人残っているかが読めない。
   // 請求は生徒単位なので（設計書 4.5）、人数で数えて構わない
   const targetStudents = new Set(billable.map((i) => i.student_id)).size;
-  const paidStudents = new Set(
-    billable.filter((i) => i.status === "paid").map((i) => i.student_id),
-  ).size;
 
-  // 先月以前の未収。今月ぶんは紺色の帯にあるので、ここでは繰り越しだけを見る
+  // 先月以前の未収。今月ぶんは月謝のカードにあるので、ここでは繰り越しだけを見る
   const carriedRows = (openInvoices ?? []) as {
     id: string;
     total: number;
@@ -188,7 +184,7 @@ export default async function AdminHome() {
   );
   const carriedStudents = new Set(carriedRows.map((i) => i.student_id)).size;
 
-  // 今日やること。件数が 0 のものは行ごと出ない
+  // 対応待ち。件数が 0 のものは行ごと出ない
   const todos = await fetchDashboardTodos(supabase, orgId, today, formatYen);
   const todoTones: Record<string, string> = {
     warn: "bg-sf-warn/14 text-sf-warn",
@@ -206,65 +202,17 @@ export default async function AdminHome() {
             {name && <span>、{name} さん</span>}
           </h1>
           <p className="mt-1 text-[13px] text-sf-body">
-            月謝の回収状況と今日のスタジオ運営を確認しましょう
+            対応待ちと今日の予定を確認しましょう
           </p>
         </div>
       </div>
 
-      {/* 第一表示＝今月の月謝（設計書 9章）。まだ請求機能が無いので、その旨を出す */}
-      <Hero>
-        <p className="sf-kicker text-sf-nav-muted">
-          {billingMonthLabel(month)}の月謝
-        </p>
-        {billable.length === 0 ? (
-          <>
-            <p className="sf-num mt-2 text-3xl font-bold">まだ請求はありません</p>
-            <p className="mt-2 max-w-xl text-[13px] leading-relaxed text-sf-nav-muted">
-              生徒の月謝を決めて「この月の請求を作る」を押すと、ここに回収状況が出ます。
-            </p>
-            <Link
-              href="/admin/billing"
-              className="mt-4 inline-flex items-center gap-1.5 rounded-lg bg-white/10 px-3 py-1.5 text-[11px] text-sf-nav-ink transition hover:bg-white/20"
-            >
-              <Wallet className="size-3.5" aria-hidden />
-              月謝・請求を開く
-            </Link>
-          </>
-        ) : (
-          <>
-            <div className="mt-3 flex flex-wrap items-end gap-x-6 gap-y-2">
-              <p className="sf-num text-3xl font-bold">{formatYen(collected)}</p>
-              <p className="sf-num text-sf-nav-muted">/ {formatYen(billed)}</p>
-            </div>
-            <div className="mt-5 h-1.5 overflow-hidden rounded-full bg-white/12">
-              <div
-                className="h-full rounded-full bg-gradient-to-r from-sf-ok to-emerald-300 shadow-[0_0_12px_rgba(42,168,118,0.55)] transition-all duration-700"
-                style={{ width: `${Math.min(collectRate, 100)}%` }}
-              />
-            </div>
-            <div className="mt-3 flex flex-wrap items-center gap-x-6 gap-y-2 text-[12px]">
-              <span className="text-sf-ok">回収率 {collectRate}%</span>
-              <span className="sf-num text-sf-nav-muted">
-                支払済 {paidStudents} / {targetStudents} 名
-              </span>
-              <Link
-                href="/admin/billing"
-                className="rounded-lg bg-white/10 px-2.5 py-1 transition hover:bg-white/20"
-              >
-                {unpaid.length > 0
-                  ? `未納 ${unpaid.length} 名 ${formatYen(unpaidAmount)} →`
-                  : "月謝管理を開く →"}
-              </Link>
-            </div>
-          </>
-        )}
-      </Hero>
 
-      {/* 今日やること。運営が手を動かすべきことを上から並べる */}
+      {/* 対応待ち。運営が手を動かすべきことを上から並べる。今日とは限らない */}
       <Card className="p-5">
         <SectionHeading
-          kicker="To do"
-          title="今日やること"
+          kicker="Pending"
+          title="対応待ち"
           action={
             todos.length > 0 ? (
               <span className="sf-num text-[12px] text-sf-muted">
@@ -276,7 +224,7 @@ export default async function AdminHome() {
         {todos.length === 0 ? (
           <p className="mt-4 flex items-center gap-2 rounded-xl bg-sf-ok/8 px-4 py-3 text-[13px] text-sf-ink">
             <CheckCircle2 className="size-4 text-sf-ok" aria-hidden />
-            未処理はありません。承認待ちの申込、期限を過ぎた未納、今週の休講・欠席・振替、発表会の回答待ちが出たらここに並びます。
+            対応待ちはありません。承認待ちの申込、期限を過ぎた未納、今週の休講・欠席・振替、発表会の回答待ちが出たらここに並びます。
           </p>
         ) : (
           <ul className="mt-4 divide-y divide-sf-border rounded-xl border border-sf-border">
@@ -307,7 +255,27 @@ export default async function AdminHome() {
         )}
       </Card>
 
-      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+      {/*
+       * 指標。月謝は「第一表示」ではなく、在籍・クラスと同じ並びの1枚にする
+       * （2026-10-12。横長の帯だと集金が主役の画面に見えるため）
+       */}
+      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-6">
+        <StatCard
+          icon={Wallet}
+          tone={unpaid.length > 0 ? "warn" : "ok"}
+          label={`${billingMonthLabel(month)}の月謝`}
+          value={billable.length === 0 ? "—" : formatYen(collected)}
+          unit={billable.length === 0 ? undefined : `/ ${formatYen(billed)}`}
+          note={
+            billable.length === 0
+              ? "請求を作ると回収状況が出ます"
+              : unpaid.length > 0
+                ? `回収率 ${collectRate}%・未納 ${unpaid.length} 名 ${formatYen(unpaidAmount)}`
+                : `回収率 ${collectRate}%・${targetStudents} 名すべて入金済み`
+          }
+          href="/admin/billing"
+          className="xl:col-span-2"
+        />
         <StatCard
           icon={Users}
           tone="accent"

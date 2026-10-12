@@ -73,6 +73,7 @@ export function StatCard({
   unit,
   note,
   href,
+  className = "",
 }: {
   icon: LucideIcon;
   tone?: "neutral" | "accent" | "ok" | "warn";
@@ -82,6 +83,8 @@ export function StatCard({
   note?: string;
   /** 指標を見たあとに行きたい場所。渡すとカード全体が押せるようになる */
   href?: string;
+  /** 格子の中で幅を変えたいときなど */
+  className?: string;
 }) {
   const tones: Record<string, string> = {
     neutral: "bg-sf-ink/6 text-sf-ink",
@@ -118,14 +121,14 @@ export function StatCard({
     return (
       <Link
         href={href}
-        className="block rounded-2xl border border-sf-border/80 bg-sf-card p-5 shadow-card transition duration-200 ease-out-soft hover:-translate-y-0.5 hover:border-sf-border-strong hover:shadow-card-hover focus-visible:sf-ring"
+        className={`block rounded-2xl border border-sf-border/80 bg-sf-card p-5 shadow-card transition duration-200 ease-out-soft hover:-translate-y-0.5 hover:border-sf-border-strong hover:shadow-card-hover focus-visible:sf-ring ${className}`}
       >
         {body}
       </Link>
     );
   }
 
-  return <Card className="p-5">{body}</Card>;
+  return <Card className={`p-5 ${className}`}>{body}</Card>;
 }
 
 /** 空の状態。まだ何も無いことと、次に何をすればよいかを同時に出す */
