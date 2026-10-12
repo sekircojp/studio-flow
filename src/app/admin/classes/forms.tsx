@@ -1,7 +1,18 @@
 "use client";
 
 import { useActionState, useId, useState } from "react";
-import { Check, Loader2, Pause, Play, Plus, RefreshCw, Users, X } from "lucide-react";
+import {
+  Check,
+  ChevronDown,
+  ChevronUp,
+  Loader2,
+  Pause,
+  Play,
+  Plus,
+  RefreshCw,
+  Users,
+  X,
+} from "lucide-react";
 import {
   addClassMeeting,
   createClass,
@@ -156,14 +167,18 @@ export function ClassForm({
 }
 
 /**
- * 担当講師の選択（複数）
+ * 担当講師の選択（複数・順番付き）
  *
  * 1クラスに先生が2人付くことは珍しくない（メインとアシスタント、曜日で
  * 交代など）。全員が自分の画面でそのクラスを見て出欠を付けられるよう、
- * 選択肢ではなくチェックボックスで複数選ぶ。
+ * 複数選べるようにする。
  *
- * 並びは画面の並び順（講師の登録順）になり、先頭がメインの先生として
- * 表示される。並び替えの操作は現時点では持たない。
+ * 並びに意味がある。先頭がメインの先生で、一覧や出欠画面ではその順に
+ * 名前が並ぶ。選んだ先生は上に順番付きで並び、上下の矢印で入れ替える。
+ * まだ選んでいない先生は下に並び、押すと末尾に加わる。
+ *
+ * フォームには hidden の instructor_ids を並び順どおりに出す。サーバー側は
+ * 届いた順をそのまま display_order にする。
  */
 function InstructorPicker({
   instructors,
@@ -172,6 +187,11 @@ function InstructorPicker({
   instructors: Option[];
   selected?: string[];
 }) {
+  // 退職などで選択肢に無い ID は落とす
+  const [order, setOrder] = useState<string[]>(() =>
+    selected.filter((id) => instructors.some((i) => i.id === id)),
+  );
+
   if (instructors.length === 0) {
     return (
       <div className="rounded-xl bg-sf-bg p-4">
@@ -183,35 +203,108 @@ function InstructorPicker({
     );
   }
 
+  const nameOf = (id: string) => instructors.find((i) => i.id === id)?.name ?? "—";
+  const rest = instructors.filter((i) => !order.includes(i.id));
+
+  const move = (index: number, delta: -1 | 1) =>
+    setOrder((o) => {
+      const next = [...o];
+      const to = index + delta;
+      if (to < 0 || to >= next.length) return o;
+      [next[index], next[to]] = [next[to], next[index]];
+      return next;
+    });
+
+  const iconButton =
+    "flex size-7 items-center justify-center rounded-md border border-sf-border text-sf-muted transition hover:border-sf-border-strong hover:text-sf-ink disabled:opacity-30 disabled:hover:border-sf-border disabled:hover:text-sf-muted";
+
   return (
     <div className="rounded-xl bg-sf-bg p-4">
       <p className={labelClass}>担当講師</p>
       <p className="mb-3 text-[11px] text-sf-muted">
-        複数選べます。選んだ先生は全員、自分の画面でこのクラスの出欠を付けられます。
+        複数選べます。先頭の先生がメインとして表示されます。選んだ先生は全員、
+        自分の画面でこのクラスの出欠を付けられます。
       </p>
-      <div className="flex flex-wrap gap-2">
-        {instructors.map((i) => (
-          <label
-            key={i.id}
-            className="inline-flex cursor-pointer items-center gap-2 rounded-full border border-sf-border-strong/90 bg-white px-3 py-1.5 text-[13px] text-sf-body shadow-[0_1px_2px_rgba(23,28,53,0.05)] transition duration-150 hover:border-sf-muted has-checked:border-sf-accent has-checked:bg-sf-accent/8 has-checked:text-sf-ink"
-          >
-            <input
-              type="checkbox"
-              name="instructor_ids"
-              value={i.id}
-              defaultChecked={selected.includes(i.id)}
-              className="peer sr-only"
-            />
-            <span
-              className="flex size-4 items-center justify-center rounded-full border border-sf-border-strong text-white transition peer-checked:border-sf-accent peer-checked:bg-sf-accent"
-              aria-hidden
+
+      {order.map((id) => (
+        <input key={id} type="hidden" name="instructor_ids" value={id} />
+      ))}
+
+      {order.length === 0 ? (
+        <p className="rounded-lg border border-dashed border-sf-border-strong/80 px-3 py-2.5 text-[12px] text-sf-muted">
+          まだ選んでいません（担当未定）
+        </p>
+      ) : (
+        <ol className="space-y-1.5">
+          {order.map((id, index) => (
+            <li
+              key={id}
+              className="flex items-center gap-2 rounded-lg border border-sf-border bg-white px-2.5 py-1.5 shadow-[0_1px_2px_rgba(23,28,53,0.05)]"
             >
-              <Check className="size-3" strokeWidth={3} />
-            </span>
-            {i.name}
-          </label>
-        ))}
-      </div>
+              <span
+                className={`flex size-6 shrink-0 items-center justify-center rounded-full text-[11px] font-bold ${
+                  index === 0
+                    ? "bg-sf-accent text-sf-accent-ink"
+                    : "bg-sf-ink/8 text-sf-body"
+                }`}
+                aria-hidden
+              >
+                {index + 1}
+              </span>
+              <span className="min-w-0 flex-1 truncate text-[13px] font-medium text-sf-ink">
+                {nameOf(id)}
+                {index === 0 && (
+                  <span className="ml-2 text-[10px] font-semibold uppercase tracking-[0.12em] text-sf-accent">
+                    Main
+                  </span>
+                )}
+              </span>
+              <button
+                type="button"
+                onClick={() => move(index, -1)}
+                disabled={index === 0}
+                aria-label={`${nameOf(id)} を上へ`}
+                className={iconButton}
+              >
+                <ChevronUp className="size-4" aria-hidden />
+              </button>
+              <button
+                type="button"
+                onClick={() => move(index, 1)}
+                disabled={index === order.length - 1}
+                aria-label={`${nameOf(id)} を下へ`}
+                className={iconButton}
+              >
+                <ChevronDown className="size-4" aria-hidden />
+              </button>
+              <button
+                type="button"
+                onClick={() => setOrder((o) => o.filter((x) => x !== id))}
+                aria-label={`${nameOf(id)} を外す`}
+                className={`${iconButton} hover:border-sf-danger hover:text-sf-danger`}
+              >
+                <X className="size-4" aria-hidden />
+              </button>
+            </li>
+          ))}
+        </ol>
+      )}
+
+      {rest.length > 0 && (
+        <div className="mt-3 flex flex-wrap gap-2">
+          {rest.map((i) => (
+            <button
+              key={i.id}
+              type="button"
+              onClick={() => setOrder((o) => [...o, i.id])}
+              className="inline-flex items-center gap-1.5 rounded-full border border-dashed border-sf-border-strong/90 bg-white px-3 py-1.5 text-[13px] text-sf-body transition duration-150 hover:border-sf-accent hover:text-sf-ink"
+            >
+              <Plus className="size-3.5" aria-hidden />
+              {i.name}
+            </button>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
