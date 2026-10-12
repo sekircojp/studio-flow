@@ -7,6 +7,7 @@ import {
   CalendarDays,
   CalendarHeart,
   CalendarRange,
+  ChevronRight,
   LayoutGrid,
   CheckSquare,
   LayoutDashboard,
@@ -30,6 +31,12 @@ import { APP_NAME } from "@/config/app";
  *
  * まだ画面が無い項目は、リンクにせず薄く出す。押しても何も起きない
  * リンクを置くと、動かないのか壊れているのか分からなくなるため。
+ *
+ * 見た目（2026-10-12）
+ * 濃紺は上から下へわずかに深くなる勾配にし、右端に 1px の明るい縁を
+ * 置いて本文の面から一段奥にある板として見せる。選択中の項目は
+ * 左にアクセント色の短い縦線を出す。塗りだけで示すと、ブランドカラーが
+ * 濃紺に近いスタジオで見分けがつかなくなる。
  */
 
 type Item = {
@@ -88,20 +95,23 @@ export function AdminSidebar({
   const pathname = usePathname();
 
   return (
-    <aside className="hidden w-60 shrink-0 flex-col bg-sf-nav px-3 py-4 lg:flex">
+    <aside className="sticky top-0 hidden h-screen w-[252px] shrink-0 flex-col bg-gradient-to-b from-sf-nav to-sf-nav-deep px-3.5 py-4 shadow-[inset_-1px_0_0_rgba(255,255,255,0.06)] lg:flex">
       <BrandLockup
         brand={brand}
         size={26}
-        maxWidth={192}
-        className="rounded-xl bg-white px-3 py-2.5"
+        maxWidth={196}
+        className="rounded-xl bg-white px-3 py-2.5 shadow-[0_1px_0_rgba(255,255,255,0.12),0_10px_24px_-12px_rgba(0,0,0,0.6)]"
       />
 
       {/* スタジオの表示。スタジオをまたいだ絞り込みは、クラスを作る段階で足す */}
       <Link
         href="/admin/locations"
-        className="mt-3 flex items-center gap-2.5 rounded-xl bg-sf-nav-soft px-3 py-2.5 transition hover:brightness-110"
+        className="group mt-3 flex items-center gap-2.5 rounded-xl border border-white/6 bg-white/[0.045] px-3 py-2.5 transition duration-150 hover:border-white/10 hover:bg-white/[0.08]"
       >
-        <span className="flex size-7 shrink-0 items-center justify-center rounded-lg bg-sf-accent text-[11px] font-bold text-sf-accent-ink">
+        <span
+          className="flex size-7 shrink-0 items-center justify-center rounded-lg bg-sf-accent text-[11px] font-bold text-sf-accent-ink shadow-[inset_0_1px_0_rgba(255,255,255,0.25)]"
+          aria-hidden
+        >
           {locationLabel.slice(0, 1)}
         </span>
         <span className="min-w-0 flex-1">
@@ -112,17 +122,21 @@ export function AdminSidebar({
             {locationSubLabel}
           </span>
         </span>
+        <ChevronRight
+          className="size-3.5 shrink-0 text-sf-nav-muted/70 transition group-hover:translate-x-0.5 group-hover:text-sf-nav-ink"
+          aria-hidden
+        />
       </Link>
 
-      <nav className="mt-5 flex-1 space-y-5 overflow-y-auto">
+      <nav className="mt-6 flex-1 space-y-6 overflow-y-auto">
         {GROUPS.map((g, i) => (
           <div key={g.kicker || i}>
             {g.kicker && (
-              <p className="px-3 pb-1.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-sf-nav-muted">
+              <p className="px-3 pb-2 text-[10px] font-semibold uppercase tracking-[0.18em] text-sf-nav-muted/80">
                 {g.kicker}
               </p>
             )}
-            <ul className="space-y-0.5">
+            <ul className="space-y-px">
               {g.items.map((item) => {
                 const active =
                   item.href &&
@@ -150,13 +164,22 @@ export function AdminSidebar({
                     <Link
                       href={item.href}
                       aria-current={active ? "page" : undefined}
-                      className={`flex items-center gap-2.5 rounded-lg px-3 py-2 text-[13px] transition ${
+                      className={`relative flex items-center gap-2.5 rounded-lg px-3 py-2 text-[13px] transition duration-150 ${
                         active
-                          ? "bg-sf-nav-soft font-semibold text-sf-nav-ink"
-                          : "text-sf-nav-muted hover:bg-sf-nav-soft/60 hover:text-sf-nav-ink"
+                          ? "bg-white/[0.09] font-semibold text-sf-nav-ink shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]"
+                          : "text-sf-nav-muted hover:bg-white/[0.05] hover:text-sf-nav-ink"
                       }`}
                     >
-                      <item.icon className="size-4 shrink-0" aria-hidden />
+                      {active && (
+                        <span
+                          className="absolute left-0 top-1/2 h-4 w-[3px] -translate-y-1/2 rounded-r-full bg-sf-accent"
+                          aria-hidden
+                        />
+                      )}
+                      <item.icon
+                        className={`size-4 shrink-0 ${active ? "text-sf-accent" : ""}`}
+                        aria-hidden
+                      />
                       <span className="truncate">{item.label}</span>
                     </Link>
                   </li>
@@ -167,7 +190,9 @@ export function AdminSidebar({
         ))}
       </nav>
 
-      <p className="px-3 pt-4 text-[10px] text-sf-nav-muted/70">{APP_NAME}</p>
+      <p className="px-3 pt-4 text-[10px] font-medium tracking-[0.12em] text-sf-nav-muted/60">
+        {APP_NAME}
+      </p>
     </aside>
   );
 }

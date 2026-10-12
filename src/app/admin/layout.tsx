@@ -46,7 +46,7 @@ export default async function AdminLayout({
 
   return (
     <div
-      className="flex min-h-full flex-1 bg-sf-bg"
+      className="sf-canvas flex min-h-full flex-1"
       style={
         brand.brandColor
           ? ({ "--sf-accent": brand.brandColor } as React.CSSProperties)
@@ -65,7 +65,7 @@ export default async function AdminLayout({
           email={email}
           role={membership.role}
         />
-        <main className="mx-auto w-full max-w-6xl flex-1 px-5 pb-12 pt-2 sm:px-8">
+        <main className="sf-enter mx-auto w-full max-w-6xl flex-1 px-5 pb-16 pt-6 sm:px-8 sm:pt-8">
           {children}
         </main>
       </div>

@@ -8,6 +8,10 @@ import type { Brand } from "@/lib/brand";
  *
  * 大きな画面ではサイドバーがブランドを主表示するため、ここは補助に徹する。
  * 小さな画面ではサイドバーを隠すので、ここにスタジオ名を出す。
+ *
+ * スクロールしても上に残る。帯は半透明にぼかしを重ね（sf-glass）、
+ * 下を通る内容がうっすら透けるようにする。塗りつぶすと帯の下で
+ * 内容が「切れて」見える。
  */
 export function AdminTopBar({
   brand,
@@ -19,9 +23,10 @@ export function AdminTopBar({
   role: string;
 }) {
   const roleLabel = role === "owner" ? "オーナー" : "スタッフ";
+  const initial = (email ?? "?").slice(0, 1).toUpperCase();
 
   return (
-    <header className="flex items-center gap-3 px-5 py-4 sm:px-8">
+    <header className="sf-glass sticky top-0 z-20 flex items-center gap-3 border-b border-sf-border/70 px-5 py-3 sm:px-8">
       <BrandLockup
         brand={brand}
         size={26}
@@ -30,16 +35,28 @@ export function AdminTopBar({
         className="lg:hidden"
       />
 
-      <div className="ml-auto flex items-center gap-3">
-        <div className="hidden text-right sm:block">
-          <p className="text-[13px] font-medium text-sf-ink">{roleLabel}</p>
-          <p className="text-[11px] text-sf-muted">{email}</p>
+      <div className="ml-auto flex items-center gap-2.5">
+        <div className="flex items-center gap-2.5 rounded-full border border-sf-border/80 bg-white/70 py-1 pl-1 pr-3 shadow-[0_1px_2px_rgba(23,28,53,0.04)]">
+          <span
+            className="flex size-7 items-center justify-center rounded-full bg-gradient-to-br from-sf-nav-soft to-sf-nav-deep text-[11px] font-bold text-white"
+            aria-hidden
+          >
+            {initial}
+          </span>
+          <span className="hidden leading-tight sm:block">
+            <span className="block text-[12px] font-semibold text-sf-ink">
+              {roleLabel}
+            </span>
+            <span className="block max-w-[180px] truncate text-[10.5px] text-sf-muted">
+              {email}
+            </span>
+          </span>
         </div>
         <form action={signOut}>
           <button
             type="submit"
             title="ログアウト"
-            className="flex size-9 items-center justify-center rounded-lg border border-sf-border bg-sf-card text-sf-muted transition hover:text-sf-ink"
+            className="flex size-9 items-center justify-center rounded-full border border-sf-border/80 bg-white/70 text-sf-muted transition duration-150 hover:border-sf-border-strong hover:text-sf-ink focus-visible:sf-ring"
           >
             <LogOut className="size-4" aria-hidden />
             <span className="sr-only">ログアウト</span>

@@ -1,8 +1,7 @@
-import Link from "next/link";
-import { CalendarCheck, CalendarHeart, Users } from "lucide-react";
 import { requireStaff } from "@/lib/auth/staff";
 import { getBrand } from "@/lib/brand.server";
 import { BrandLockup } from "@/components/brand-mark";
+import { BottomNav } from "@/components/bottom-nav";
 import { signOut } from "@/app/actions/auth";
 import { APP_NAME } from "@/config/app";
 
@@ -13,13 +12,6 @@ import { APP_NAME } from "@/config/app";
  * 設計書 12章では講師は管理者と同じ扱いなので、スタジオ名を主表示にし
  * サービス名を補助表示にする（Powered by は付けない）。
  */
-
-const NAV = [
-  { href: "/staff", label: "担当レッスン", icon: CalendarCheck },
-  { href: "/staff/events", label: "発表会", icon: CalendarHeart },
-  { href: "/staff/students", label: "生徒", icon: Users },
-];
-
 export default async function StaffLayout({
   children,
 }: {
@@ -30,14 +22,14 @@ export default async function StaffLayout({
 
   return (
     <div
-      className="flex min-h-full flex-1 flex-col bg-sf-bg"
+      className="sf-canvas flex min-h-full flex-1 flex-col"
       style={
         brand.brandColor
           ? ({ "--sf-accent": brand.brandColor } as React.CSSProperties)
           : undefined
       }
     >
-      <header className="border-b border-sf-border bg-sf-card">
+      <header className="sf-glass sticky top-0 z-20 border-b border-sf-border/70">
         <div className="mx-auto flex max-w-2xl items-center gap-2.5 px-4 py-3">
           <BrandLockup
             brand={brand}
@@ -50,7 +42,7 @@ export default async function StaffLayout({
           <form action={signOut}>
             <button
               type="submit"
-              className="rounded-lg border border-sf-border px-3 py-1.5 text-[12px] text-sf-body"
+              className="rounded-full border border-sf-border/80 bg-white/70 px-3 py-1.5 text-[12px] font-medium text-sf-body transition duration-150 hover:border-sf-border-strong hover:text-sf-ink focus-visible:sf-ring"
             >
               ログアウト
             </button>
@@ -58,26 +50,11 @@ export default async function StaffLayout({
         </div>
       </header>
 
-      <main className="mx-auto w-full max-w-2xl flex-1 px-4 pb-24 pt-5">
+      <main className="sf-enter mx-auto w-full max-w-2xl flex-1 px-4 pb-28 pt-5">
         {children}
       </main>
 
-      <nav className="fixed inset-x-0 bottom-0 border-t border-sf-border bg-sf-card">
-        <ul className="mx-auto flex max-w-2xl">
-          {NAV.map((n) => (
-            <li key={n.href} className="flex-1">
-              <Link
-                href={n.href}
-                className="flex flex-col items-center gap-1 py-2.5 text-[11px] text-sf-body"
-              >
-                <n.icon className="size-5" aria-hidden />
-                {n.label}
-              </Link>
-            </li>
-          ))}
-        </ul>
-        <p className="pb-2 text-center text-[10px] text-sf-muted">{APP_NAME}</p>
-      </nav>
+      <BottomNav variant="staff" footer={APP_NAME} />
     </div>
   );
 }

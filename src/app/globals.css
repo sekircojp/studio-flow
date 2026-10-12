@@ -9,31 +9,58 @@
  *   文字が読めなくなるため
  * ・--sf-accent は既定値を持ち、brand_settings.brand_color があれば
  *   /admin のルート要素で上書きする
+ *
+ * 2026-10-12 見直し
+ * ・面の色をわずかに暖色へ寄せ、純白との差を小さくした。白い紙の上に白い
+ *   カードを置いたような、落ち着いた見え方にするため
+ * ・枠線を1段薄くし、代わりに影を2層（接地＋拡散）にした。線で区切る
+ *   のではなく、面の重なりで区切る
+ * ・濃紺は単色ではなく、わずかに青みの違う2色の勾配にした。平坦な塗りは
+ *   安く見える
  */
 :root {
   /* 面 */
-  --sf-bg: #f4f5f9;
+  --sf-bg: #f5f5f8;
+  --sf-bg-deep: #ecedf3;
   --sf-card: #ffffff;
-  --sf-border: #e5e7f0;
-  --sf-border-strong: #d3d7e5;
+  --sf-border: #e8e9f0;
+  --sf-border-strong: #d6d8e4;
 
   /* 文字 */
-  --sf-ink: #1d2340;
-  --sf-body: #4b5273;
-  --sf-muted: #8a90a8;
+  --sf-ink: #171c35;
+  --sf-body: #4a5172;
+  --sf-muted: #868ca6;
 
   /* サイドバー */
-  --sf-nav: #191f3c;
-  --sf-nav-soft: #232a4c;
-  --sf-nav-ink: #eef0f8;
-  --sf-nav-muted: #8f97b8;
+  --sf-nav: #161b36;
+  --sf-nav-deep: #0f1328;
+  --sf-nav-soft: #222847;
+  --sf-nav-ink: #f1f2f9;
+  --sf-nav-muted: #8d95b8;
 
   /* 強調 */
-  --sf-accent: #f0665c;
+  --sf-accent: #ef655b;
   --sf-accent-ink: #ffffff;
-  --sf-ok: #2fae7d;
-  --sf-warn: #e2953a;
-  --sf-danger: #dc4f45;
+  --sf-ok: #2aa876;
+  --sf-warn: #de9236;
+  --sf-danger: #d9483f;
+
+  /*
+   * 影。線の代わりに「面が浮いている」ことで区切りを示す。
+   * 1層目は接地（ごく短い）、2層目は拡散（遠くまで薄く）。
+   */
+  --sf-shadow-card:
+    0 1px 1px rgba(23, 28, 53, 0.03),
+    0 2px 6px -2px rgba(23, 28, 53, 0.06),
+    0 16px 32px -24px rgba(23, 28, 53, 0.22);
+  --sf-shadow-card-hover:
+    0 1px 1px rgba(23, 28, 53, 0.03),
+    0 6px 14px -6px rgba(23, 28, 53, 0.1),
+    0 28px 44px -28px rgba(23, 28, 53, 0.28);
+  --sf-shadow-float:
+    0 1px 2px rgba(23, 28, 53, 0.06),
+    0 12px 32px -12px rgba(23, 28, 53, 0.28),
+    0 40px 64px -40px rgba(23, 28, 53, 0.32);
 
   /* 旧 create-next-app のトークン。ログイン画面などで使う */
   --background: var(--sf-bg);
@@ -45,6 +72,7 @@
   --color-foreground: var(--foreground);
 
   --color-sf-bg: var(--sf-bg);
+  --color-sf-bg-deep: var(--sf-bg-deep);
   --color-sf-card: var(--sf-card);
   --color-sf-border: var(--sf-border);
   --color-sf-border-strong: var(--sf-border-strong);
@@ -52,6 +80,7 @@
   --color-sf-body: var(--sf-body);
   --color-sf-muted: var(--sf-muted);
   --color-sf-nav: var(--sf-nav);
+  --color-sf-nav-deep: var(--sf-nav-deep);
   --color-sf-nav-soft: var(--sf-nav-soft);
   --color-sf-nav-ink: var(--sf-nav-ink);
   --color-sf-nav-muted: var(--sf-nav-muted);
@@ -60,6 +89,10 @@
   --color-sf-ok: var(--sf-ok);
   --color-sf-warn: var(--sf-warn);
   --color-sf-danger: var(--sf-danger);
+
+  --shadow-card: var(--sf-shadow-card);
+  --shadow-card-hover: var(--sf-shadow-card-hover);
+  --shadow-float: var(--sf-shadow-float);
 
   /*
    * 英数字は Geist、日本語は Zen Maru Gothic（丸ゴシック）。
@@ -70,12 +103,46 @@
   --font-sans: var(--font-geist-sans), var(--font-jp), "Hiragino Kaku Gothic ProN",
     "Hiragino Sans", "Yu Gothic UI", "Meiryo", sans-serif;
   --font-mono: var(--font-geist-mono), monospace;
+
+  --ease-out-soft: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+html {
+  /* macOS / iOS で細い文字がにじまないようにする */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-sans);
+  /*
+   * 日本語の約物（句読点・括弧）を詰める。
+   * 「生徒・保護者」「期・休講日」のように中黒や括弧の多い見出しで、
+   * 字間が間延びしないようにする。欧文には効かないので金額は変わらない。
+   */
+  font-feature-settings: "palt" 1, "kern" 1;
+}
+
+/* 見出しは少し詰めて、本文との差を字間でも付ける */
+h1,
+h2,
+h3 {
+  letter-spacing: -0.015em;
+  text-wrap: balance;
+}
+
+::selection {
+  background: color-mix(in srgb, var(--sf-accent) 22%, transparent);
+  color: var(--sf-ink);
+}
+
+/* 細いスクロールバー。太い灰色の帯が面を切らないようにする */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in srgb, var(--sf-ink) 16%, transparent) transparent;
 }
 
 /*
@@ -85,7 +152,7 @@ body {
 @utility sf-kicker {
   font-size: 10px;
   font-weight: 600;
-  letter-spacing: 0.14em;
+  letter-spacing: 0.16em;
   text-transform: uppercase;
   color: var(--sf-muted);
 }
@@ -94,4 +161,87 @@ body {
 @utility sf-num {
   font-variant-numeric: tabular-nums;
   letter-spacing: -0.01em;
+}
+
+/*
+ * 濃紺の帯（ダッシュボードの「今月の月謝」など）
+ *
+ * 単色で塗らず、左上から右下へわずかに明るさを変える。右上に薄い光を
+ * 置き、内側に 1px の白いふちを入れることで、紙ではなく厚みのある板に
+ * 見える。アクセントの色は帯の中では使わない（文字が読めなくなるため）。
+ */
+@utility sf-hero {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  border-radius: 1.25rem;
+  color: var(--sf-nav-ink);
+  background:
+    radial-gradient(
+      120% 140% at 100% 0%,
+      rgba(255, 255, 255, 0.1) 0%,
+      rgba(255, 255, 255, 0) 55%
+    ),
+    linear-gradient(135deg, var(--sf-nav-soft) 0%, var(--sf-nav) 45%, var(--sf-nav-deep) 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    var(--sf-shadow-float);
+}
+
+/*
+ * 画面上部の帯。スクロールすると中身が透けて見える。
+ * 背景を完全に塗ると帯の下が切れて見えるため、半透明にぼかしを重ねる。
+ */
+@utility sf-glass {
+  background: color-mix(in srgb, var(--sf-card) 78%, transparent);
+  -webkit-backdrop-filter: saturate(160%) blur(14px);
+  backdrop-filter: saturate(160%) blur(14px);
+}
+
+/* 入力欄・ボタンのフォーカス。輪郭ではなく、面の外側に薄い輪を置く */
+@utility sf-ring {
+  outline: none;
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--sf-accent) 18%, transparent);
+}
+
+/*
+ * 画面が開いたときに、ごくわずかに下から浮き上がる。
+ * 大きく動かすと安っぽくなるので 6px・0.35秒にとどめる。
+ * 動きを減らす設定の人には出さない。
+ */
+@utility sf-enter {
+  animation: sf-enter 0.35s var(--ease-out-soft) both;
+}
+
+@keyframes sf-enter {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sf-enter {
+    animation: none;
+  }
+}
+
+/* 管理画面の本文の背景。上部にだけ、ごく薄い光を置く */
+@utility sf-canvas {
+  background:
+    radial-gradient(
+      900px 420px at 18% -10%,
+      color-mix(in srgb, var(--sf-accent) 7%, transparent) 0%,
+      transparent 70%
+    ),
+    radial-gradient(
+      700px 360px at 95% 0%,
+      color-mix(in srgb, var(--sf-nav) 6%, transparent) 0%,
+      transparent 70%
+    ),
+    var(--sf-bg);
 }

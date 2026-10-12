@@ -160,10 +160,27 @@ export default function LoginForm({
   }
 
   return (
-    <main className="flex flex-1 items-center justify-center bg-sf-bg p-6">
-      <Card className="w-full max-w-sm p-6 sm:p-7">
-        <h1 className="text-xl font-bold tracking-tight text-sf-ink">{APP_NAME}</h1>
-        <p className="mt-1 text-[13px] text-sf-body">
+    <main className="relative isolate flex flex-1 items-center justify-center overflow-hidden bg-sf-bg p-6">
+      {/*
+       * 背景の光。濃紺とアクセントの2色を、ぼかして遠くに置く。
+       * 中身の白いカードが「面の上に浮いている」ように見せるためのもので、
+       * 文字の後ろには掛からない位置にしてある
+       */}
+      <div
+        className="pointer-events-none absolute inset-0 -z-10"
+        aria-hidden
+      >
+        <div className="absolute -left-32 -top-32 size-[480px] rounded-full bg-sf-nav/[0.07] blur-3xl" />
+        <div className="absolute -bottom-40 -right-24 size-[520px] rounded-full bg-sf-accent/[0.09] blur-3xl" />
+      </div>
+
+      <div className="sf-enter w-full max-w-sm">
+        <p className="sf-kicker mb-3 text-center">{APP_NAME}</p>
+        <Card className="p-6 shadow-float sm:p-8">
+        <h1 className="text-[22px] font-bold tracking-tight text-sf-ink">
+          {step === "email" ? "ログイン" : "確認コードの入力"}
+        </h1>
+        <p className="mt-1.5 text-[13px] leading-relaxed text-sf-body">
           {step === "email"
             ? "メールアドレスに確認コードをお送りします。"
             : `${email} に6桁のコードを送りました。`}
@@ -273,7 +290,11 @@ export default function LoginForm({
             </button>
           </div>
         )}
-      </Card>
+        </Card>
+        <p className="mt-5 text-center text-[11px] text-sf-muted">
+          メールに届いた6桁のコードで本人確認します。パスワードは不要です。
+        </p>
+      </div>
     </main>
   );
 }

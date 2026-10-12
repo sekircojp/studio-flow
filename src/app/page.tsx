@@ -60,8 +60,12 @@ export default async function Home() {
   if (my) redirect("/my");
 
   return (
-    <main className="flex flex-1 items-center justify-center bg-sf-bg p-6">
-      <Card className="w-full max-w-sm p-7 text-center">
+    <main className="relative isolate flex flex-1 items-center justify-center overflow-hidden bg-sf-bg p-6">
+      <div className="pointer-events-none absolute inset-0 -z-10" aria-hidden>
+        <div className="absolute -left-32 -top-32 size-[480px] rounded-full bg-sf-nav/[0.07] blur-3xl" />
+        <div className="absolute -bottom-40 -right-24 size-[520px] rounded-full bg-sf-accent/[0.09] blur-3xl" />
+      </div>
+      <Card className="sf-enter w-full max-w-sm p-8 text-center shadow-float">
         <h1 className="text-2xl font-bold tracking-tight text-sf-ink">
           {APP_NAME}
         </h1>

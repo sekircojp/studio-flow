@@ -15,7 +15,7 @@ import { requireAdmin } from "@/lib/auth/guards";
 import { createClient } from "@/lib/supabase/server";
 import { formatDateJa, formatTimeJa, formatYen, greetingJa, todayInTokyo } from "@/lib/date";
 import { billingMonthLabel, monthStart, UNPAID_STATUSES } from "@/lib/billing";
-import { Card, EmptyState, SectionHeading, StatCard } from "@/components/ui";
+import { Card, EmptyState, Hero, SectionHeading, StatCard } from "@/components/ui";
 import { LessonFlagBadges } from "@/components/lesson-flags";
 import { fetchLessonFlags } from "@/lib/lessons";
 
@@ -200,8 +200,8 @@ export default async function AdminHome() {
       </div>
 
       {/* 第一表示＝今月の月謝（設計書 9章）。まだ請求機能が無いので、その旨を出す */}
-      <div className="overflow-hidden rounded-2xl bg-sf-nav p-6 text-sf-nav-ink">
-        <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-sf-nav-muted">
+      <Hero>
+        <p className="sf-kicker text-sf-nav-muted">
           {billingMonthLabel(month)}の月謝
         </p>
         {billable.length === 0 ? (
@@ -224,9 +224,9 @@ export default async function AdminHome() {
               <p className="sf-num text-3xl font-bold">{formatYen(collected)}</p>
               <p className="sf-num text-sf-nav-muted">/ {formatYen(billed)}</p>
             </div>
-            <div className="mt-4 h-2 overflow-hidden rounded-full bg-white/15">
+            <div className="mt-5 h-1.5 overflow-hidden rounded-full bg-white/12">
               <div
-                className="h-full rounded-full bg-sf-ok transition-all"
+                className="h-full rounded-full bg-gradient-to-r from-sf-ok to-emerald-300 shadow-[0_0_12px_rgba(42,168,118,0.55)] transition-all duration-700"
                 style={{ width: `${Math.min(collectRate, 100)}%` }}
               />
             </div>
@@ -246,7 +246,7 @@ export default async function AdminHome() {
             </div>
           </>
         )}
-      </div>
+      </Hero>
 
       <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         <StatCard

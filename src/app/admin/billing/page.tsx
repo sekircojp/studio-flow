@@ -23,6 +23,7 @@ import {
   Card,
   EmptyState,
   SectionHeading,
+  Hero,
   secondaryButtonClass,
 } from "@/components/ui";
 
@@ -171,17 +172,17 @@ export default async function BillingPage({
       </div>
 
       {/* 第一表示＝今月の月謝（設計書 9章） */}
-      <div className="overflow-hidden rounded-2xl bg-sf-nav p-6 text-sf-nav-ink">
-        <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-sf-nav-muted">
+      <Hero>
+        <p className="sf-kicker text-sf-nav-muted">
           {billingMonthLabel(month)}の月謝
         </p>
         <div className="mt-3 flex flex-wrap items-end gap-x-6 gap-y-2">
           <p className="sf-num text-3xl font-bold">{formatYen(collected)}</p>
           <p className="sf-num text-sf-nav-muted">/ {formatYen(billed)}</p>
         </div>
-        <div className="mt-4 h-2 overflow-hidden rounded-full bg-white/15">
+        <div className="mt-5 h-1.5 overflow-hidden rounded-full bg-white/12">
           <div
-            className="h-full rounded-full bg-sf-ok transition-all"
+            className="h-full rounded-full bg-gradient-to-r from-sf-ok to-emerald-300 shadow-[0_0_12px_rgba(42,168,118,0.55)] transition-all duration-700"
             style={{ width: `${Math.min(rate, 100)}%` }}
           />
         </div>
@@ -196,7 +197,7 @@ export default async function BillingPage({
             </span>
           )}
         </div>
-      </div>
+      </Hero>
 
       <Card className="p-5">
         <div className="flex flex-wrap items-center justify-between gap-3">
