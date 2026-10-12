@@ -48,7 +48,7 @@ MarcheBase と同じく、適用済みかどうかをこの表で管理する。
 | 42 | `20260907000500_render_subject_guard.sql` | 件名が空になるのを防ぐ（1行の文字列には行削除の規則を当てない） | 済 2026-09-07 |
 | 43 | `20260908000100_event_entry_history.sql` | 出欠・参加可否の変更を audit_logs に残し、名簿に出す | 済 2026-09-08 |
 | 44 | `20261005000100_email_template_defaults_rls.sql` | メールの既定の文面に RLS を入れる（有効化の漏れ） | 済 2026-10-12 |
-| 45 | `20261012000100_revoke_internal_functions.sql` | 内部用の2関数を、ログイン中の利用者から呼べなくする（他スクールの ID で通っていた） | 未 |
+| 45 | `20261012000100_revoke_internal_functions.sql` | 内部用の2関数を、ログイン中の利用者から呼べなくする（他スクールの ID で通っていた） | 済 2026-10-12 |
 
 適用先: Supabase プロジェクト `studio-flow`（ref: fterpqyvzeqcaltfkpuc / Tokyo）
 
