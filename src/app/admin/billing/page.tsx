@@ -68,7 +68,7 @@ export default async function BillingPage({
   const orgId = membership.organizationId;
 
   // RLS に加えて、アプリ層でも organization_id で絞る（設計書 3章）
-  const [{ data: invoices }, { data: payments }, contracts] =
+  const [{ data: invoices }, { data: payments }, { data: contracts }] =
     await Promise.all([
       supabase
         .from("invoices")
@@ -82,12 +82,22 @@ export default async function BillingPage({
         .from("payments")
         .select("invoice_id, amount")
         .eq("organization_id", orgId),
+      // 表示している月の請求対象。月次生成（generate_invoices）と同じ条件で、
+      // その月に契約期間がかかっているものだけを数える。期間を見ないと、
+      // 過去の月を開いたときに、いまの契約数と比べることになって合わない
       supabase
         .from("student_contracts")
-        .select("id", { count: "exact", head: true })
+        .select("student_id")
         .eq("organization_id", orgId)
-        .in("status", ["active", "suspended_billed"]),
+        .in("status", ["active", "suspended_billed"])
+        .lt("start_date", shiftMonth(month, 1))
+        .or(`end_date.is.null,end_date.gte.${month}`),
     ]);
+
+  // 請求は生徒単位（設計書 4.5）なので、契約の件数ではなく生徒の人数で数える
+  const targetCount = new Set(
+    ((contracts ?? []) as { student_id: string }[]).map((c) => c.student_id),
+  ).size;
 
   type InvoiceRow = {
     id: string;
@@ -178,7 +188,7 @@ export default async function BillingPage({
         <div className="mt-3 flex flex-wrap items-center gap-x-6 gap-y-1 text-[12px]">
           <span className="text-sf-ok">回収率 {rate}%</span>
           <span className="text-sf-nav-muted">
-            請求 {billable.length} 件 / 対象 {contracts.count ?? 0} 名
+            請求 {billable.length} 件 / 対象 {targetCount} 名
           </span>
           {unpaidList.length > 0 && (
             <span className="rounded-lg bg-white/10 px-2.5 py-1">
