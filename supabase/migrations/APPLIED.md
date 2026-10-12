@@ -50,7 +50,7 @@ MarcheBase と同じく、適用済みかどうかをこの表で管理する。
 | 44 | `20261005000100_email_template_defaults_rls.sql` | メールの既定の文面に RLS を入れる（有効化の漏れ） | 済 2026-10-12 |
 | 45 | `20261012000100_revoke_internal_functions.sql` | 内部用の2関数を、ログイン中の利用者から呼べなくする（他スクールの ID で通っていた） | 済 2026-10-12 |
 | 46 | `20261012000200_transfer_dates_jst.sql` | 振替権の有効期限と失効を JST の「今日」で数える（早朝に1日ずれていた） | 済 2026-10-12 |
-| 47 | `20261012000300_class_instructors.sql` | クラス・レッスンの担当講師を複数にする（class_instructors / lesson_instructors。1列の instructor_id は廃止） | 未 |
+| 47 | `20261012000300_class_instructors.sql` | クラス・レッスンの担当講師を複数にする（class_instructors / lesson_instructors。1列の instructor_id は廃止） | 済 2026-10-12 |
 
 適用先: Supabase プロジェクト `studio-flow`（ref: fterpqyvzeqcaltfkpuc / Tokyo）
 
