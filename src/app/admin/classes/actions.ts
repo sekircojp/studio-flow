@@ -72,6 +72,25 @@ function readMeetings(formData: FormData): MeetingInput[] | string {
   return meetings;
 }
 
+/**
+ * 担当講師の読み取り（複数）
+ *
+ * チェックボックス instructor_ids が選んだ数だけ届く。並びはそのまま
+ * 画面の並び順になり、先頭がメインの先生として扱われる。
+ */
+function readInstructorIds(formData: FormData): string[] {
+  const seen = new Set<string>();
+  const ids: string[] = [];
+  for (const v of formData.getAll("instructor_ids")) {
+    const s = orNull(v);
+    if (s && !seen.has(s)) {
+      seen.add(s);
+      ids.push(s);
+    }
+  }
+  return ids;
+}
+
 /** ルームがすべて自テナントのものか確認する（設計書 3章） */
 async function roomsBelongToOrg(
   supabase: Awaited<ReturnType<typeof createClient>>,
@@ -134,7 +153,7 @@ export async function createClass(
     p_meetings: meetings,
     p_genre: orNull(formData.get("genre")),
     p_level: orNull(formData.get("level")),
-    p_instructor_id: orNull(formData.get("instructor_id")),
+    p_instructor_ids: readInstructorIds(formData),
     p_enrollment_capacity: toInt(formData.get("enrollment_capacity")),
     p_room_capacity: toInt(formData.get("room_capacity")),
     p_monthly_fee: monthlyFee,
@@ -150,6 +169,65 @@ export async function createClass(
 
   revalidatePath("/admin/classes");
   return { ok: true };
+}
+
+/**
+ * 担当講師の変更（設計書 4.2、2026-10-12）
+ *
+ * 実処理は DB 関数 set_class_instructors() に置いている。クラスの担当の
+ * 入れ替えと、まだ予定のままの回への反映を同じトランザクションで行うため。
+ * 出欠を記録した回・実施済みの回の担当は変わらない（その回の実績なので）。
+ */
+export async function setClassInstructors(
+  _prev: ClassState,
+  formData: FormData,
+): Promise<ClassState> {
+  const { membership } = await requireAdmin();
+  const orgId = membership.organizationId;
+
+  const classId = orNull(formData.get("class_id"));
+  if (!classId) return { error: "クラスが指定されていません。" };
+
+  const ids = readInstructorIds(formData);
+  const supabase = await createClient();
+
+  // RLS に加えて、アプリ層でも organization_id で絞る（設計書 3章）
+  const { data: cls } = await supabase
+    .from("classes")
+    .select("id")
+    .eq("id", classId)
+    .eq("organization_id", orgId)
+    .maybeSingle();
+  if (!cls) return { error: "そのクラスは見つかりませんでした。" };
+
+  if (ids.length > 0) {
+    const { data: found } = await supabase
+      .from("instructors")
+      .select("id")
+      .eq("organization_id", orgId)
+      .eq("is_active", true)
+      .in("id", ids);
+    if ((found ?? []).length !== ids.length) {
+      return { error: "その講師は見つかりませんでした。" };
+    }
+  }
+
+  const { data, error } = await supabase.rpc("set_class_instructors", {
+    p_class_id: classId,
+    p_instructor_ids: ids,
+  });
+
+  if (error) {
+    console.error("担当講師の変更に失敗しました", error);
+    return { error: "変更できませんでした。" };
+  }
+
+  revalidatePath("/admin/classes");
+  revalidatePath("/admin");
+  revalidatePath("/admin/attendance");
+  const synced = typeof data === "number" ? data : 0;
+  const head = ids.length === 0 ? "担当を未定にしました。" : "担当を変更しました。";
+  return { ok: true, message: `${head}予定の ${synced} 回に反映しました。` };
 }
 
 /** 既存クラスに開催枠を足す（週1回 → 週2回にする） */

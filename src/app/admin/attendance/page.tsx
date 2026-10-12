@@ -7,6 +7,7 @@ import { formatDateJa, formatTimeJa, todayInTokyo } from "@/lib/date";
 import { Card, EmptyState, SectionHeading, secondaryButtonClass } from "@/components/ui";
 import { LessonFlagBadges } from "@/components/lesson-flags";
 import { fetchLessonFlags } from "@/lib/lessons";
+import { instructorLabel, type InstructorJoin } from "@/lib/instructors";
 
 export const metadata: Metadata = { title: "出欠管理" };
 
@@ -18,7 +19,7 @@ type LessonRow = {
   class_id: string;
   classes: { name: string } | null;
   rooms: { name: string } | null;
-  instructors: { name: string } | null;
+  lesson_instructors: InstructorJoin[] | null;
 };
 
 /** YYYY-MM-DD に日数を足す。date 型の列を扱うので時刻は持ち込まない */
@@ -50,7 +51,7 @@ export default async function AttendancePage({
     supabase
       .from("lessons")
       .select(
-        "id, start_at, end_at, status, class_id, classes(name), rooms(name), instructors(name)",
+        "id, start_at, end_at, status, class_id, classes(name), rooms(name), lesson_instructors(display_order, instructors(name))",
       )
       .eq("organization_id", orgId)
       .eq("date", date)
@@ -143,7 +144,9 @@ export default async function AttendancePage({
                             {formatTimeJa(l.start_at)}–{formatTimeJa(l.end_at)}
                           </span>
                           {l.rooms?.name && <span>{l.rooms.name}</span>}
-                          {l.instructors?.name && <span>{l.instructors.name}</span>}
+                          {instructorLabel(l.lesson_instructors) && (
+                            <span>{instructorLabel(l.lesson_instructors)}</span>
+                          )}
                         </span>
                       </span>
 

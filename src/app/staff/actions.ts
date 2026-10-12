@@ -32,10 +32,10 @@ export async function recordAttendanceAsStaff(
   // 書き換えられないようにするため（設計書 7章）
   const { data: lesson } = await supabase
     .from("lessons")
-    .select("id")
+    .select("id, lesson_instructors!inner(instructor_id)")
     .eq("id", lessonId)
     .eq("organization_id", orgId)
-    .eq("instructor_id", instructor.id)
+    .eq("lesson_instructors.instructor_id", instructor.id)
     .maybeSingle();
   if (!lesson) return;
 
@@ -79,12 +79,21 @@ export async function setLessonHeldAsStaff(
 
   const supabase = await createClient();
 
+  // 自分が担当している回か確認する。update では結合で絞れないので先に引く
+  const { data: mine } = await supabase
+    .from("lessons")
+    .select("id, lesson_instructors!inner(instructor_id)")
+    .eq("id", lessonId)
+    .eq("organization_id", membership.organizationId)
+    .eq("lesson_instructors.instructor_id", instructor.id)
+    .maybeSingle();
+  if (!mine) return;
+
   const { error } = await supabase
     .from("lessons")
     .update({ status })
     .eq("id", lessonId)
-    .eq("organization_id", membership.organizationId)
-    .eq("instructor_id", instructor.id);
+    .eq("organization_id", membership.organizationId);
 
   if (error) console.error("レッスンの状態変更に失敗しました", error);
   revalidatePath(`/staff/lessons/${lessonId}`);

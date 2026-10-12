@@ -119,9 +119,12 @@ export default async function StaffHome() {
   const [{ data: lessons }, { data: attendances }] = await Promise.all([
     supabase
       .from("lessons")
-      .select("id, date, start_at, end_at, status, classes(name), rooms(name)")
+      // 担当は lesson_instructors で持つ（複数担当）。!inner で担当している回だけに絞る
+      .select(
+        "id, date, start_at, end_at, status, classes(name), rooms(name), lesson_instructors!inner(instructor_id)",
+      )
       .eq("organization_id", membership.organizationId)
-      .eq("instructor_id", instructor.id)
+      .eq("lesson_instructors.instructor_id", instructor.id)
       .gte("date", today)
       .order("date")
       .order("start_at")

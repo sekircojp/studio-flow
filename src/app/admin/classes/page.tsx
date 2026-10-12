@@ -8,10 +8,12 @@ import {
   AddMeetingForm,
   ClassForm,
   GenerateLessonsButton,
+  InstructorsForm,
   MeetingToggleButton,
 } from "./forms";
 import { meetingLabel, weeklyCountLabel } from "@/lib/schedule";
 import { Card, EmptyState, SectionHeading } from "@/components/ui";
+import { instructorLabel, type InstructorJoin } from "@/lib/instructors";
 
 export const metadata: Metadata = { title: "クラス" };
 
@@ -22,8 +24,8 @@ type ClassRow = {
   enrollment_capacity: number | null;
   room_capacity: number | null;
   monthly_fee: number;
-  instructor_id: string | null;
   season_id: string;
+  class_instructors: (InstructorJoin & { instructor_id: string })[] | null;
 };
 
 type MeetingRow = {
@@ -62,7 +64,7 @@ export default async function ClassesPage() {
     supabase
       .from("classes")
       .select(
-        "id, name, genre, enrollment_capacity, room_capacity, monthly_fee, instructor_id, season_id",
+        "id, name, genre, enrollment_capacity, room_capacity, monthly_fee, season_id, class_instructors(instructor_id, display_order, is_active, instructors(name))",
       )
       .eq("organization_id", orgId)
       .order("created_at"),
@@ -98,7 +100,7 @@ export default async function ClassesPage() {
       .order("date"),
   ]);
 
-  const classList = (classes ?? []) as ClassRow[];
+  const classList = (classes ?? []) as unknown as ClassRow[];
   const meetingList = (meetings ?? []) as MeetingRow[];
   const seasonList = (seasons ?? []) as { id: string; name: string; is_current: boolean }[];
   const roomList = (rooms ?? []) as { id: string; name: string }[];
@@ -145,6 +147,10 @@ export default async function ClassesPage() {
                 const scheduled = mine.filter((l) => l.status === "scheduled");
                 const seasonName =
                   seasonList.find((s) => s.id === c.season_id)?.name ?? "—";
+                const assigned = [...(c.class_instructors ?? [])]
+                  .filter((ci) => ci.is_active !== false)
+                  .sort((a, b) => a.display_order - b.display_order)
+                  .map((ci) => ci.instructor_id);
 
                 return (
                   <li
@@ -169,9 +175,14 @@ export default async function ClassesPage() {
                         <p className="mt-1 flex flex-wrap items-center gap-x-4 gap-y-1 text-[12px] text-sf-muted">
                           <span className="flex items-center gap-1">
                             <User className="size-3.5" aria-hidden />
-                            {nameOf(instructorList, c.instructor_id) ?? "担当未定"}
+                            {instructorLabel(c.class_instructors) ?? "担当未定"}
                           </span>
                           <span>{seasonName}</span>
+                          <InstructorsForm
+                            classId={c.id}
+                            instructors={instructorList}
+                            selected={assigned}
+                          />
                         </p>
 
                         {/* 開催枠。週2回のクラスなら2行並ぶ */}

@@ -166,7 +166,7 @@ studio_closures (休講日マスタ)
   id, organization_id, date, name, location_id (null = 全校舎)
 
 classes (定期クラス)
-  id, organization_id, season_id, instructor_id,
+  id, organization_id, season_id,
   name, genre, level, target_age_min, target_age_max,
   enrollment_capacity,      -- 在籍定員
   room_capacity,            -- 1レッスンの実収容上限
@@ -179,13 +179,38 @@ class_meetings (開催枠)
   day_of_week, start_time, end_time,
   is_active
 
+class_instructors (クラスの担当講師)
+  id, organization_id, class_id, instructor_id,
+  display_order, is_active
+
 lessons (開催回)
-  id, organization_id, class_id, class_meeting_id, room_id, instructor_id,
+  id, organization_id, class_id, class_meeting_id, room_id,
   date, start_at, end_at,
   status,                   -- scheduled / held / canceled
   cancel_reason,
   has_attendance_record     -- 出欠が1件でも記録されたか
+
+lesson_instructors (その回の担当講師)
+  id, organization_id, lesson_id, instructor_id, display_order
 ```
+
+**担当講師は複数持てる（2026-10-12 変更・移行 047）。**
+当初は `classes.instructor_id` / `lessons.instructor_id` の1列だったが、メインと
+アシスタントの2人で回すクラスや、曜日ごとに先生が違うクラスがあり、1人しか
+入らないと2人目は自分の画面にそのクラスが出ず、出欠も付けられなかった。
+
+- `class_instructors` は**設定**。運営が決める。外した講師は `is_active = false`
+  にして残す（誰がいつまで担当していたかが分かる）
+- `lesson_instructors` は**その回の実績**。生成時にクラスの担当を写す。レッスンが
+  作り直しで消えれば一緒に消える。代講を入れる段になったら、この表の行を差し替えて
+  表す
+- 担当を変えると（`set_class_instructors()`）、**まだ予定のままの回にだけ**新しい担当
+  を写す。出欠を記録した回・実施済み・休講の回は、その回を誰が担当したかの実績なので
+  触らない
+- 1列の `instructor_id` は残さない。残すと「列の先生」と「表の先生」の2つの真実が
+  でき、画面ごとにどちらを見るかがばらつく
+- 講師の画面（7章）は `lesson_instructors` / `class_instructors` に自分が含まれる回・
+  クラスを出す。担当の全員が出欠を付けられる
 
 **クラスは週に何回開いてもよい（2026-09-04 変更）。**
 曜日・時刻・部屋は `classes` ではなく `class_meetings` が持つ。

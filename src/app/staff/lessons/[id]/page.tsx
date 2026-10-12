@@ -38,11 +38,12 @@ export default async function StaffLessonPage({
   const { data: lesson } = await supabase
     .from("lessons")
     .select(
-      "id, date, start_at, end_at, status, cancel_reason, class_id, classes(name), rooms(name)",
+      "id, date, start_at, end_at, status, cancel_reason, class_id, classes(name), rooms(name), lesson_instructors!inner(instructor_id)",
     )
     .eq("id", id)
     .eq("organization_id", orgId)
-    .eq("instructor_id", instructor.id)
+    // 自分が担当している回だけ（複数担当のうちの1人でもよい）
+    .eq("lesson_instructors.instructor_id", instructor.id)
     .maybeSingle();
 
   if (!lesson) notFound();

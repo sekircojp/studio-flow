@@ -1,11 +1,12 @@
 "use client";
 
 import { useActionState, useId, useState } from "react";
-import { Loader2, Pause, Play, Plus, RefreshCw, X } from "lucide-react";
+import { Check, Loader2, Pause, Play, Plus, RefreshCw, Users, X } from "lucide-react";
 import {
   addClassMeeting,
   createClass,
   generateLessons,
+  setClassInstructors,
   setClassMeetingActive,
   type ClassState,
 } from "./actions";
@@ -72,20 +73,9 @@ export function ClassForm({
             ))}
           </select>
         </div>
-        <div>
-          <label htmlFor="cls-instructor" className={labelClass}>
-            担当講師
-          </label>
-          <select id="cls-instructor" name="instructor_id" className={fieldClass}>
-            <option value="">未定</option>
-            {instructors.map((i) => (
-              <option key={i.id} value={i.id}>
-                {i.name}
-              </option>
-            ))}
-          </select>
-        </div>
       </div>
+
+      <InstructorPicker instructors={instructors} />
 
       <MeetingRows rooms={rooms} />
 
@@ -161,6 +151,140 @@ export function ClassForm({
         )}
         {state.ok && <p className="text-[13px] text-sf-ok">登録しました</p>}
       </div>
+    </form>
+  );
+}
+
+/**
+ * 担当講師の選択（複数）
+ *
+ * 1クラスに先生が2人付くことは珍しくない（メインとアシスタント、曜日で
+ * 交代など）。全員が自分の画面でそのクラスを見て出欠を付けられるよう、
+ * 選択肢ではなくチェックボックスで複数選ぶ。
+ *
+ * 並びは画面の並び順（講師の登録順）になり、先頭がメインの先生として
+ * 表示される。並び替えの操作は現時点では持たない。
+ */
+function InstructorPicker({
+  instructors,
+  selected = [],
+}: {
+  instructors: Option[];
+  selected?: string[];
+}) {
+  if (instructors.length === 0) {
+    return (
+      <div className="rounded-xl bg-sf-bg p-4">
+        <p className={labelClass}>担当講師</p>
+        <p className="mt-1 text-[12px] text-sf-muted">
+          講師が未登録です。担当は、講師を登録したあとからでも付けられます。
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="rounded-xl bg-sf-bg p-4">
+      <p className={labelClass}>担当講師</p>
+      <p className="mb-3 text-[11px] text-sf-muted">
+        複数選べます。選んだ先生は全員、自分の画面でこのクラスの出欠を付けられます。
+      </p>
+      <div className="flex flex-wrap gap-2">
+        {instructors.map((i) => (
+          <label
+            key={i.id}
+            className="inline-flex cursor-pointer items-center gap-2 rounded-full border border-sf-border-strong/90 bg-white px-3 py-1.5 text-[13px] text-sf-body shadow-[0_1px_2px_rgba(23,28,53,0.05)] transition duration-150 hover:border-sf-muted has-checked:border-sf-accent has-checked:bg-sf-accent/8 has-checked:text-sf-ink"
+          >
+            <input
+              type="checkbox"
+              name="instructor_ids"
+              value={i.id}
+              defaultChecked={selected.includes(i.id)}
+              className="peer sr-only"
+            />
+            <span
+              className="flex size-4 items-center justify-center rounded-full border border-sf-border-strong text-white transition peer-checked:border-sf-accent peer-checked:bg-sf-accent"
+              aria-hidden
+            >
+              <Check className="size-3" strokeWidth={3} />
+            </span>
+            {i.name}
+          </label>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/** 既存クラスの担当講師を変える */
+export function InstructorsForm({
+  classId,
+  instructors,
+  selected,
+}: {
+  classId: string;
+  instructors: Option[];
+  selected: string[];
+}) {
+  const [state, action, pending] = useActionState<ClassState, FormData>(
+    setClassInstructors,
+    {},
+  );
+  const [open, setOpen] = useState(false);
+  const [lastOk, setLastOk] = useState(state.ok);
+
+  // 変更できたら閉じる
+  if (state.ok !== lastOk) {
+    setLastOk(state.ok);
+    if (state.ok) setOpen(false);
+  }
+
+  if (!open) {
+    return (
+      <span className="inline-flex flex-wrap items-center gap-2">
+        <button
+          type="button"
+          onClick={() => setOpen(true)}
+          className="inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[11px] font-medium text-sf-accent transition hover:bg-sf-accent/10"
+        >
+          <Users className="size-3" aria-hidden />
+          担当を変更
+        </button>
+        {state.message && (
+          <span className="text-[11px] text-sf-ok">{state.message}</span>
+        )}
+      </span>
+    );
+  }
+
+  return (
+    <form action={action} className="mt-2 w-full space-y-3">
+      <input type="hidden" name="class_id" value={classId} />
+      <InstructorPicker instructors={instructors} selected={selected} />
+      <div className="flex flex-wrap items-center gap-3">
+        <button type="submit" disabled={pending} className={primaryButtonClass}>
+          {pending ? (
+            <Loader2 className="size-4 animate-spin" aria-hidden />
+          ) : (
+            <Check className="size-4" aria-hidden />
+          )}
+          この担当にする
+        </button>
+        <button
+          type="button"
+          onClick={() => setOpen(false)}
+          className={secondaryButtonClass}
+        >
+          <X className="size-3.5" aria-hidden />
+          やめる
+        </button>
+        {state.error && (
+          <span className="text-[12px] text-sf-danger">{state.error}</span>
+        )}
+      </div>
+      <p className="text-[11px] text-sf-muted">
+        まだ予定のままの回に反映されます。出欠を記録した回・実施済みの回の担当はそのまま残ります。
+      </p>
     </form>
   );
 }

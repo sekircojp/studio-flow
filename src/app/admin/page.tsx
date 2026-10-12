@@ -18,6 +18,7 @@ import { billingMonthLabel, monthStart, UNPAID_STATUSES } from "@/lib/billing";
 import { Card, EmptyState, Hero, SectionHeading, StatCard } from "@/components/ui";
 import { LessonFlagBadges } from "@/components/lesson-flags";
 import { fetchLessonFlags } from "@/lib/lessons";
+import { instructorLabel, type InstructorJoin } from "@/lib/instructors";
 
 export const metadata: Metadata = { title: "ダッシュボード" };
 
@@ -67,7 +68,7 @@ export default async function AdminHome() {
     supabase
       .from("lessons")
       .select(
-        "id, start_at, status, classes(name), rooms(name), instructors(name)",
+        "id, start_at, status, classes(name), rooms(name), lesson_instructors(display_order, instructors(name))",
       )
       .eq("organization_id", orgId)
       .eq("date", today)
@@ -93,7 +94,7 @@ export default async function AdminHome() {
     status: string;
     classes: { name: string } | null;
     rooms: { name: string } | null;
-    instructors: { name: string } | null;
+    lesson_instructors: InstructorJoin[] | null;
   };
 
   const todayLessons = ((todayRows ?? []) as unknown as Joined[]).map((l) => ({
@@ -102,7 +103,7 @@ export default async function AdminHome() {
     status: l.status,
     className: l.classes?.name ?? "（クラス不明）",
     roomName: l.rooms?.name ?? "",
-    instructorName: l.instructors?.name ?? "",
+    instructorName: instructorLabel(l.lesson_instructors) ?? "",
   }));
   const hasAnyLesson = (anyLesson.count ?? 0) > 0;
   const unrecordedLessons = unrecorded.count ?? 0;

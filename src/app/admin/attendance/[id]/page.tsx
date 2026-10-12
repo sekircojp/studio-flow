@@ -7,6 +7,7 @@ import { createClient } from "@/lib/supabase/server";
 import { formatDateJa, formatTimeJa } from "@/lib/date";
 import { recordAttendance, setLessonStatus } from "../actions";
 import { Roster, type AttendanceStatus } from "@/components/roster";
+import { instructorLabel, type InstructorJoin } from "@/lib/instructors";
 import { Card, EmptyState, SectionHeading, secondaryButtonClass } from "@/components/ui";
 
 export const metadata: Metadata = { title: "出欠" };
@@ -31,7 +32,7 @@ export default async function AttendanceDetailPage({
   const { data: lesson } = await supabase
     .from("lessons")
     .select(
-      "id, date, start_at, end_at, status, cancel_reason, class_id, classes(name, room_capacity), rooms(name), instructors(name)",
+      "id, date, start_at, end_at, status, cancel_reason, class_id, classes(name, room_capacity), rooms(name), lesson_instructors(display_order, instructors(name))",
     )
     .eq("id", id)
     .eq("organization_id", orgId)
@@ -44,7 +45,9 @@ export default async function AttendanceDetailPage({
     room_capacity: number | null;
   } | null;
   const room = lesson.rooms as unknown as { name: string } | null;
-  const instructor = lesson.instructors as unknown as { name: string } | null;
+  const instructorName = instructorLabel(
+    lesson.lesson_instructors as unknown as InstructorJoin[] | null,
+  );
 
   // その回の時点で在籍している生徒だけを名簿に出す
   const [{ data: enrollments }, { data: attendances }] = await Promise.all([
@@ -106,7 +109,7 @@ export default async function AttendanceDetailPage({
             {formatTimeJa(lesson.end_at)}
           </span>
           {room?.name && <span>{room.name}</span>}
-          {instructor?.name && <span>{instructor.name}</span>}
+          {instructorName && <span>{instructorName}</span>}
           <span className="flex items-center gap-1 text-sf-muted">
             <Users className="size-3.5" aria-hidden />
             在籍 {students.length}

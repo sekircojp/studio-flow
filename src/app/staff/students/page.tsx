@@ -45,10 +45,12 @@ export default async function StaffStudentsPage() {
   const { data: classes } = await supabase
     .from("classes")
     .select(
-      "id, name, class_meetings(day_of_week, start_time, end_time, is_active)",
+      "id, name, class_meetings(day_of_week, start_time, end_time, is_active), class_instructors!inner(instructor_id, is_active)",
     )
     .eq("organization_id", orgId)
-    .eq("instructor_id", instructor.id)
+    // 担当は class_instructors で持つ（複数担当）。外された行は is_active = false
+    .eq("class_instructors.instructor_id", instructor.id)
+    .eq("class_instructors.is_active", true)
     .order("created_at");
 
   const classList = (classes ?? []) as {
