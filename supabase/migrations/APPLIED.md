@@ -49,6 +49,7 @@ MarcheBase と同じく、適用済みかどうかをこの表で管理する。
 | 43 | `20260908000100_event_entry_history.sql` | 出欠・参加可否の変更を audit_logs に残し、名簿に出す | 済 2026-09-08 |
 | 44 | `20261005000100_email_template_defaults_rls.sql` | メールの既定の文面に RLS を入れる（有効化の漏れ） | 済 2026-10-12 |
 | 45 | `20261012000100_revoke_internal_functions.sql` | 内部用の2関数を、ログイン中の利用者から呼べなくする（他スクールの ID で通っていた） | 済 2026-10-12 |
+| 46 | `20261012000200_transfer_dates_jst.sql` | 振替権の有効期限と失効を JST の「今日」で数える（早朝に1日ずれていた） | 未 |
 
 適用先: Supabase プロジェクト `studio-flow`（ref: fterpqyvzeqcaltfkpuc / Tokyo）
 

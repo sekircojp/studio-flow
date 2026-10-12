@@ -4,6 +4,7 @@ import { useActionState, useState } from "react";
 import { Loader2, Plus } from "lucide-react";
 import { createEvent, type EventState } from "./actions";
 import { fieldClass, labelClass, primaryButtonClass } from "@/components/ui";
+import { todayInTokyo } from "@/lib/date";
 
 /**
  * 発表会・イベントの登録（設計書 4.6.3）
@@ -46,7 +47,7 @@ const FEE_COLLECTIONS = [
 function monthsAround(startAt: string) {
   const base = /^\d{4}-\d{2}/.test(startAt)
     ? new Date(`${startAt.slice(0, 7)}-01T00:00:00+09:00`)
-    : new Date(`${new Date().toISOString().slice(0, 7)}-01T00:00:00+09:00`);
+    : new Date(`${todayInTokyo().slice(0, 7)}-01T00:00:00+09:00`);
 
   const y = base.getUTCFullYear();
   const m = base.getUTCMonth();
