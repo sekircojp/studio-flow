@@ -100,7 +100,7 @@ export default function TrialForm({
                   </span>
                 </span>
                 {slot.seatsLeft <= 3 && (
-                  <span className="shrink-0 rounded-md bg-sf-warn/14 px-2 py-1 text-[11px] font-medium text-sf-warn">
+                  <span className="shrink-0 rounded-md bg-sf-warn/14 px-2 py-1 text-[12px] font-medium text-sf-warn">
                     残り {slot.seatsLeft}
                   </span>
                 )}
@@ -170,7 +170,7 @@ export default function TrialForm({
               メールアドレス <span className="text-sf-danger">必須</span>
             </label>
             <input id="email" name="email" type="email" required className={fieldClass} />
-            <p className="mt-1 text-[11px] leading-relaxed text-sf-muted">
+            <p className="mt-1 text-[12px] leading-relaxed text-sf-muted">
               当日のご案内や、入会される場合のご連絡に使います。
             </p>
           </div>

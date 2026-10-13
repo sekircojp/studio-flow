@@ -19,7 +19,7 @@ export function AttendanceProgressBadge({
   ended: boolean;
 }) {
   const state = progressState(progress);
-  const base = "shrink-0 rounded-md px-2 py-1 text-[11px] font-medium";
+  const base = "shrink-0 rounded-md px-2 py-1 text-[12px] font-medium";
 
   if (state === "empty") {
     return <span className={`${base} bg-sf-ink/6 text-sf-muted`}>対象なし</span>;

@@ -40,7 +40,7 @@ const TONE_CLASS: Record<string, string> = {
 export function InvoiceBadge({ status }: { status: string }) {
   return (
     <span
-      className={`rounded-md px-1.5 py-0.5 text-[11px] font-medium ${
+      className={`rounded-md px-1.5 py-0.5 text-[12px] font-medium ${
         TONE_CLASS[invoiceStatusTone(status)]
       }`}
     >
@@ -331,7 +331,7 @@ export default async function BillingPage({
         )}
 
         {byStatus.length > 0 && (
-          <p className="mt-3 flex flex-wrap gap-2 text-[11px]">
+          <p className="mt-3 flex flex-wrap gap-2 text-[12px]">
             {byStatus.map((s) => (
               <span
                 key={s.value}
@@ -384,7 +384,7 @@ export default async function BillingPage({
                             i.due_date !== null &&
                             i.due_date < today &&
                             remaining > 0 && (
-                              <span className="sf-num rounded-md bg-sf-warn/14 px-1.5 py-0.5 text-[11px] font-medium text-sf-warn">
+                              <span className="sf-num rounded-md bg-sf-warn/14 px-1.5 py-0.5 text-[12px] font-medium text-sf-warn">
                                 期限 {formatShortDateJa(i.due_date)} 超過
                               </span>
                             )}
@@ -404,7 +404,7 @@ export default async function BillingPage({
                           )}
                         </span>
                         {canceled && i.cancel_reason && (
-                          <span className="mt-0.5 block text-[11px] text-sf-muted">
+                          <span className="mt-0.5 block text-[12px] text-sf-muted">
                             取消理由: {i.cancel_reason}
                           </span>
                         )}

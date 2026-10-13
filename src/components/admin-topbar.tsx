@@ -42,7 +42,7 @@ export function AdminTopBar({
       <div className="ml-auto flex items-center gap-2.5">
         <div className="flex items-center gap-2.5 rounded-full border border-sf-border/80 bg-white/70 py-1 pl-1 pr-3 shadow-[0_1px_2px_rgba(23,28,53,0.04)]">
           <span
-            className="flex size-7 items-center justify-center rounded-full bg-gradient-to-br from-sf-nav-soft to-sf-nav-deep text-[11px] font-bold text-white"
+            className="flex size-7 items-center justify-center rounded-full bg-gradient-to-br from-sf-nav-soft to-sf-nav-deep text-[12px] font-bold text-white"
             aria-hidden
           >
             {initial}
@@ -51,7 +51,7 @@ export function AdminTopBar({
             <span className="block text-[12px] font-semibold text-sf-ink">
               {roleLabel}
             </span>
-            <span className="block max-w-[180px] truncate text-[11px] text-sf-muted">
+            <span className="block max-w-[180px] truncate text-[12px] text-sf-muted">
               {email}
             </span>
           </span>

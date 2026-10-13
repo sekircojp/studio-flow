@@ -133,7 +133,7 @@ export default function LogoForm({ brand }: { brand: Brand }) {
         </form>
       </div>
 
-      <p className="text-[11px] leading-relaxed text-sf-muted">
+      <p className="text-[12px] leading-relaxed text-sf-muted">
         PNG / JPG / WebP / SVG、2MB まで。まわりの余白は自動で切り取ります
         （正方形の画像に横長の文字が入っていても、文字の大きさで表示されます）。
         縦横比はそのまま保たれるので切れることはありません。背景が透過している

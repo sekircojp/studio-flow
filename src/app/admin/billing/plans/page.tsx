@@ -118,10 +118,10 @@ export default async function PlansPage() {
                   </span>
                   <span className="sf-num text-[13px] text-sf-ink">
                     {formatYen(p.monthly_amount)}
-                    <span className="ml-1 text-[11px] text-sf-muted">/ 月</span>
+                    <span className="ml-1 text-[12px] text-sf-muted">/ 月</span>
                   </span>
                   {(p.enrollment_fee > 0 || p.annual_fee > 0) && (
-                    <span className="sf-num text-[11px] text-sf-muted">
+                    <span className="sf-num text-[12px] text-sf-muted">
                       入会金 {formatYen(p.enrollment_fee)} ・ 年会費{" "}
                       {formatYen(p.annual_fee)}
                     </span>

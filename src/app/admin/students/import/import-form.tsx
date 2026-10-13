@@ -55,7 +55,7 @@ export default function ImportForm() {
           className="block w-full text-[13px] text-sf-body file:mr-3 file:rounded-lg file:border-0 file:bg-sf-ink/8 file:px-3 file:py-2 file:text-[12px] file:font-medium file:text-sf-ink hover:file:bg-sf-ink/12"
         />
         {fileName && (
-          <p className="mt-1 text-[11px] text-sf-muted">{fileName}</p>
+          <p className="mt-1 text-[12px] text-sf-muted">{fileName}</p>
         )}
       </div>
 
@@ -120,7 +120,7 @@ export default function ImportForm() {
               <p className="text-[12px] font-medium text-sf-ink">
                 こちらで直した箇所（{preview.fixes.length} 件）
               </p>
-              <p className="mt-0.5 text-[11px] text-sf-muted">
+              <p className="mt-0.5 text-[12px] text-sf-muted">
                 書き方のゆれを読み替えました。取り違えが無いか確認してください。
               </p>
               <ul className="mt-2 space-y-1">
@@ -204,7 +204,7 @@ export default function ImportForm() {
                 </tbody>
               </table>
               {preview.rows.length > 20 && (
-                <p className="border-t border-sf-border px-3 py-2 text-[11px] text-sf-muted">
+                <p className="border-t border-sf-border px-3 py-2 text-[12px] text-sf-muted">
                   先頭 20 行だけ表示しています（全 {preview.rows.length} 行）
                 </p>
               )}

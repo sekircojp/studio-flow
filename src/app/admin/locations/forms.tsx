@@ -57,7 +57,7 @@ export function LocationForm() {
             placeholder="メインルーム"
             className={fieldClass}
           />
-          <p className="mt-1 text-[11px] text-sf-muted">
+          <p className="mt-1 text-[12px] text-sf-muted">
             分かれていなければ空のままで構いません
           </p>
         </div>

@@ -180,7 +180,7 @@ async function DateView({
                   <LessonFlagBadges flags={flags.get(l.id)} />
 
                   {l.status === "canceled" ? (
-                    <span className="shrink-0 rounded-md bg-sf-danger/10 px-2 py-1 text-[11px] font-medium text-sf-danger">
+                    <span className="shrink-0 rounded-md bg-sf-danger/10 px-2 py-1 text-[12px] font-medium text-sf-danger">
                       休講
                     </span>
                   ) : (
@@ -260,7 +260,7 @@ async function IncompleteView({ supabase, orgId }: { supabase: Db; orgId: string
 
 function ProgressChip({ progress }: { progress: AttendanceProgress }) {
   return (
-    <span className="sf-num shrink-0 rounded-md bg-sf-warn/14 px-2 py-1 text-[11px] font-medium text-sf-warn">
+    <span className="sf-num shrink-0 rounded-md bg-sf-warn/14 px-2 py-1 text-[12px] font-medium text-sf-warn">
       {progress.recorded === 0 ? `未入力 ${progress.total} 名` : progressLabel(progress)}
     </span>
   );

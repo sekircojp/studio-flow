@@ -74,7 +74,7 @@ export function BottomNav({
               <Link
                 href={n.href}
                 aria-current={active ? "page" : undefined}
-                className={`relative flex flex-col items-center gap-1 py-2.5 text-[10.5px] transition duration-150 ${
+                className={`relative flex flex-col items-center gap-1 py-2.5 text-[12px] transition duration-150 ${
                   active ? "font-semibold text-sf-accent" : "text-sf-body"
                 }`}
               >

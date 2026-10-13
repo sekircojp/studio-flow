@@ -157,7 +157,7 @@ export default async function EmailTemplatesPage() {
             title={item.label}
             action={
               item.isCustom ? (
-                <span className="rounded-md bg-sf-accent/12 px-2 py-0.5 text-[11px] font-medium text-sf-accent">
+                <span className="rounded-md bg-sf-accent/12 px-2 py-0.5 text-[12px] font-medium text-sf-accent">
                   編集済み
                 </span>
               ) : (

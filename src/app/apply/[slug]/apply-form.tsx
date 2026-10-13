@@ -141,7 +141,7 @@ export default function ApplyForm({
               メールアドレス <span className="text-sf-danger">必須</span>
             </label>
             <input id="email" name="email" type="email" required className={fieldClass} />
-            <p className="mt-1 text-[11px] leading-relaxed text-sf-muted">
+            <p className="mt-1 text-[12px] leading-relaxed text-sf-muted">
               入会後、月謝や欠席連絡を確認するマイページへのログインに使います。
               普段お使いのアドレスをご入力ください。
             </p>

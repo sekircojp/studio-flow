@@ -96,7 +96,7 @@ export default async function Home() {
                       className="text-[13px] text-sf-body"
                     >
                       {ROLE_LABELS[m.role] ?? m.role}
-                      <span className="ml-2 text-[11px] text-sf-muted">
+                      <span className="ml-2 text-[12px] text-sf-muted">
                         {homePathForRole(m.role)} は準備中です
                       </span>
                     </li>

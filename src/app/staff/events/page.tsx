@@ -68,11 +68,11 @@ export default async function StaffEventsPage() {
                         <span className="text-[15px] font-semibold text-sf-ink">
                           {e.title}
                         </span>
-                        <span className="rounded-md bg-sf-ink/8 px-1.5 py-0.5 text-[11px] font-medium text-sf-body">
+                        <span className="rounded-md bg-sf-ink/8 px-1.5 py-0.5 text-[12px] font-medium text-sf-body">
                           {e.kind === "recital" ? "発表会" : "イベント"}
                         </span>
                         {e.status === "canceled" && (
-                          <span className="rounded-md bg-sf-danger/12 px-1.5 py-0.5 text-[11px] font-medium text-sf-danger">
+                          <span className="rounded-md bg-sf-danger/12 px-1.5 py-0.5 text-[12px] font-medium text-sf-danger">
                             中止
                           </span>
                         )}

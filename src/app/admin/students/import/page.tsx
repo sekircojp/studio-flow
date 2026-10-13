@@ -85,7 +85,7 @@ export default async function ImportPage() {
           </p>
 
           <div className="overflow-x-auto rounded-xl bg-sf-bg p-4">
-            <pre className="whitespace-pre text-[11px] leading-relaxed text-sf-ink">
+            <pre className="whitespace-pre text-[12px] leading-relaxed text-sf-ink">
               {sample}
             </pre>
           </div>

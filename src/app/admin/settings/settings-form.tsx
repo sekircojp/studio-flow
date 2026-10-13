@@ -74,7 +74,7 @@ function Field({
         {...rest}
       />
       {hint && (
-        <p className="mt-1 text-[11px] leading-relaxed text-sf-muted">{hint}</p>
+        <p className="mt-1 text-[12px] leading-relaxed text-sf-muted">{hint}</p>
       )}
     </div>
   );
@@ -252,7 +252,7 @@ export default function SettingsForm({ brand }: { brand: Brand }) {
             defaultValue={brand.brandColor ?? "#f0665c"}
             className="h-9 w-12 cursor-pointer rounded-lg border border-sf-border-strong bg-white p-1"
           />
-          <p className="text-[11px] leading-relaxed text-sf-muted">
+          <p className="text-[12px] leading-relaxed text-sf-muted">
             ボタン・リンク・選択状態などのアクセントに使います。
             背景全体は塗り替えません（濃い色を選んでも文字が読めなくならないようにするため）。
           </p>

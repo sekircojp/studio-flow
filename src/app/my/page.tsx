@@ -175,18 +175,18 @@ export default async function MySchedulePage({
                       </span>
                     </span>
                     {transfer && !canceled && (
-                      <span className="flex shrink-0 items-center gap-1 rounded-md bg-sf-accent/12 px-2 py-1 text-[11px] font-medium text-sf-accent">
+                      <span className="flex shrink-0 items-center gap-1 rounded-md bg-sf-accent/12 px-2 py-1 text-[12px] font-medium text-sf-accent">
                         <Repeat className="size-3" aria-hidden />
                         振替
                       </span>
                     )}
                     {canceled ? (
-                      <span className="flex shrink-0 items-center gap-1 rounded-md bg-sf-danger/10 px-2 py-1 text-[11px] font-medium text-sf-danger">
+                      <span className="flex shrink-0 items-center gap-1 rounded-md bg-sf-danger/10 px-2 py-1 text-[12px] font-medium text-sf-danger">
                         <CalendarX2 className="size-3" aria-hidden />
                         休講
                       </span>
                     ) : absent ? (
-                      <span className="flex shrink-0 items-center gap-1 rounded-md bg-sf-ink/6 px-2 py-1 text-[11px] font-medium text-sf-body">
+                      <span className="flex shrink-0 items-center gap-1 rounded-md bg-sf-ink/6 px-2 py-1 text-[12px] font-medium text-sf-body">
                         <MessageSquareOff className="size-3" aria-hidden />
                         欠席連絡済み
                       </span>

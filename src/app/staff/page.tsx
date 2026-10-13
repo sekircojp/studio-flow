@@ -45,7 +45,7 @@ function LessonList({
               className="flex items-center gap-3 px-4 py-3.5 transition hover:bg-sf-bg"
             >
               <span className="sf-num w-14 shrink-0">
-                <span className="block text-[11px] text-sf-muted">
+                <span className="block text-[12px] text-sf-muted">
                   {formatDateJa(l.date).replace(/^\d+年/, "").replace(/日.*/, "日")}
                 </span>
                 <span className="block text-[14px] font-semibold text-sf-ink">
@@ -73,7 +73,7 @@ function LessonList({
               <LessonFlagBadges flags={flags.get(l.id)} />
 
               {canceled ? (
-                <span className="flex shrink-0 items-center gap-1 rounded-md bg-sf-danger/10 px-2 py-1 text-[11px] font-medium text-sf-danger">
+                <span className="flex shrink-0 items-center gap-1 rounded-md bg-sf-danger/10 px-2 py-1 text-[12px] font-medium text-sf-danger">
                   <CalendarX2 className="size-3" aria-hidden />
                   休講
                 </span>

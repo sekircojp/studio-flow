@@ -90,7 +90,7 @@ export default async function TrialsPage() {
 
     if (!d) {
       return (
-        <p className="mt-1.5 flex items-center gap-1 text-[11px] text-sf-muted">
+        <p className="mt-1.5 flex items-center gap-1 text-[12px] text-sf-muted">
           <Mail className="size-3.5" aria-hidden />
           お知らせを送信中です
         </p>
@@ -98,14 +98,14 @@ export default async function TrialsPage() {
     }
     if (d.status === "sent") {
       return (
-        <p className="mt-1.5 flex items-center gap-1 text-[11px] text-sf-ok">
+        <p className="mt-1.5 flex items-center gap-1 text-[12px] text-sf-ok">
           <MailCheck className="size-3.5" aria-hidden />
           お知らせを送りました
         </p>
       );
     }
     return (
-      <p className="mt-1.5 flex items-start gap-1 text-[11px] text-sf-danger">
+      <p className="mt-1.5 flex items-start gap-1 text-[12px] text-sf-danger">
         <MailWarning className="mt-px size-3.5 shrink-0" aria-hidden />
         <span>
           お知らせを送れませんでした。お電話でご連絡ください
@@ -125,7 +125,7 @@ export default async function TrialsPage() {
               {t.student_name_kana}
             </span>
           )}
-          <span className="ml-2 rounded-md bg-sf-ink/8 px-1.5 py-0.5 text-[11px] font-medium text-sf-body">
+          <span className="ml-2 rounded-md bg-sf-ink/8 px-1.5 py-0.5 text-[12px] font-medium text-sf-body">
             {t.kind === "observation" ? "見学" : "体験"}
           </span>
         </p>

@@ -134,7 +134,7 @@ export default async function CalendarPage({
                   {DAY_LABELS.map((d, i) => (
                     <div
                       key={d}
-                      className={`text-center text-[11px] font-semibold ${
+                      className={`text-center text-[12px] font-semibold ${
                         i === 0
                           ? "text-sf-danger"
                           : i === 6
@@ -162,7 +162,7 @@ export default async function CalendarPage({
                       >
                         <div className="flex items-center gap-1">
                           <span
-                            className={`sf-num flex size-5 items-center justify-center rounded-full text-[11px] ${
+                            className={`sf-num flex size-5 items-center justify-center rounded-full text-[12px] ${
                               isToday
                                 ? "bg-sf-accent font-bold text-sf-accent-ink"
                                 : cell.inMonth
@@ -222,7 +222,7 @@ export default async function CalendarPage({
           )}
         </div>
 
-        <p className="mt-4 flex flex-wrap items-center gap-4 text-[11px] text-sf-muted">
+        <p className="mt-4 flex flex-wrap items-center gap-4 text-[12px] text-sf-muted">
           <span className="flex items-center gap-1.5">
             <span className="size-2.5 rounded bg-sf-accent/20" />
             開催予定

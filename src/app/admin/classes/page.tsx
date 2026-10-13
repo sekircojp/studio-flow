@@ -162,12 +162,12 @@ export default async function ClassesPage() {
                         <p className="font-semibold text-sf-ink">
                           {c.name}
                           {c.genre && (
-                            <span className="ml-2 rounded-md bg-sf-accent/10 px-1.5 py-0.5 text-[11px] font-medium text-sf-accent">
+                            <span className="ml-2 rounded-md bg-sf-accent/10 px-1.5 py-0.5 text-[12px] font-medium text-sf-accent">
                               {c.genre}
                             </span>
                           )}
                           {weekly && (
-                            <span className="ml-2 rounded-md bg-sf-ink/8 px-1.5 py-0.5 text-[11px] font-medium text-sf-body">
+                            <span className="ml-2 rounded-md bg-sf-ink/8 px-1.5 py-0.5 text-[12px] font-medium text-sf-body">
                               {weekly}
                             </span>
                           )}
@@ -203,7 +203,7 @@ export default async function ClassesPage() {
                                 {nameOf(roomList, m.room_id)}
                               </span>
                               {!m.is_active && (
-                                <span className="rounded-md bg-sf-ink/8 px-1.5 py-0.5 text-[11px]">
+                                <span className="rounded-md bg-sf-ink/8 px-1.5 py-0.5 text-[12px]">
                                   停止中
                                 </span>
                               )}
@@ -221,7 +221,7 @@ export default async function ClassesPage() {
                         <p className="sf-num text-[15px] font-bold text-sf-ink">
                           {formatYen(c.monthly_fee)}
                         </p>
-                        <p className="text-[11px] text-sf-muted">
+                        <p className="text-[12px] text-sf-muted">
                           在籍 {c.enrollment_capacity ?? "—"} / 1回上限{" "}
                           {c.room_capacity ?? "—"}
                         </p>

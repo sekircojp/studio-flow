@@ -130,7 +130,7 @@ export default async function MyBillingPage({
                         {billingMonthLabel(i.billing_month)}
                       </span>
                       <span
-                        className={`rounded-md px-1.5 py-0.5 text-[11px] font-medium ${
+                        className={`rounded-md px-1.5 py-0.5 text-[12px] font-medium ${
                           TONE_CLASS[invoiceStatusTone(i.status)]
                         }`}
                       >

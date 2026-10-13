@@ -221,7 +221,7 @@ export function TransferSettingsForm({
             defaultValue={settings.monthly_limit}
             className={fieldClass}
           />
-          <p className="mt-1 text-[11px] text-sf-muted">0 で制限なし</p>
+          <p className="mt-1 text-[12px] text-sf-muted">0 で制限なし</p>
         </div>
         <div>
           <label htmlFor="ts-scope" className={labelClass}>

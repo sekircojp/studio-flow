@@ -40,7 +40,7 @@ export function AdminSidebar({
         className="group mt-3 flex items-center gap-2.5 rounded-xl border border-white/6 bg-white/[0.045] px-3 py-2.5 transition duration-150 hover:border-white/10 hover:bg-white/[0.08]"
       >
         <span
-          className="flex size-7 shrink-0 items-center justify-center rounded-lg bg-sf-accent text-[11px] font-bold text-sf-accent-ink shadow-[inset_0_1px_0_rgba(255,255,255,0.25)]"
+          className="flex size-7 shrink-0 items-center justify-center rounded-lg bg-sf-accent text-[12px] font-bold text-sf-accent-ink shadow-[inset_0_1px_0_rgba(255,255,255,0.25)]"
           aria-hidden
         >
           {locationLabel.slice(0, 1)}
@@ -49,7 +49,7 @@ export function AdminSidebar({
           <span className="block truncate text-[13px] font-semibold text-sf-nav-ink">
             {locationLabel}
           </span>
-          <span className="block truncate text-[11px] text-sf-nav-muted">
+          <span className="block truncate text-[12px] text-sf-nav-muted">
             {locationSubLabel}
           </span>
         </span>

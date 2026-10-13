@@ -1,31 +1,22 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono, Zen_Maru_Gothic } from "next/font/google";
+import { Noto_Sans_JP } from "next/font/google";
 import "./globals.css";
 import { APP_DESCRIPTION, APP_NAME } from "@/config/app";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
-
 /**
- * 日本語の本文
+ * 書体は Noto Sans JP に全画面で統一する（2026-10-13）
  *
- * 丸ゴシック。保護者と子どもが見る画面なので、事務システムらしい硬さを
- * 弱める。英数字は Geist のままにしてあるので、金額・時刻・回収率の
- * 見た目は変わらない。丸くなるのはかなと漢字だけ。
+ * 以前は英数字に Geist、日本語に OS 標準や丸ゴシックを混ぜていたが、欧文専用の
+ * 個性の強い書体と日本語を混ぜると字面がちぐはぐになり、Windows では
+ * 「游ゴシック UI」に落ちて細く安っぽく見えた。業務 SaaS として広く使われる
+ * Noto Sans JP を webfont で配り、OS によらず同じ見た目にする。
  *
  * subsets に "japanese" は指定できない（next/font が受け付けない）。
  * Google Fonts 側が unicode-range で分割配信するので、実際に使う字だけが
- * 落ちてくる。日本語は分割数が多く preload できないため false にする。
+ * 落ちてくる。分割数が多く preload できないため false にする。
  */
-const jpSans = Zen_Maru_Gothic({
-  variable: "--font-jp",
+const notoSansJp = Noto_Sans_JP({
+  variable: "--font-noto",
   weight: ["400", "500", "700"],
   subsets: ["latin"],
   preload: false,
@@ -44,7 +35,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
       lang="ja"
-      className={`${geistSans.variable} ${geistMono.variable} ${jpSans.variable} h-full antialiased`}
+      className={`${notoSansJp.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">{children}</body>
     </html>

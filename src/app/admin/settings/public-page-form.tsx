@@ -24,7 +24,7 @@ function UrlRow({
   return (
     <div className="rounded-xl border border-sf-border p-3">
       <p className="text-[13px] font-medium text-sf-ink">{title}</p>
-      <p className="mt-0.5 text-[11px] leading-relaxed text-sf-muted">{note}</p>
+      <p className="mt-0.5 text-[12px] leading-relaxed text-sf-muted">{note}</p>
       <div className="mt-2 flex flex-wrap items-center gap-2">
         <code className="min-w-0 flex-1 break-all rounded-lg bg-sf-bg px-2.5 py-1.5 text-[12px] text-sf-body">
           {url}
@@ -114,7 +114,7 @@ export default function PublicPageForm({
             autoCapitalize="off"
             className={fieldClass}
           />
-          <p className="mt-1 text-[11px] leading-relaxed text-sf-muted">
+          <p className="mt-1 text-[12px] leading-relaxed text-sf-muted">
             半角の英小文字・数字・ハイフンで、3文字以上。スクール名をローマ字に
             したものが分かりやすいです。空にすると、申込ページを閉じられます。
           </p>

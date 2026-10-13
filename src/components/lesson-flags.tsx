@@ -21,13 +21,13 @@ export function LessonFlagBadges({
   return (
     <span className={`flex shrink-0 flex-wrap items-center gap-1 ${className}`}>
       {flags.absences > 0 && (
-        <span className="flex items-center gap-1 rounded-md bg-sf-danger/10 px-2 py-1 text-[11px] font-medium text-sf-danger">
+        <span className="flex items-center gap-1 rounded-md bg-sf-danger/10 px-2 py-1 text-[12px] font-medium text-sf-danger">
           <UserMinus className="size-3" aria-hidden />
           欠席 {flags.absences}
         </span>
       )}
       {flags.transfersIn > 0 && (
-        <span className="flex items-center gap-1 rounded-md bg-sf-accent/10 px-2 py-1 text-[11px] font-medium text-sf-accent">
+        <span className="flex items-center gap-1 rounded-md bg-sf-accent/10 px-2 py-1 text-[12px] font-medium text-sf-accent">
           <Repeat2 className="size-3" aria-hidden />
           振替 {flags.transfersIn}
         </span>

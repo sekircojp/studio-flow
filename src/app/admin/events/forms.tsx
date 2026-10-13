@@ -158,7 +158,7 @@ export function EventForm({
             type="datetime-local"
             className={fieldClass}
           />
-          <p className="mt-1 text-[11px] leading-relaxed text-sf-muted">
+          <p className="mt-1 text-[12px] leading-relaxed text-sf-muted">
             案内メールに載り、これを過ぎると保護者は答えられなくなります。
             空欄なら開催時刻までです。
           </p>
@@ -187,7 +187,7 @@ export function EventForm({
               />
               <span>
                 <span className="block text-[14px] text-sf-ink">{a.label}</span>
-                <span className="block text-[11px] text-sf-muted">{a.note}</span>
+                <span className="block text-[12px] text-sf-muted">{a.note}</span>
               </span>
             </label>
           ))}
@@ -262,7 +262,7 @@ export function EventForm({
               </option>
             ))}
           </select>
-          <p className="mt-1 text-[11px] leading-relaxed text-sf-muted">
+          <p className="mt-1 text-[12px] leading-relaxed text-sf-muted">
             案内メールにそのまま載ります。月謝への合算は、いまは記録だけで
             自動では請求されません。
           </p>
@@ -285,7 +285,7 @@ export function EventForm({
                 </option>
               ))}
             </select>
-            <p className="mt-1 text-[11px] leading-relaxed text-sf-muted">
+            <p className="mt-1 text-[12px] leading-relaxed text-sf-muted">
               その月の請求に「参加費」の明細として入ります。載せるのは
               「参加する」と答えた生徒だけです。
             </p>

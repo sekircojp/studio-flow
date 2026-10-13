@@ -254,12 +254,12 @@ export default async function StudentDetailPage({
                       <span className="block text-[13px] font-medium text-sf-ink">
                         {e.classes?.name ?? "（クラス不明）"}
                         {ended && (
-                          <span className="ml-2 rounded-md bg-sf-ink/8 px-1.5 py-0.5 text-[11px] font-normal text-sf-muted">
+                          <span className="ml-2 rounded-md bg-sf-ink/8 px-1.5 py-0.5 text-[12px] font-normal text-sf-muted">
                             終了
                           </span>
                         )}
                       </span>
-                      <span className="sf-num block text-[11px] text-sf-muted">
+                      <span className="sf-num block text-[12px] text-sf-muted">
                         {e.classes &&
                           `${activeOnly(e.classes.class_meetings)
                             .map(meetingLabel)
@@ -316,12 +316,12 @@ export default async function StudentDetailPage({
                   <p className="flex flex-wrap items-center gap-2">
                     <span className="font-medium text-sf-ink">{g.name}</span>
                     {g.relationship && (
-                      <span className="text-[11px] text-sf-muted">
+                      <span className="text-[12px] text-sf-muted">
                         {g.relationship}
                       </span>
                     )}
                     {household?.billing_guardian_id === g.id && (
-                      <span className="rounded-md bg-sf-accent/12 px-1.5 py-0.5 text-[11px] font-medium text-sf-accent">
+                      <span className="rounded-md bg-sf-accent/12 px-1.5 py-0.5 text-[12px] font-medium text-sf-accent">
                         請求の宛先
                       </span>
                     )}
@@ -383,7 +383,7 @@ export default async function StudentDetailPage({
                     {formatDateJa(m.measured_at)}
                   </span>
                   {i === 0 && (
-                    <span className="rounded-md bg-sf-ok/12 px-1.5 py-0.5 text-[11px] font-medium text-sf-ok">
+                    <span className="rounded-md bg-sf-ok/12 px-1.5 py-0.5 text-[12px] font-medium text-sf-ok">
                       最新
                     </span>
                   )}

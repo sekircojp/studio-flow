@@ -141,7 +141,7 @@ export function BrandLockup({
             </span>
           )}
           {subLabel && (
-            <span className="block truncate text-[11px] text-sf-muted">
+            <span className="block truncate text-[12px] text-sf-muted">
               {subLabel}
             </span>
           )}

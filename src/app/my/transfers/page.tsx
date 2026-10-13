@@ -153,7 +153,7 @@ export default async function MyTransfersPage({
                     {formatDateJa(c.expires_at)} まで有効
                   </span>
                   <span
-                    className={`rounded-md px-1.5 py-0.5 text-[11px] font-medium ${
+                    className={`rounded-md px-1.5 py-0.5 text-[12px] font-medium ${
                       c.status === "available"
                         ? "bg-sf-ok/12 text-sf-ok"
                         : "bg-sf-ink/8 text-sf-muted"

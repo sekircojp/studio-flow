@@ -119,7 +119,7 @@ export default async function TrialPage({
           へ
         </p>
 
-        <p className="pb-4 text-center text-[11px] text-sf-muted">{POWERED_BY}</p>
+        <p className="pb-4 text-center text-[12px] text-sf-muted">{POWERED_BY}</p>
       </div>
     </main>
   );

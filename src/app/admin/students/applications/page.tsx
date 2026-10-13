@@ -101,7 +101,7 @@ export default async function ApplicationsPage() {
                         希望クラス {a.classes?.name ?? "相談したい"}
                       </p>
                     </div>
-                    <span className="sf-num text-[11px] text-sf-muted">
+                    <span className="sf-num text-[12px] text-sf-muted">
                       {formatDateJa(a.created_at)} 受付
                     </span>
                   </div>
@@ -159,7 +159,7 @@ export default async function ApplicationsPage() {
                   </span>
                 </span>
                 <span
-                  className={`rounded-md px-2 py-1 text-[11px] font-medium ${
+                  className={`rounded-md px-2 py-1 text-[12px] font-medium ${
                     a.status === "approved"
                       ? "bg-sf-ok/12 text-sf-ok"
                       : "bg-sf-ink/8 text-sf-muted"

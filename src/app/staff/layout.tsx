@@ -23,7 +23,7 @@ export default async function StaffLayout({
 
   return (
     <div
-      className="sf-canvas sf-business flex min-h-full flex-1 flex-col"
+      className="sf-canvas flex min-h-full flex-1 flex-col"
       style={brandStyle(brand) as React.CSSProperties | undefined}
     >
       <header className="sf-glass sticky top-0 z-20 border-b border-sf-border/70">

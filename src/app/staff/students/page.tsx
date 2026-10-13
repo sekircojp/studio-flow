@@ -142,7 +142,7 @@ export default async function StaffStudentsPage() {
                                 {s.name}
                               </span>
                               {s.name_kana && (
-                                <span className="text-[11px] text-sf-muted">
+                                <span className="text-[12px] text-sf-muted">
                                   {s.name_kana}
                                 </span>
                               )}
@@ -153,7 +153,7 @@ export default async function StaffStudentsPage() {
                             </span>
                           </span>
                           <span
-                            className={`shrink-0 rounded-md px-1.5 py-0.5 text-[11px] font-medium ${
+                            className={`shrink-0 rounded-md px-1.5 py-0.5 text-[12px] font-medium ${
                               TONE_CLASS[statusTone(s.status)]
                             }`}
                           >

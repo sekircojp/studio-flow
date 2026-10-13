@@ -181,7 +181,7 @@ export function StudentForm({
             ))}
             <option value="">＋ 新しい世帯を作る</option>
           </select>
-          <p className="mt-1 text-[11px] text-sf-muted">
+          <p className="mt-1 text-[12px] text-sf-muted">
             兄弟の入会は既存の世帯を選びます
           </p>
         </div>

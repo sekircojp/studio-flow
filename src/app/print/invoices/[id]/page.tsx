@@ -197,7 +197,7 @@ export default async function InvoicePrintPage({
             {formatYen(isReceipt ? receiptAmount : inv.total)}
           </span>
         </div>
-        <p className="mt-1 text-right text-[11px]">（税込）</p>
+        <p className="mt-1 text-right text-[12px]">（税込）</p>
       </div>
 
       <p className="mt-6 text-[12px]">
@@ -288,7 +288,7 @@ export default async function InvoicePrintPage({
       )}
 
       {!brand.invoiceRegistrationNumber && (
-        <p className="print-hide mt-8 rounded-lg bg-sf-bg p-3 text-[11px] leading-relaxed text-sf-muted">
+        <p className="print-hide mt-8 rounded-lg bg-sf-bg p-3 text-[12px] leading-relaxed text-sf-muted">
           適格請求書発行事業者の登録番号が未入力のため、登録番号を印字していません。
           登録している場合は基本設定に入力してください。免税事業者はこのままで
           構いません。

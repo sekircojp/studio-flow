@@ -71,7 +71,7 @@ export function SizeForm({
             placeholder={latest?.wearSize ?? "150 / M など"}
             className={fieldClass}
           />
-          <p className="mt-1 text-[11px] leading-relaxed text-sf-muted">
+          <p className="mt-1 text-[12px] leading-relaxed text-sf-muted">
             タグに書いてあるとおりで大丈夫です。
           </p>
         </div>

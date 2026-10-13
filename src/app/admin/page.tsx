@@ -139,7 +139,7 @@ export default async function AdminHome() {
                         <span className="block text-[14px] font-semibold text-sf-ink">
                           {formatTimeJa(l.start_at)}
                         </span>
-                        <span className="block text-[11px] text-sf-muted">
+                        <span className="block text-[12px] text-sf-muted">
                           –{formatTimeJa(l.end_at)}
                         </span>
                       </span>
@@ -162,7 +162,7 @@ export default async function AdminHome() {
                       <span className="flex w-full items-center gap-2 pl-[4.25rem] sm:w-auto sm:pl-0">
                         <LessonFlagBadges flags={l.flags} />
                         {l.status === "canceled" ? (
-                          <span className="shrink-0 rounded-md bg-sf-danger/10 px-2 py-1 text-[11px] font-medium text-sf-danger">
+                          <span className="shrink-0 rounded-md bg-sf-danger/10 px-2 py-1 text-[12px] font-medium text-sf-danger">
                             休講
                           </span>
                         ) : (

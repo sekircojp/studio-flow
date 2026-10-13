@@ -28,8 +28,8 @@
 
   /* 文字 */
   --sf-ink: #171c35;
-  --sf-body: #4a5172;
-  --sf-muted: #868ca6;
+  --sf-body: #3b425f;
+  --sf-muted: #6e7593;
 
   /* サイドバー */
   --sf-nav: #161b36;
@@ -94,15 +94,10 @@
   --shadow-card-hover: var(--sf-shadow-card-hover);
   --shadow-float: var(--sf-shadow-float);
 
-  /*
-   * 英数字は Geist、日本語は Zen Maru Gothic（丸ゴシック）。
-   * Geist は日本語グリフを持たないので、かなと漢字だけが後段に落ちる。
-   * 金額や時刻の見た目を変えずに、日本語だけを少し柔らかくできる。
-   * webfont が届くまでは OS 標準で表示する。
-   */
-  --font-sans: var(--font-geist-sans), var(--font-jp), "Hiragino Kaku Gothic ProN",
-    "Hiragino Sans", "Yu Gothic UI", "Meiryo", sans-serif;
-  --font-mono: var(--font-geist-mono), monospace;
+  /* 書体は Noto Sans JP に統一（layout.tsx 参照）。届くまでは OS 標準のゴシック */
+  --font-sans: var(--font-noto), "Hiragino Sans", "Hiragino Kaku Gothic ProN",
+    "Yu Gothic", "Meiryo", sans-serif;
+  --font-mono: ui-monospace, "SFMono-Regular", "Consolas", monospace;
 
   --ease-out-soft: cubic-bezier(0.22, 1, 0.36, 1);
 }
@@ -118,12 +113,7 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-sans);
-  /*
-   * 日本語の約物（句読点・括弧）を詰める。
-   * 「生徒・保護者」「期・休講日」のように中黒や括弧の多い見出しで、
-   * 字間が間延びしないようにする。欧文には効かないので金額は変わらない。
-   */
-  font-feature-settings: "palt" 1, "kern" 1;
+  font-feature-settings: "kern" 1;
 }
 
 /* 見出しは少し詰めて、本文との差を字間でも付ける */
@@ -150,9 +140,9 @@ h3 {
  * 情報の区切りを、罫線を増やさずに示すために使う。
  */
 @utility sf-kicker {
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 600;
-  letter-spacing: 0.16em;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
   color: var(--sf-muted);
 }
@@ -246,14 +236,3 @@ h3 {
     var(--sf-bg);
 }
 
-/*
- * 業務画面（管理・講師）の日本語は通常のゴシックにする。
- * 丸ゴシックは保護者向けの柔らかさには合うが、名簿や金額を読む画面では
- * 字面がにじんで見える。英数字の Geist はそのまま。
- * 保護者画面（/my）は丸ゴシックのまま。ここでは巻き込まない。
- */
-@utility sf-business {
-  font-family:
-    var(--font-geist-sans), "Hiragino Sans", "Hiragino Kaku Gothic ProN",
-    "Yu Gothic UI", "Meiryo", "Noto Sans JP", sans-serif;
-}

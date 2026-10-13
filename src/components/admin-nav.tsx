@@ -85,7 +85,7 @@ export function AdminNavList({ onNavigate }: { onNavigate?: () => void }) {
       {ADMIN_NAV_GROUPS.map((g, i) => (
         <div key={g.kicker || i}>
           {g.kicker && (
-            <p className="px-3 pb-2 text-[11px] font-semibold text-sf-nav-muted/80">
+            <p className="px-3 pb-2 text-[12px] font-semibold text-sf-nav-muted/80">
               {g.kicker}
             </p>
           )}

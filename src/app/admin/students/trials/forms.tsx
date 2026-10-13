@@ -123,7 +123,7 @@ export function TrialApproval({ trialId }: { trialId: string }) {
         <span className="text-[12px] text-sf-danger">{state.error}</span>
       )}
       </div>
-      <p className="text-[11px] text-sf-muted">
+      <p className="text-[12px] text-sf-muted">
         どちらもメールでお知らせします
       </p>
     </div>

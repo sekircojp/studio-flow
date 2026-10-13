@@ -102,7 +102,7 @@ export function ClassForm({
             min={1}
             className={fieldClass}
           />
-          <p className="mt-1 text-[11px] text-sf-muted">
+          <p className="mt-1 text-[12px] text-sf-muted">
             この人数まで新しく入会できます
           </p>
         </div>
@@ -117,7 +117,7 @@ export function ClassForm({
             min={1}
             className={fieldClass}
           />
-          <p className="mt-1 text-[11px] text-sf-muted">
+          <p className="mt-1 text-[12px] text-sf-muted">
             1回に入れる人数。在籍が満席でも、ここまでは体験・振替を受けられます
           </p>
         </div>
@@ -221,7 +221,7 @@ function InstructorPicker({
   return (
     <div className="rounded-xl bg-sf-bg p-4">
       <p className={labelClass}>担当講師</p>
-      <p className="mb-3 text-[11px] text-sf-muted">
+      <p className="mb-3 text-[12px] text-sf-muted">
         複数選べます。先頭の先生がメインとして表示されます。選んだ先生は全員、
         自分の画面でこのクラスの出欠を付けられます。
       </p>
@@ -242,7 +242,7 @@ function InstructorPicker({
               className="flex items-center gap-2 rounded-lg border border-sf-border bg-white px-2.5 py-1.5 shadow-[0_1px_2px_rgba(23,28,53,0.05)]"
             >
               <span
-                className={`flex size-6 shrink-0 items-center justify-center rounded-full text-[11px] font-bold ${
+                className={`flex size-6 shrink-0 items-center justify-center rounded-full text-[12px] font-bold ${
                   index === 0
                     ? "bg-sf-accent text-sf-accent-ink"
                     : "bg-sf-ink/8 text-sf-body"
@@ -338,13 +338,13 @@ export function InstructorsForm({
         <button
           type="button"
           onClick={() => setOpen(true)}
-          className="inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[11px] font-medium text-sf-accent transition hover:bg-sf-accent/10"
+          className="inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[12px] font-medium text-sf-accent transition hover:bg-sf-accent/10"
         >
           <Users className="size-3" aria-hidden />
           担当を変更
         </button>
         {state.message && (
-          <span className="text-[11px] text-sf-ok">{state.message}</span>
+          <span className="text-[12px] text-sf-ok">{state.message}</span>
         )}
       </span>
     );
@@ -375,7 +375,7 @@ export function InstructorsForm({
           <span className="text-[12px] text-sf-danger">{state.error}</span>
         )}
       </div>
-      <p className="text-[11px] text-sf-muted">
+      <p className="text-[12px] text-sf-muted">
         まだ予定のままの回に反映されます。出欠を記録した回・実施済みの回の担当はそのまま残ります。
       </p>
     </form>
@@ -452,7 +452,7 @@ function MeetingRows({
   return (
     <div className="rounded-xl bg-sf-bg p-4">
       <p className={labelClass}>開催する曜日と時間</p>
-      <p className="mb-3 text-[11px] text-sf-muted">
+      <p className="mb-3 text-[12px] text-sf-muted">
         週2回のクラスは、行を2つ入れてください。クラス数は1のままです。
       </p>
 
@@ -624,7 +624,7 @@ export function MeetingToggleButton({
         type="submit"
         disabled={pending}
         title={isActive ? `${label} を止める` : `${label} を再開する`}
-        className="inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[11px] text-sf-muted transition hover:bg-sf-ink/5 hover:text-sf-ink"
+        className="inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[12px] text-sf-muted transition hover:bg-sf-ink/5 hover:text-sf-ink"
       >
         {pending ? (
           <Loader2 className="size-3 animate-spin" aria-hidden />
@@ -636,7 +636,7 @@ export function MeetingToggleButton({
         {isActive ? "止める" : "再開"}
       </button>
       {state.error && (
-        <span className="text-[11px] text-sf-danger">{state.error}</span>
+        <span className="text-[12px] text-sf-danger">{state.error}</span>
       )}
     </form>
   );

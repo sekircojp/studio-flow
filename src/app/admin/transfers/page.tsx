@@ -234,7 +234,7 @@ export default async function TransfersPage() {
                             {c.students?.name ?? "（生徒不明）"}
                           </span>
                           <span
-                            className={`rounded-md px-1.5 py-0.5 text-[11px] font-medium ${meta.tone}`}
+                            className={`rounded-md px-1.5 py-0.5 text-[12px] font-medium ${meta.tone}`}
                           >
                             {meta.label}
                           </span>

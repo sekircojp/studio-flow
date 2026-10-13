@@ -102,7 +102,7 @@ export default async function SeasonsPage() {
                     <p className="flex items-center gap-2 font-semibold text-sf-ink">
                       {s.name}
                       {s.is_current && (
-                        <span className="flex items-center gap-1 rounded-md bg-sf-accent px-1.5 py-0.5 text-[11px] font-medium text-sf-accent-ink">
+                        <span className="flex items-center gap-1 rounded-md bg-sf-accent px-1.5 py-0.5 text-[12px] font-medium text-sf-accent-ink">
                           <Check className="size-3" aria-hidden />
                           今の期
                         </span>

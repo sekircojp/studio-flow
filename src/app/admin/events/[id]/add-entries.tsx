@@ -121,10 +121,10 @@ export function AddEntries({
                 <span className="min-w-0 flex-1">
                   <span className="text-[14px] text-sf-ink">{s.name}</span>
                   {s.kana && (
-                    <span className="ml-2 text-[11px] text-sf-muted">{s.kana}</span>
+                    <span className="ml-2 text-[12px] text-sf-muted">{s.kana}</span>
                   )}
                   {s.classNames.length > 0 && (
-                    <span className="ml-2 text-[11px] text-sf-muted">
+                    <span className="ml-2 text-[12px] text-sf-muted">
                       {s.classNames.join("・")}
                     </span>
                   )}

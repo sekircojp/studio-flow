@@ -69,7 +69,7 @@ export default async function LocationsPage() {
             <p className="flex items-center gap-2 font-semibold text-sf-ink">
               {loc.name}
               {closed && (
-                <span className="rounded-md bg-sf-ink/8 px-1.5 py-0.5 text-[11px] font-medium text-sf-muted">
+                <span className="rounded-md bg-sf-ink/8 px-1.5 py-0.5 text-[12px] font-medium text-sf-muted">
                   閉鎖
                 </span>
               )}

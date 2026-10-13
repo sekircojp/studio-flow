@@ -47,7 +47,7 @@ export default async function AdminLayout({
 
   return (
     <div
-      className="sf-canvas sf-business flex min-h-full flex-1"
+      className="sf-canvas flex min-h-full flex-1"
       style={brandStyle(brand) as React.CSSProperties | undefined}
     >
       <AdminSidebar

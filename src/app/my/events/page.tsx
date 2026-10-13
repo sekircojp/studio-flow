@@ -121,11 +121,11 @@ export default async function MyEventsPage({
       <li className="rounded-xl border border-sf-border p-4">
         <p className="flex flex-wrap items-center gap-2">
           <span className="text-[15px] font-semibold text-sf-ink">{e.title}</span>
-          <span className="rounded-md bg-sf-ink/8 px-1.5 py-0.5 text-[11px] font-medium text-sf-body">
+          <span className="rounded-md bg-sf-ink/8 px-1.5 py-0.5 text-[12px] font-medium text-sf-body">
             {e.kind === "recital" ? "発表会" : "イベント"}
           </span>
           {canceled && (
-            <span className="rounded-md bg-sf-danger/12 px-1.5 py-0.5 text-[11px] font-medium text-sf-danger">
+            <span className="rounded-md bg-sf-danger/12 px-1.5 py-0.5 text-[12px] font-medium text-sf-danger">
               中止
             </span>
           )}

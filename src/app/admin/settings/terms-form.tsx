@@ -35,7 +35,7 @@ export default function TermsForm({ brand }: { brand: Brand }) {
           }
           className="mt-1 w-full rounded-lg border border-sf-border-strong bg-white px-2.5 py-2 text-[14px] leading-relaxed text-sf-ink outline-none transition focus:border-sf-accent focus:ring-2 focus:ring-sf-accent/20"
         />
-        <p className="mt-1 text-[11px] leading-relaxed text-sf-muted">
+        <p className="mt-1 text-[12px] leading-relaxed text-sf-muted">
           保護者のマイページに、そのまま表示されます。改行はそのまま残ります。
           空にすると、保護者側にも表示されません。
         </p>

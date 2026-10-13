@@ -121,7 +121,7 @@ export function Roster({
               )}
               {save.kind === "saving" && (
                 <span
-                  className="ml-auto flex items-center gap-1 text-[11px] text-sf-muted"
+                  className="ml-auto flex items-center gap-1 text-[12px] text-sf-muted"
                   role="status"
                 >
                   <Loader2 className="size-3 animate-spin" aria-hidden />

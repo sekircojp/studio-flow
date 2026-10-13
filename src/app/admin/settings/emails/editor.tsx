@@ -145,13 +145,13 @@ export function TemplateEditor({ item }: { item: TemplateItem }) {
                 key={p}
                 type="button"
                 onClick={() => insert(`{{${p}}}`)}
-                className="rounded-md border border-sf-border-strong bg-white px-2 py-1 font-mono text-[11px] text-sf-body transition hover:border-sf-accent hover:text-sf-ink"
+                className="rounded-md border border-sf-border-strong bg-white px-2 py-1 font-mono text-[12px] text-sf-body transition hover:border-sf-accent hover:text-sf-ink"
               >
                 {`{{${p}}}`}
               </button>
             ))}
           </div>
-          <p className="mt-2 text-[11px] leading-relaxed text-sf-muted">
+          <p className="mt-2 text-[12px] leading-relaxed text-sf-muted">
             未入力の項目は空になります。差し込みだけの行は、空のときに行ごと
             消えるので、「会場」などが未入力でもラベルだけが残りません。
           </p>
@@ -204,7 +204,7 @@ export function TemplateEditor({ item }: { item: TemplateItem }) {
 
       {preview && (
         <div className="rounded-xl border border-sf-border bg-sf-bg p-4">
-          <p className="text-[11px] font-medium text-sf-muted">
+          <p className="text-[12px] font-medium text-sf-muted">
             見本の値で差し込んだ結果
           </p>
           <p className="mt-2 text-[13px] font-bold text-sf-ink">

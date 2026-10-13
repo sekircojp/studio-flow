@@ -272,11 +272,11 @@ export default function LoginForm({
         {/* 手元で DEV_LOGIN=1 のときだけ出る。本番では描画されない */}
         {devLoginAvailable && step === "email" && (
           <div className="mt-6 rounded-lg border border-dashed border-sf-warn/60 bg-sf-warn/8 p-3">
-            <p className="flex items-center gap-1.5 text-[11px] font-semibold text-sf-warn">
+            <p className="flex items-center gap-1.5 text-[12px] font-semibold text-sf-warn">
               <TriangleAlert className="size-3.5" aria-hidden />
               開発モード
             </p>
-            <p className="mt-1 text-[11px] leading-relaxed text-sf-body">
+            <p className="mt-1 text-[12px] leading-relaxed text-sf-body">
               確認コードを飛ばしてログインします。メールが届かないアドレス
               （講師・保護者のテスト用）の画面を見るためのものです。
             </p>
@@ -291,7 +291,7 @@ export default function LoginForm({
           </div>
         )}
         </Card>
-        <p className="mt-5 text-center text-[11px] text-sf-muted">
+        <p className="mt-5 text-center text-[12px] text-sf-muted">
           メールに届いた6桁のコードで本人確認します。パスワードは不要です。
         </p>
       </div>

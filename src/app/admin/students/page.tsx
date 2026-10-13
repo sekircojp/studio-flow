@@ -35,7 +35,7 @@ const TONE_CLASS: Record<string, string> = {
 export function StatusBadge({ status }: { status: string }) {
   return (
     <span
-      className={`rounded-md px-1.5 py-0.5 text-[11px] font-medium ${
+      className={`rounded-md px-1.5 py-0.5 text-[12px] font-medium ${
         TONE_CLASS[statusTone(status)]
       }`}
     >
@@ -311,7 +311,7 @@ export default async function StudentsPage({
                             {s.name}
                           </span>
                           {s.name_kana && (
-                            <span className="text-[11px] text-sf-muted">
+                            <span className="text-[12px] text-sf-muted">
                               {s.name_kana}
                             </span>
                           )}

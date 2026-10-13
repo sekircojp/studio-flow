@@ -50,7 +50,7 @@ export default async function InstructorsPage() {
           <p className="font-medium text-sf-ink">
             {i.name}
             {i.name_kana && (
-              <span className="ml-2 text-[11px] text-sf-muted">
+              <span className="ml-2 text-[12px] text-sf-muted">
                 {i.name_kana}
               </span>
             )}

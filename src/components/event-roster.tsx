@@ -139,7 +139,7 @@ function ChangeList({ changes }: { changes: EntryChange[] }) {
       {corrections.slice(0, 5).map((c, i) => (
         <li
           key={`${c.at}-${i}`}
-          className="flex flex-wrap items-center gap-x-1.5 text-[11px] text-sf-muted"
+          className="flex flex-wrap items-center gap-x-1.5 text-[12px] text-sf-muted"
         >
           <History className="size-3 shrink-0" aria-hidden />
           <span className="sf-num">{stamp(c.at)}</span>
@@ -151,7 +151,7 @@ function ChangeList({ changes }: { changes: EntryChange[] }) {
         </li>
       ))}
       {corrections.length > 5 && (
-        <li className="text-[11px] text-sf-muted">
+        <li className="text-[12px] text-sf-muted">
           ほか {corrections.length - 5} 件
         </li>
       )}
@@ -215,11 +215,11 @@ export function EventRoster({
                 {e.studentName}
               </span>
               {e.studentKana && (
-                <span className="text-[11px] text-sf-muted">{e.studentKana}</span>
+                <span className="text-[12px] text-sf-muted">{e.studentKana}</span>
               )}
               {/* 未回答はボタンが無いので、状態を文字で見せる */}
               {(current === "invited" || !setStatus) && (
-                <span className="text-[11px] text-sf-muted">
+                <span className="text-[12px] text-sf-muted">
                   {ENTRY_LABEL[current]}
                 </span>
               )}
@@ -227,7 +227,7 @@ export function EventRoster({
 
             {setStatus && (
               <div className="mt-2">
-                <p className="mb-1 text-[11px] font-medium text-sf-muted">参加</p>
+                <p className="mb-1 text-[12px] font-medium text-sf-muted">参加</p>
                 <div className="grid grid-cols-4 gap-2">
                   {ENTRY_OPTIONS.map((o) => {
                     const active = current === o.value;
@@ -254,7 +254,7 @@ export function EventRoster({
             )}
 
             <div className="mt-2.5">
-              <p className="mb-1 text-[11px] font-medium text-sf-muted">
+              <p className="mb-1 text-[12px] font-medium text-sf-muted">
                 当日の出欠
               </p>
               <div className="grid grid-cols-3 gap-2">
@@ -292,7 +292,7 @@ export function EventRoster({
 /** 名簿から外す代わりに「取消」を使う理由を、画面にも短く出しておく */
 export function RosterNote() {
   return (
-    <p className="mt-3 flex items-start gap-1.5 text-[11px] leading-relaxed text-sf-muted">
+    <p className="mt-3 flex items-start gap-1.5 text-[12px] leading-relaxed text-sf-muted">
       <Undo2 className="mt-px size-3.5 shrink-0" aria-hidden />
       名簿から消す操作はありません。出ないことになった生徒は「取消」にして
       ください。誰に声をかけたかが残るので、次の回の名簿を作るときに使えます。

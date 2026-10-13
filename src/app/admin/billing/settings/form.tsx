@@ -55,7 +55,7 @@ export function BillingSettingsForm({ settings }: { settings: BillingSettings })
                 <option value="second_only">2人目のみ</option>
                 <option value="second_and_beyond">2人目以降すべて</option>
               </select>
-              <p className="mt-1 text-[11px] text-sf-muted">
+              <p className="mt-1 text-[12px] text-sf-muted">
                 月謝の高い順に並べ、1人目は割引しません
               </p>
             </div>
@@ -147,7 +147,7 @@ export function BillingSettingsForm({ settings }: { settings: BillingSettings })
               <option value={-1}>翌月分を前月に（7月に8月分）</option>
               <option value={1}>前月分を翌月に（9月に8月分）</option>
             </select>
-            <p className="mt-1 text-[11px] leading-relaxed text-sf-muted">
+            <p className="mt-1 text-[12px] leading-relaxed text-sf-muted">
               ほとんどのスタジオは「当月分」です
             </p>
           </div>
@@ -199,7 +199,7 @@ export function BillingSettingsForm({ settings }: { settings: BillingSettings })
             />
             月末払いにする
           </label>
-          <p className="mt-2 text-[11px] leading-relaxed text-sf-muted">
+          <p className="mt-2 text-[12px] leading-relaxed text-sf-muted">
             日付で指定する場合は28日までです。月ごとに日数が違うので、29〜31日を
             指定すると来ない月ができてしまいます。末日にしたいときは上の
             チェックを使ってください。

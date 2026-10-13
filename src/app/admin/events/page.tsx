@@ -97,12 +97,12 @@ export default async function EventsPage() {
               <span className="text-[15px] font-semibold text-sf-ink">
                 {e.title}
               </span>
-              <span className="rounded-md bg-sf-ink/8 px-1.5 py-0.5 text-[11px] font-medium text-sf-body">
+              <span className="rounded-md bg-sf-ink/8 px-1.5 py-0.5 text-[12px] font-medium text-sf-body">
                 {e.kind === "recital" ? "発表会" : "イベント"}
               </span>
               {e.status !== "planned" && (
                 <span
-                  className={`rounded-md px-1.5 py-0.5 text-[11px] font-medium ${
+                  className={`rounded-md px-1.5 py-0.5 text-[12px] font-medium ${
                     e.status === "canceled"
                       ? "bg-sf-danger/12 text-sf-danger"
                       : "bg-sf-ok/12 text-sf-ok"
@@ -112,7 +112,7 @@ export default async function EventsPage() {
                 </span>
               )}
               {!e.is_public && e.status === "planned" && (
-                <span className="rounded-md bg-sf-warn/14 px-1.5 py-0.5 text-[11px] font-medium text-sf-warn">
+                <span className="rounded-md bg-sf-warn/14 px-1.5 py-0.5 text-[12px] font-medium text-sf-warn">
                   未案内
                 </span>
               )}
