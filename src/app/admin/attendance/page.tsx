@@ -1,17 +1,25 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ChevronRight, Clock, X } from "lucide-react";
+import { ChevronRight, X } from "lucide-react";
 import { requireAdmin } from "@/lib/auth/guards";
 import { createClient } from "@/lib/supabase/server";
 import { formatDateJa, formatShortDateJa, formatTimeJa, todayInTokyo } from "@/lib/date";
-import { Card, EmptyState, SectionHeading, secondaryButtonClass } from "@/components/ui";
+import {
+  Card,
+  DataTable,
+  EmptyState,
+  Pill,
+  SectionHeading,
+  secondaryButtonClass,
+  Td,
+  Th,
+} from "@/components/ui";
 import { LessonFlagBadges } from "@/components/lesson-flags";
 import { fetchLessonFlags } from "@/lib/lessons";
 import {
   fetchAttendanceProgress,
   fetchIncompleteLessons,
   progressLabel,
-  type AttendanceProgress,
 } from "@/lib/attendance";
 import { AttendanceProgressBadge } from "@/components/attendance-progress";
 import { instructorLabel, type InstructorJoin } from "@/lib/instructors";
@@ -151,49 +159,71 @@ async function DateView({
             description="クラスを登録して「レッスンを作る」を押すと、開催日が自動で並びます。休講日として登録した日には作られません。"
           />
         ) : (
-          <ul className="divide-y divide-sf-border rounded-xl border border-sf-border">
-            {lessonList.map((l) => (
-              <li key={l.id}>
-                <Link
-                  href={`/admin/attendance/${l.id}`}
-                  className="flex items-center gap-3 px-4 py-3.5 transition hover:bg-sf-bg"
-                >
-                  <span className="sf-num w-12 shrink-0 text-[14px] font-semibold text-sf-ink">
-                    {formatTimeJa(l.start_at)}
-                  </span>
-                  <span className="min-w-0 flex-1">
-                    <span className="block truncate text-[14px] font-medium text-sf-ink">
-                      {l.classes?.name ?? "（クラス不明）"}
-                    </span>
-                    <span className="mt-0.5 flex flex-wrap items-center gap-x-3 text-[12px] text-sf-muted">
-                      <span className="flex items-center gap-1">
-                        <Clock className="size-3" aria-hidden />
-                        {formatTimeJa(l.start_at)}–{formatTimeJa(l.end_at)}
+          <DataTable>
+            <thead>
+              <tr>
+                <Th>時刻</Th>
+                <Th>クラス</Th>
+                <Th>ルーム</Th>
+                <Th>担当</Th>
+                <Th>連絡・振替</Th>
+                <Th>出欠</Th>
+                <Th>
+                  <span className="sr-only">開く</span>
+                </Th>
+              </tr>
+            </thead>
+            <tbody>
+              {lessonList.map((l) => (
+                <tr key={l.id}>
+                  <Td className="sf-num whitespace-nowrap">
+                    <Link href={`/admin/attendance/${l.id}`} className="block hover:underline">
+                      <span className="block text-[14px] font-semibold text-sf-ink">
+                        {formatTimeJa(l.start_at)}
                       </span>
-                      {l.rooms?.name && <span>{l.rooms.name}</span>}
-                      {instructorLabel(l.lesson_instructors) && (
-                        <span>{instructorLabel(l.lesson_instructors)}</span>
-                      )}
-                    </span>
-                  </span>
-
-                  <LessonFlagBadges flags={flags.get(l.id)} />
-
-                  {l.status === "canceled" ? (
-                    <span className="shrink-0 rounded-md bg-sf-danger/10 px-2 py-1 text-[12px] font-medium text-sf-danger">
-                      休講
-                    </span>
-                  ) : (
-                    <AttendanceProgressBadge
-                      progress={progress.get(l.id) ?? { total: 0, recorded: 0 }}
-                      ended={l.end_at < now}
-                    />
-                  )}
-                  <ChevronRight className="size-4 shrink-0 text-sf-muted" aria-hidden />
-                </Link>
-              </li>
-            ))}
-          </ul>
+                      <span className="block text-[12px] text-sf-muted">
+                        –{formatTimeJa(l.end_at)}
+                      </span>
+                    </Link>
+                  </Td>
+                  <Td>
+                    <Link
+                      href={`/admin/attendance/${l.id}`}
+                      className="block text-[14px] font-semibold text-sf-ink hover:underline"
+                    >
+                      {l.classes?.name ?? "（クラス不明）"}
+                    </Link>
+                  </Td>
+                  <Td className="text-sf-body">{l.rooms?.name ?? "—"}</Td>
+                  <Td className="text-sf-body">
+                    {instructorLabel(l.lesson_instructors) ?? "—"}
+                  </Td>
+                  <Td>
+                    <LessonFlagBadges flags={flags.get(l.id)} />
+                  </Td>
+                  <Td>
+                    {l.status === "canceled" ? (
+                      <Pill tone="danger">休講</Pill>
+                    ) : (
+                      <AttendanceProgressBadge
+                        progress={progress.get(l.id) ?? { total: 0, recorded: 0 }}
+                        ended={l.end_at < now}
+                      />
+                    )}
+                  </Td>
+                  <Td align="right">
+                    <Link
+                      href={`/admin/attendance/${l.id}`}
+                      aria-label="名簿を開く"
+                      className="inline-flex size-8 items-center justify-center rounded-full text-sf-muted transition hover:bg-sf-bg hover:text-sf-ink"
+                    >
+                      <ChevronRight className="size-4" aria-hidden />
+                    </Link>
+                  </Td>
+                </tr>
+              ))}
+            </tbody>
+          </DataTable>
         )}
       </div>
     </Card>
@@ -228,40 +258,57 @@ async function IncompleteView({ supabase, orgId }: { supabase: Db; orgId: string
             description="終わった回はすべて入力が済んでいます。"
           />
         ) : (
-          <ul className="divide-y divide-sf-border rounded-xl border border-sf-border">
-            {items.map((l) => (
-              <li key={l.id}>
-                <Link
-                  href={`/admin/attendance/${l.id}`}
-                  className="flex items-center gap-3 px-4 py-3.5 transition hover:bg-sf-bg"
-                >
-                  <span className="sf-num w-24 shrink-0">
-                    <span className="block text-[12px] text-sf-muted">
-                      {formatShortDateJa(l.date)}
-                    </span>
-                    <span className="block text-[14px] font-semibold text-sf-ink">
-                      {formatTimeJa(l.start_at)}
-                    </span>
-                  </span>
-                  <span className="min-w-0 flex-1 truncate text-[14px] font-medium text-sf-ink">
-                    {l.className}
-                  </span>
-                  <ProgressChip progress={l.progress} />
-                  <ChevronRight className="size-4 shrink-0 text-sf-muted" aria-hidden />
-                </Link>
-              </li>
-            ))}
-          </ul>
+          <DataTable>
+            <thead>
+              <tr>
+                <Th>日付</Th>
+                <Th>時刻</Th>
+                <Th>クラス</Th>
+                <Th>入力状況</Th>
+                <Th>
+                  <span className="sr-only">開く</span>
+                </Th>
+              </tr>
+            </thead>
+            <tbody>
+              {items.map((l) => (
+                <tr key={l.id}>
+                  <Td className="sf-num whitespace-nowrap text-sf-body">
+                    {formatShortDateJa(l.date)}
+                  </Td>
+                  <Td className="sf-num whitespace-nowrap text-[14px] font-semibold text-sf-ink">
+                    {formatTimeJa(l.start_at)}
+                  </Td>
+                  <Td>
+                    <Link
+                      href={`/admin/attendance/${l.id}`}
+                      className="block text-[14px] font-semibold text-sf-ink hover:underline"
+                    >
+                      {l.className}
+                    </Link>
+                  </Td>
+                  <Td>
+                    <Pill tone="warn">
+                      {l.progress.recorded === 0
+                        ? `未入力 ${l.progress.total} 名`
+                        : progressLabel(l.progress)}
+                    </Pill>
+                  </Td>
+                  <Td align="right">
+                    <Link
+                      href={`/admin/attendance/${l.id}`}
+                      aria-label="名簿を開く"
+                      className="inline-flex size-8 items-center justify-center rounded-full text-sf-muted transition hover:bg-sf-bg hover:text-sf-ink"
+                    >
+                      <ChevronRight className="size-4" aria-hidden />
+                    </Link>
+                  </Td>
+                </tr>
+              ))}
+            </tbody>
+          </DataTable>
         )}
       </div>
     </Card>
-  );
-}
-
-function ProgressChip({ progress }: { progress: AttendanceProgress }) {
-  return (
-    <span className="sf-num shrink-0 rounded-md bg-sf-warn/14 px-2 py-1 text-[12px] font-medium text-sf-warn">
-      {progress.recorded === 0 ? `未入力 ${progress.total} 名` : progressLabel(progress)}
-    </span>
   );
 }

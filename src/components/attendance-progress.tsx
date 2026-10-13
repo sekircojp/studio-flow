@@ -1,3 +1,4 @@
+import { Pill } from "@/components/ui";
 import {
   progressLabel,
   progressState,
@@ -5,7 +6,7 @@ import {
 } from "@/lib/attendance";
 
 /**
- * 出欠の入力の進み具合を示す小さな札
+ * 出欠の入力の進み具合を示す札
  *
  *   未入力（終わった回なら注意色） / 入力中 / 完了 / 対象なし
  * 色だけで伝えず、必ず文字を出す。数え方は lib/attendance に1つ。
@@ -19,30 +20,14 @@ export function AttendanceProgressBadge({
   ended: boolean;
 }) {
   const state = progressState(progress);
-  const base = "shrink-0 rounded-md px-2 py-1 text-[12px] font-medium";
-
-  if (state === "empty") {
-    return <span className={`${base} bg-sf-ink/6 text-sf-muted`}>対象なし</span>;
-  }
-  if (state === "done") {
-    return (
-      <span className={`${base} bg-sf-ok/12 text-sf-ok`}>
-        {progressLabel(progress)}
-      </span>
-    );
-  }
+  if (state === "empty") return <Pill tone="muted">対象なし</Pill>;
+  if (state === "done") return <Pill tone="ok">{progressLabel(progress)}</Pill>;
   if (state === "none") {
     return (
-      <span
-        className={`${base} ${ended ? "bg-sf-warn/14 text-sf-warn" : "bg-sf-ink/6 text-sf-body"}`}
-      >
+      <Pill tone={ended ? "warn" : "neutral"}>
         未入力{ended ? "" : ` ${progress.total} 名`}
-      </span>
+      </Pill>
     );
   }
-  return (
-    <span className={`${base} ${ended ? "bg-sf-warn/14 text-sf-warn" : "bg-sf-accent/12 text-sf-accent"}`}>
-      {progressLabel(progress)}
-    </span>
-  );
+  return <Pill tone={ended ? "warn" : "info"}>{progressLabel(progress)}</Pill>;
 }

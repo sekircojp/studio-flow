@@ -167,3 +167,112 @@ export const primaryButtonClass =
 
 export const secondaryButtonClass =
   "inline-flex items-center justify-center gap-1.5 rounded-xl border border-sf-border-strong/90 bg-white px-3 py-1.5 text-[13px] font-medium text-sf-body shadow-[0_1px_2px_rgba(23,28,53,0.05)] transition duration-150 hover:border-sf-muted hover:text-sf-ink active:translate-y-px focus-visible:sf-ring disabled:pointer-events-none disabled:opacity-40";
+
+/**
+ * 見出し付きの表（2026-10-13）
+ *
+ * 一覧は、行ごとに情報を詰め込んだカードではなく、列の揃った表にする。
+ * 一覧性が高く、金額や状態を縦に比べられる。狭い幅では横にスクロールする
+ * （列を落として情報を隠すより、そのまま見せる）。
+ *
+ *   <DataTable>
+ *     <thead><tr><Th>生徒</Th>…</tr></thead>
+ *     <tbody><tr><Td>…</Td></tr></tbody>
+ *   </DataTable>
+ */
+export function DataTable({
+  children,
+  className = "",
+}: {
+  children: React.ReactNode;
+  className?: string;
+}) {
+  return (
+    <div className={`overflow-x-auto rounded-xl border border-sf-border ${className}`}>
+      <table className="w-full border-collapse text-[13px] [&_tbody_tr:last-child>td]:border-b-0 [&_tbody_tr]:transition [&_tbody_tr:hover]:bg-sf-bg/70">
+        {children}
+      </table>
+    </div>
+  );
+}
+
+export function Th({
+  children,
+  align = "left",
+  className = "",
+}: {
+  children?: React.ReactNode;
+  align?: "left" | "right" | "center";
+  className?: string;
+}) {
+  const al = align === "right" ? "text-right" : align === "center" ? "text-center" : "text-left";
+  return (
+    <th
+      scope="col"
+      className={`whitespace-nowrap border-b border-sf-border bg-sf-bg/80 px-4 py-2.5 text-[12px] font-semibold text-sf-body ${al} ${className}`}
+    >
+      {children}
+    </th>
+  );
+}
+
+export function Td({
+  children,
+  align = "left",
+  className = "",
+  colSpan,
+}: {
+  children?: React.ReactNode;
+  align?: "left" | "right" | "center";
+  className?: string;
+  colSpan?: number;
+}) {
+  const al = align === "right" ? "text-right" : align === "center" ? "text-center" : "text-left";
+  return (
+    <td
+      colSpan={colSpan}
+      className={`border-b border-sf-border px-4 py-3 align-middle ${al} ${className}`}
+    >
+      {children}
+    </td>
+  );
+}
+
+/**
+ * 状態の札
+ *
+ * 小さな文字の帯ではなく、点と太字で読める大きさにする。色だけで伝えず、
+ * 必ず文字を持つ。tone は意味で選ぶ（ok 正常 / warn 注意 / danger 問題 /
+ * info 進行中 / muted 終了・対象外 / neutral その他）。
+ */
+export type PillTone = "ok" | "warn" | "danger" | "info" | "muted" | "neutral";
+
+const PILL_TONES: Record<PillTone, string> = {
+  ok: "bg-sf-ok/12 text-sf-ok",
+  warn: "bg-sf-warn/16 text-sf-warn",
+  danger: "bg-sf-danger/12 text-sf-danger",
+  info: "bg-sf-accent/12 text-sf-accent",
+  muted: "bg-sf-ink/6 text-sf-muted",
+  neutral: "bg-sf-ink/8 text-sf-body",
+};
+
+export function Pill({
+  tone = "neutral",
+  children,
+  dot = true,
+  className = "",
+}: {
+  tone?: PillTone;
+  children: React.ReactNode;
+  dot?: boolean;
+  className?: string;
+}) {
+  return (
+    <span
+      className={`inline-flex items-center gap-1.5 whitespace-nowrap rounded-md px-2.5 py-1 text-[12px] font-semibold leading-none ${PILL_TONES[tone]} ${className}`}
+    >
+      {dot && <span className="size-1.5 shrink-0 rounded-full bg-current" aria-hidden />}
+      {children}
+    </span>
+  );
+}

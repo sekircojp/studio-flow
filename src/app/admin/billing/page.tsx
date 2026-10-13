@@ -21,31 +21,24 @@ import {
 } from "./forms";
 import {
   Card,
+  DataTable,
   EmptyState,
-  SectionHeading,
   Hero,
+  Pill,
+  SectionHeading,
   secondaryButtonClass,
+  Td,
+  Th,
+  type PillTone,
 } from "@/components/ui";
 
 export const metadata: Metadata = { title: "月謝・請求" };
 
-const TONE_CLASS: Record<string, string> = {
-  ok: "bg-sf-ok/12 text-sf-ok",
-  info: "bg-sf-accent/12 text-sf-accent",
-  warn: "bg-sf-warn/14 text-sf-warn",
-  danger: "bg-sf-danger/12 text-sf-danger",
-  muted: "bg-sf-ink/8 text-sf-muted",
-};
-
 export function InvoiceBadge({ status }: { status: string }) {
   return (
-    <span
-      className={`rounded-md px-1.5 py-0.5 text-[12px] font-medium ${
-        TONE_CLASS[invoiceStatusTone(status)]
-      }`}
-    >
+    <Pill tone={invoiceStatusTone(status) as PillTone}>
       {invoiceStatusLabel(status)}
-    </span>
+    </Pill>
   );
 }
 
@@ -333,12 +326,9 @@ export default async function BillingPage({
         {byStatus.length > 0 && (
           <p className="mt-3 flex flex-wrap gap-2 text-[12px]">
             {byStatus.map((s) => (
-              <span
-                key={s.value}
-                className={`rounded-md px-1.5 py-0.5 font-medium ${TONE_CLASS[s.tone]}`}
-              >
+              <Pill key={s.value} tone={s.tone as PillTone}>
                 {s.label} {s.count}
-              </span>
+              </Pill>
             ))}
           </p>
         )}
@@ -357,97 +347,116 @@ export default async function BillingPage({
               />
             )
           ) : (
-            <ul className="divide-y divide-sf-border rounded-xl border border-sf-border">
-              {invoiceList.map((i) => {
-                const paid = paidOf(i.id);
-                const remaining = Math.max(i.total - paid, 0);
-                const canceled = i.status === "canceled";
+            <DataTable>
+              <thead>
+                <tr>
+                  <Th>生徒</Th>
+                  {carried && <Th>対象月</Th>}
+                  <Th>状態</Th>
+                  <Th align="right">請求額</Th>
+                  <Th align="right">入金</Th>
+                  <Th align="right">残額</Th>
+                  <Th>支払期限</Th>
+                  <Th align="right">操作</Th>
+                </tr>
+              </thead>
+              <tbody>
+                {invoiceList.map((i) => {
+                  const paid = paidOf(i.id);
+                  const remaining = Math.max(i.total - paid, 0);
+                  const canceled = i.status === "canceled";
+                  const overdueRow =
+                    !canceled && i.due_date !== null && i.due_date < today && remaining > 0;
+                  const name = i.students?.name ?? "（生徒不明）";
 
-                return (
-                  <li
-                    key={i.id}
-                    className={`px-4 py-3 ${canceled ? "opacity-60" : ""}`}
-                  >
-                    <div className="flex flex-wrap items-center gap-3">
-                      <span className="min-w-0 flex-1">
-                        <span className="flex flex-wrap items-center gap-2">
-                          <span className="font-medium text-sf-ink">
-                            {i.students?.name ?? "（生徒不明）"}
+                  return (
+                    <tr key={i.id} className={canceled ? "opacity-60" : ""}>
+                      <Td>
+                        <span className="block text-[14px] font-semibold text-sf-ink">{name}</span>
+                        {i.discount_total > 0 && (
+                          <span className="sf-num block text-[12px] text-sf-muted">
+                            割引 {formatYen(i.discount_total)}
                           </span>
-                          <InvoiceBadge status={i.status} />
-                          {carried && (
-                            <span className="sf-num text-[12px] text-sf-muted">
-                              {billingMonthLabel(i.billing_month)}分
-                            </span>
-                          )}
-                          {!canceled &&
-                            i.due_date !== null &&
-                            i.due_date < today &&
-                            remaining > 0 && (
-                              <span className="sf-num rounded-md bg-sf-warn/14 px-1.5 py-0.5 text-[12px] font-medium text-sf-warn">
-                                期限 {formatShortDateJa(i.due_date)} 超過
-                              </span>
-                            )}
-                        </span>
-                        <span className="sf-num mt-0.5 block text-[12px] text-sf-muted">
-                          請求 {formatYen(i.total)}
-                          {i.discount_total > 0 &&
-                            `（割引 ${formatYen(i.discount_total)}）`}
-                          {" ・ 内消費税 "}
-                          {formatYen(i.tax_amount)}
-                          {paid > 0 && ` ・ 入金 ${formatYen(paid)}`}
-                          {remaining > 0 && !canceled && (
-                            <span className="text-sf-warn">
-                              {" ・ 残 "}
-                              {formatYen(remaining)}
-                            </span>
-                          )}
-                        </span>
+                        )}
                         {canceled && i.cancel_reason && (
-                          <span className="mt-0.5 block text-[12px] text-sf-muted">
+                          <span className="block text-[12px] text-sf-muted">
                             取消理由: {i.cancel_reason}
                           </span>
                         )}
-                      </span>
-
-                      {!canceled && (
-                        <span className="flex items-center gap-2 text-[12px]">
-                          <Link
-                            href={`/print/invoices/${i.id}`}
-                            target="_blank"
-                            className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-sf-muted transition hover:bg-sf-bg hover:text-sf-ink"
-                          >
-                            <FileText className="size-3.5" aria-hidden />
-                            請求書
-                          </Link>
-                          {/* 入金前でも刷れる。当日に手渡すため（設計書 10.6） */}
-                          <Link
-                            href={`/print/invoices/${i.id}?doc=receipt`}
-                            target="_blank"
-                            className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-sf-muted transition hover:bg-sf-bg hover:text-sf-ink"
-                          >
-                            <ReceiptText className="size-3.5" aria-hidden />
-                            領収書
-                          </Link>
+                      </Td>
+                      {carried && (
+                        <Td className="sf-num whitespace-nowrap text-sf-body">
+                          {billingMonthLabel(i.billing_month)}
+                        </Td>
+                      )}
+                      <Td>
+                        <span className="flex flex-wrap items-center gap-1.5">
+                          <InvoiceBadge status={i.status} />
+                          {overdueRow && <Pill tone="danger">期限超過</Pill>}
                         </span>
-                      )}
-
-                      {!canceled && remaining > 0 && (
-                        <PaymentForm
-                          invoiceId={i.id}
-                          remaining={remaining}
-                          today={today}
-                        />
-                      )}
-                      {/* 入金済みの請求は編集不可。取消＋返金で対応する（設計書 5.6） */}
-                      {!canceled && paid === 0 && (
-                        <CancelInvoiceForm invoiceId={i.id} />
-                      )}
-                    </div>
-                  </li>
-                );
-              })}
-            </ul>
+                      </Td>
+                      <Td align="right" className="sf-num whitespace-nowrap text-sf-ink">
+                        {formatYen(i.total)}
+                        <span className="block text-[12px] font-normal text-sf-muted">
+                          内消費税 {formatYen(i.tax_amount)}
+                        </span>
+                      </Td>
+                      <Td align="right" className="sf-num whitespace-nowrap text-sf-body">
+                        {paid > 0 ? formatYen(paid) : "—"}
+                      </Td>
+                      <Td
+                        align="right"
+                        className={`sf-num whitespace-nowrap text-[14px] font-bold ${
+                          canceled ? "text-sf-muted" : remaining > 0 ? "text-sf-warn" : "text-sf-ok"
+                        }`}
+                      >
+                        {canceled ? "—" : formatYen(remaining)}
+                      </Td>
+                      <Td className={`sf-num whitespace-nowrap ${overdueRow ? "font-semibold text-sf-danger" : "text-sf-body"}`}>
+                        {i.due_date ? formatShortDateJa(i.due_date) : "—"}
+                      </Td>
+                      <Td align="right">
+                        {!canceled && (
+                          <span className="flex items-center justify-end gap-1">
+                            {remaining > 0 && (
+                              <PaymentForm
+                                invoiceId={i.id}
+                                studentName={name}
+                                remaining={remaining}
+                                today={today}
+                              />
+                            )}
+                            <Link
+                              href={`/print/invoices/${i.id}`}
+                              target="_blank"
+                              title="請求書を印刷"
+                              className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-[12px] text-sf-muted transition hover:bg-sf-bg hover:text-sf-ink"
+                            >
+                              <FileText className="size-3.5" aria-hidden />
+                              請求書
+                            </Link>
+                            {/* 入金前でも刷れる。当日に手渡すため（設計書 10.6） */}
+                            <Link
+                              href={`/print/invoices/${i.id}?doc=receipt`}
+                              target="_blank"
+                              title="領収書を印刷"
+                              className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-[12px] text-sf-muted transition hover:bg-sf-bg hover:text-sf-ink"
+                            >
+                              <ReceiptText className="size-3.5" aria-hidden />
+                              領収書
+                            </Link>
+                            {/* 入金済みの請求は編集不可。取消＋返金で対応する（設計書 5.6） */}
+                            {paid === 0 && (
+                              <CancelInvoiceForm invoiceId={i.id} studentName={name} />
+                            )}
+                          </span>
+                        )}
+                      </Td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </DataTable>
           )}
         </div>
       </Card>

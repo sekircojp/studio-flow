@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ChevronRight, FileUp, Inbox, Search, Sparkles, Users, X } from "lucide-react";
+import { ChevronRight, FileUp, Inbox, Search, Sparkles, X } from "lucide-react";
 import { requireAdmin } from "@/lib/auth/guards";
 import { createClient } from "@/lib/supabase/server";
 import { ageFrom, STUDENT_STATUSES, statusLabel, statusTone } from "@/lib/students";
@@ -8,9 +8,14 @@ import { todayInTokyo } from "@/lib/date";
 import { AddStudentPanel } from "./forms";
 import {
   Card,
+  DataTable,
   EmptyState,
+  Pill,
   SectionHeading,
   secondaryButtonClass,
+  Td,
+  Th,
+  type PillTone,
 } from "@/components/ui";
 
 export const metadata: Metadata = { title: "生徒・保護者" };
@@ -25,23 +30,8 @@ type Student = {
   household_id: string;
 };
 
-const TONE_CLASS: Record<string, string> = {
-  ok: "bg-sf-ok/12 text-sf-ok",
-  info: "bg-sf-accent/12 text-sf-accent",
-  warn: "bg-sf-warn/14 text-sf-warn",
-  muted: "bg-sf-ink/8 text-sf-muted",
-};
-
 export function StatusBadge({ status }: { status: string }) {
-  return (
-    <span
-      className={`rounded-md px-1.5 py-0.5 text-[12px] font-medium ${
-        TONE_CLASS[statusTone(status)]
-      }`}
-    >
-      {statusLabel(status)}
-    </span>
-  );
+  return <Pill tone={statusTone(status) as PillTone}>{statusLabel(status)}</Pill>;
 }
 
 /**
@@ -289,59 +279,65 @@ export default async function StudentsPage({
               />
             )
           ) : (
-            <ul className="divide-y divide-sf-border rounded-xl border border-sf-border">
-              {studentList.map((s) => {
-                const household = householdList.find(
-                  (h) => h.id === s.household_id,
-                );
-                const familyGuardians = guardianList.filter(
-                  (g) => g.household_id === s.household_id,
-                );
-                const age = ageFrom(s.birth_date);
+            <DataTable>
+              <thead>
+                <tr>
+                  <Th>生徒</Th>
+                  <Th>状態</Th>
+                  <Th>年齢・学年</Th>
+                  <Th>世帯</Th>
+                  <Th>保護者</Th>
+                  <Th>
+                    <span className="sr-only">開く</span>
+                  </Th>
+                </tr>
+              </thead>
+              <tbody>
+                {studentList.map((s) => {
+                  const household = householdList.find((h) => h.id === s.household_id);
+                  const familyGuardians = guardianList.filter(
+                    (g) => g.household_id === s.household_id,
+                  );
+                  const age = ageFrom(s.birth_date);
+                  const href = `/admin/students/${s.id}${back ? `?back=${encodeURIComponent(back)}` : ""}`;
 
-                return (
-                  <li key={s.id}>
-                    <Link
-                      href={`/admin/students/${s.id}${back ? `?back=${encodeURIComponent(back)}` : ""}`}
-                      className="flex items-center gap-3 px-4 py-3 transition hover:bg-sf-bg"
-                    >
-                      <div className="min-w-0 flex-1">
-                        <p className="flex flex-wrap items-center gap-2">
-                          <span className="font-medium text-sf-ink">
-                            {s.name}
-                          </span>
+                  return (
+                    <tr key={s.id}>
+                      <Td>
+                        <Link href={href} className="block hover:underline">
+                          <span className="block text-[14px] font-semibold text-sf-ink">{s.name}</span>
                           {s.name_kana && (
-                            <span className="text-[12px] text-sf-muted">
-                              {s.name_kana}
-                            </span>
+                            <span className="block text-[12px] text-sf-muted">{s.name_kana}</span>
                           )}
-                          <StatusBadge status={s.status} />
-                        </p>
-                        <p className="mt-0.5 flex flex-wrap items-center gap-x-3 text-[12px] text-sf-muted">
-                          {age !== null && <span>{age}歳</span>}
-                          {s.grade && <span>{s.grade}</span>}
-                          {household && (
-                            <span className="flex items-center gap-1">
-                              <Users className="size-3" aria-hidden />
-                              {household.name}
-                            </span>
-                          )}
-                          {familyGuardians.length > 0 && (
-                            <span>
-                              保護者 {familyGuardians.map((g) => g.name).join("・")}
-                            </span>
-                          )}
-                        </p>
-                      </div>
-                      <ChevronRight
-                        className="size-4 shrink-0 text-sf-muted"
-                        aria-hidden
-                      />
-                    </Link>
-                  </li>
-                );
-              })}
-            </ul>
+                        </Link>
+                      </Td>
+                      <Td>
+                        <StatusBadge status={s.status} />
+                      </Td>
+                      <Td className="whitespace-nowrap text-sf-body">
+                        {age !== null ? `${age}歳` : "—"}
+                        {s.grade && <span className="ml-1.5">{s.grade}</span>}
+                      </Td>
+                      <Td className="text-sf-body">{household?.name ?? "—"}</Td>
+                      <Td className="text-sf-body">
+                        {familyGuardians.length > 0
+                          ? familyGuardians.map((g) => g.name).join("・")
+                          : "—"}
+                      </Td>
+                      <Td align="right">
+                        <Link
+                          href={href}
+                          aria-label={`${s.name} を開く`}
+                          className="inline-flex size-8 items-center justify-center rounded-full text-sf-muted transition hover:bg-sf-bg hover:text-sf-ink"
+                        >
+                          <ChevronRight className="size-4" aria-hidden />
+                        </Link>
+                      </Td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </DataTable>
           )}
         </div>
       </Card>
