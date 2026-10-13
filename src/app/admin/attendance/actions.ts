@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { requireAdmin } from "@/lib/auth/guards";
 import { createClient } from "@/lib/supabase/server";
+import type { AttendanceResult } from "@/components/roster";
 
 export type AttendanceState = { ok?: boolean; error?: string };
 
@@ -17,14 +18,19 @@ export type AttendanceStatus = (typeof STATUSES)[number];
  *
  * unconfirmed 以外を入れると、DB のトリガが lessons.has_attendance_record を
  * 立てる。これによりレッスンの作り直しでこの回が消えなくなる（設計書 5.1）。
+ *
+ * 結果は必ず返す。黙って失敗すると、画面だけ変わって DB に入っていない
+ * 状態に押した人が気づけない（名簿側で「保存できませんでした」を出す）。
  */
 export async function recordAttendance(
   lessonId: string,
   studentId: string,
   status: AttendanceStatus,
-) {
+): Promise<AttendanceResult> {
   const { membership, userId } = await requireAdmin();
-  if (!STATUSES.includes(status)) return;
+  if (!STATUSES.includes(status)) {
+    return { ok: false, error: "出欠の値が正しくありません。" };
+  }
 
   const supabase = await createClient();
   const orgId = membership.organizationId;
@@ -44,7 +50,9 @@ export async function recordAttendance(
       .eq("organization_id", orgId)
       .maybeSingle(),
   ]);
-  if (!lesson || !student) return;
+  if (!lesson || !student) {
+    return { ok: false, error: "そのレッスンか生徒が見つかりませんでした。" };
+  }
 
   const { error } = await supabase.from("attendances").upsert(
     {
@@ -58,9 +66,14 @@ export async function recordAttendance(
     { onConflict: "lesson_id,student_id" },
   );
 
-  if (error) console.error("出欠の記録に失敗しました", error);
+  if (error) {
+    console.error("出欠の記録に失敗しました", error);
+    return { ok: false, error: "時間をおいてもう一度お試しください。" };
+  }
   revalidatePath(`/admin/attendance/${lessonId}`);
   revalidatePath("/admin/attendance");
+  revalidatePath("/admin");
+  return { ok: true };
 }
 
 /**

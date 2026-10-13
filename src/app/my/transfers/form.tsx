@@ -1,21 +1,46 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useState } from "react";
 import { Loader2, Send } from "lucide-react";
 import { submitMyAbsence, type MyAbsenceState } from "./actions";
 import { fieldClass, labelClass, primaryButtonClass } from "@/components/ui";
 
+type LessonOption = {
+  id: string;
+  label: string;
+  date: string;
+  time: string;
+  className: string;
+};
+
+/**
+ * 欠席連絡のフォーム
+ *
+ * 予定一覧の「欠席を連絡」から来たときは、その回を選択済みにする
+ * （preselected）。送る前に「誰の・いつの・どのクラス」を文章で見せ、
+ * 兄弟や回の取り違えに気づけるようにする。
+ */
 export function AbsenceRequestForm({
   studentId,
+  studentName,
   lessons,
+  preselected,
 }: {
   studentId: string;
-  lessons: { id: string; label: string }[];
+  studentName: string;
+  lessons: LessonOption[];
+  preselected?: string;
 }) {
   const [state, action, pending] = useActionState<MyAbsenceState, FormData>(
     submitMyAbsence,
     {},
   );
+  const initial =
+    preselected && lessons.some((l) => l.id === preselected)
+      ? preselected
+      : (lessons[0]?.id ?? "");
+  const [lessonId, setLessonId] = useState(initial);
+  const selected = lessons.find((l) => l.id === lessonId);
 
   if (lessons.length === 0) {
     return (
@@ -32,7 +57,14 @@ export function AbsenceRequestForm({
         <label htmlFor="my-lesson" className={labelClass}>
           休む回
         </label>
-        <select id="my-lesson" name="lesson_id" required className={fieldClass}>
+        <select
+          id="my-lesson"
+          name="lesson_id"
+          required
+          value={lessonId}
+          onChange={(e) => setLessonId(e.target.value)}
+          className={fieldClass}
+        >
           {lessons.map((l) => (
             <option key={l.id} value={l.id}>
               {l.label}
@@ -51,6 +83,24 @@ export function AbsenceRequestForm({
           className={fieldClass}
         />
       </div>
+
+      {selected && (
+        <p className="rounded-xl bg-sf-bg px-4 py-3 text-[13px] leading-relaxed text-sf-ink">
+          <span className="font-semibold">{studentName}</span> さんの
+          <span className="sf-num font-semibold">
+            {" "}
+            {selected.date} {selected.time}
+          </span>
+          {selected.className && (
+            <>
+              {" "}
+              <span className="font-semibold">{selected.className}</span>
+            </>
+          )}{" "}
+          を欠席として連絡します。
+        </p>
+      )}
+
       <button
         type="submit"
         disabled={pending}

@@ -1,5 +1,6 @@
 import { LogOut } from "lucide-react";
 import { BrandLockup } from "@/components/brand-mark";
+import { AdminMobileNav } from "@/components/admin-mobile-nav";
 import { signOut } from "@/app/actions/auth";
 import type { Brand } from "@/lib/brand";
 
@@ -12,6 +13,8 @@ import type { Brand } from "@/lib/brand";
  * スクロールしても上に残る。帯は半透明にぼかしを重ね（sf-glass）、
  * 下を通る内容がうっすら透けるようにする。塗りつぶすと帯の下で
  * 内容が「切れて」見える。
+ *
+ * 狭い幅ではサイドバーが隠れるので、左端のボタンから開閉メニューを出す。
  */
 export function AdminTopBar({
   brand,
@@ -26,7 +29,8 @@ export function AdminTopBar({
   const initial = (email ?? "?").slice(0, 1).toUpperCase();
 
   return (
-    <header className="sf-glass sticky top-0 z-20 flex items-center gap-3 border-b border-sf-border/70 px-5 py-3 sm:px-8">
+    <header className="sf-glass sticky top-0 z-20 flex items-center gap-3 border-b border-sf-border/70 px-4 py-3 sm:px-8">
+      <AdminMobileNav brand={brand} />
       <BrandLockup
         brand={brand}
         size={26}
@@ -47,7 +51,7 @@ export function AdminTopBar({
             <span className="block text-[12px] font-semibold text-sf-ink">
               {roleLabel}
             </span>
-            <span className="block max-w-[180px] truncate text-[10.5px] text-sf-muted">
+            <span className="block max-w-[180px] truncate text-[11px] text-sf-muted">
               {email}
             </span>
           </span>

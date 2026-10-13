@@ -4,9 +4,56 @@ import { useActionState, useState } from "react";
 import { Loader2, Plus } from "lucide-react";
 import { createStudent, type StudentState } from "./actions";
 import { STUDENT_STATUSES } from "@/lib/students";
-import { fieldClass, labelClass, primaryButtonClass } from "@/components/ui";
+import {
+  Card,
+  fieldClass,
+  labelClass,
+  primaryButtonClass,
+  secondaryButtonClass,
+} from "@/components/ui";
+import { X } from "lucide-react";
 
 const NEW_HOUSEHOLD = "__new__";
+
+/**
+ * 「生徒を追加」で開く登録欄
+ *
+ * 一覧の下に常に置くと、生徒が増えるほど遠くなる。上に置いて、押したときだけ
+ * 開く。登録できたら閉じる（続けて兄弟を入れるときはもう一度押す）。
+ */
+export function AddStudentPanel({
+  households,
+}: {
+  households: { id: string; name: string }[];
+}) {
+  const [open, setOpen] = useState(false);
+
+  if (!open) {
+    return (
+      <div>
+        <button type="button" onClick={() => setOpen(true)} className={primaryButtonClass}>
+          <Plus className="size-4" aria-hidden />
+          生徒を追加
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <Card className="border-sf-accent/30 p-5">
+      <div className="flex items-center justify-between gap-3">
+        <h2 className="text-[15px] font-bold text-sf-ink">生徒を追加</h2>
+        <button type="button" onClick={() => setOpen(false)} className={secondaryButtonClass}>
+          <X className="size-3.5" aria-hidden />
+          閉じる
+        </button>
+      </div>
+      <div className="mt-4">
+        <StudentForm households={households} onDone={() => setOpen(false)} />
+      </div>
+    </Card>
+  );
+}
 
 /**
  * 生徒の登録フォーム
@@ -17,13 +64,21 @@ const NEW_HOUSEHOLD = "__new__";
  */
 export function StudentForm({
   households,
+  onDone,
 }: {
   households: { id: string; name: string }[];
+  /** 登録できたときに呼ぶ（開いていた欄を閉じるため） */
+  onDone?: () => void;
 }) {
   const [state, action, pending] = useActionState<StudentState, FormData>(
     createStudent,
     {},
   );
+  const [lastOk, setLastOk] = useState(state.ok);
+  if (state.ok !== lastOk) {
+    setLastOk(state.ok);
+    if (state.ok) onDone?.();
+  }
   const [householdId, setHouseholdId] = useState(
     households.length > 0 ? households[0].id : NEW_HOUSEHOLD,
   );

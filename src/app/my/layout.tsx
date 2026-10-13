@@ -1,5 +1,6 @@
 import { requireMy } from "@/lib/auth/my";
 import { getBrand } from "@/lib/brand.server";
+import { brandStyle } from "@/lib/brand";
 import { BrandLockup } from "@/components/brand-mark";
 import { BottomNav } from "@/components/bottom-nav";
 import { signOut } from "@/app/actions/auth";
@@ -24,11 +25,7 @@ export default async function MyLayout({
   return (
     <div
       className="sf-canvas flex min-h-full flex-1 flex-col"
-      style={
-        brand.brandColor
-          ? ({ "--sf-accent": brand.brandColor } as React.CSSProperties)
-          : undefined
-      }
+      style={brandStyle(brand) as React.CSSProperties | undefined}
     >
       <header className="sf-glass sticky top-0 z-20 border-b border-sf-border/70">
         <div className="mx-auto flex max-w-2xl items-center gap-2.5 px-4 py-3">

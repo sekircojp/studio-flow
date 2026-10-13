@@ -1,5 +1,6 @@
 import { requireAdmin } from "@/lib/auth/guards";
 import { getBrand } from "@/lib/brand.server";
+import { brandStyle } from "@/lib/brand";
 import { createClient } from "@/lib/supabase/server";
 import { AdminSidebar } from "@/components/admin-sidebar";
 import { AdminTopBar } from "@/components/admin-topbar";
@@ -46,12 +47,8 @@ export default async function AdminLayout({
 
   return (
     <div
-      className="sf-canvas flex min-h-full flex-1"
-      style={
-        brand.brandColor
-          ? ({ "--sf-accent": brand.brandColor } as React.CSSProperties)
-          : undefined
-      }
+      className="sf-canvas sf-business flex min-h-full flex-1"
+      style={brandStyle(brand) as React.CSSProperties | undefined}
     >
       <AdminSidebar
         brand={brand}

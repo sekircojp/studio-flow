@@ -43,21 +43,26 @@ export function Hero({
   return <div className={`sf-hero p-6 sm:p-7 ${className}`}>{children}</div>;
 }
 
-/** 英字ラベル＋日本語見出し。モックの TODAY'S LESSONS / 本日のレッスン に相当 */
+/**
+ * 見出し。英字ラベル（kicker）は任意。
+ * 英語と日本語の二重見出しは読む量を増やすだけなので、新しい画面では付けない。
+ */
 export function SectionHeading({
   kicker,
   title,
   action,
 }: {
-  kicker: string;
+  kicker?: string;
   title: string;
   action?: React.ReactNode;
 }) {
   return (
     <div className="flex items-end justify-between gap-4">
       <div>
-        <p className="sf-kicker">{kicker}</p>
-        <h2 className="mt-1 text-[15px] font-bold text-sf-ink">{title}</h2>
+        {kicker && <p className="sf-kicker">{kicker}</p>}
+        <h2 className={`text-[15px] font-bold text-sf-ink ${kicker ? "mt-1" : ""}`}>
+          {title}
+        </h2>
       </div>
       {action}
     </div>
@@ -101,7 +106,7 @@ export function StatCard({
         >
           <Icon className="size-3.5" aria-hidden />
         </span>
-        <span className="text-[12.5px] font-medium text-sf-body">{label}</span>
+        <span className="text-[13px] font-medium text-sf-body">{label}</span>
       </div>
       <p className="sf-num mt-4 text-[26px] font-bold leading-none text-sf-ink">
         {value}
@@ -112,7 +117,7 @@ export function StatCard({
         )}
       </p>
       {note && (
-        <p className="mt-2.5 text-[11px] leading-relaxed text-sf-muted">{note}</p>
+        <p className="mt-2.5 text-[12px] leading-relaxed text-sf-muted">{note}</p>
       )}
     </>
   );

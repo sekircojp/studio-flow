@@ -7,11 +7,14 @@ import { formatDateJa, formatTimeJa, todayInTokyo } from "@/lib/date";
 import { Card, EmptyState, SectionHeading } from "@/components/ui";
 import { LessonFlagBadges } from "@/components/lesson-flags";
 import { fetchLessonFlags, type LessonFlags } from "@/lib/lessons";
+import { fetchAttendanceProgress, type AttendanceProgress } from "@/lib/attendance";
+import { AttendanceProgressBadge } from "@/components/attendance-progress";
 
 export const metadata: Metadata = { title: "担当レッスン" };
 
 type LessonRow = {
   id: string;
+  class_id: string;
   date: string;
   start_at: string;
   end_at: string;
@@ -22,17 +25,18 @@ type LessonRow = {
 
 function LessonList({
   items,
-  recordedOn,
+  progress,
   flags,
+  now,
 }: {
   items: LessonRow[];
-  recordedOn: (lessonId: string) => number;
+  progress: Map<string, AttendanceProgress>;
   flags: Map<string, LessonFlags>;
+  now: string;
 }) {
   return (
     <ul className="divide-y divide-sf-border rounded-xl border border-sf-border">
       {items.map((l) => {
-        const recorded = recordedOn(l.id);
         const canceled = l.status === "canceled";
         return (
           <li key={l.id}>
@@ -73,14 +77,11 @@ function LessonList({
                   <CalendarX2 className="size-3" aria-hidden />
                   休講
                 </span>
-              ) : recorded > 0 ? (
-                <span className="shrink-0 rounded-md bg-sf-ok/12 px-2 py-1 text-[11px] font-medium text-sf-ok">
-                  記録済 {recorded}
-                </span>
               ) : (
-                <span className="shrink-0 rounded-md bg-sf-warn/14 px-2 py-1 text-[11px] font-medium text-sf-warn">
-                  未記録
-                </span>
+                <AttendanceProgressBadge
+                  progress={progress.get(l.id) ?? { total: 0, recorded: 0 }}
+                  ended={l.end_at < now}
+                />
               )}
               <ChevronRight
                 className="size-4 shrink-0 text-sf-muted"
@@ -116,35 +117,28 @@ export default async function StaffHome() {
   const today = todayInTokyo();
 
   // RLS に加えて、アプリ層でも organization_id と担当で絞る（設計書 3章）
-  const [{ data: lessons }, { data: attendances }] = await Promise.all([
-    supabase
+  const { data: lessons } = await supabase
       .from("lessons")
       // 担当は lesson_instructors で持つ（複数担当）。!inner で担当している回だけに絞る
       .select(
-        "id, date, start_at, end_at, status, classes(name), rooms(name), lesson_instructors!inner(instructor_id)",
+        "id, class_id, date, start_at, end_at, status, classes(name), rooms(name), lesson_instructors!inner(instructor_id)",
       )
       .eq("organization_id", membership.organizationId)
       .eq("lesson_instructors.instructor_id", instructor.id)
       .gte("date", today)
       .order("date")
       .order("start_at")
-      .limit(30),
-    supabase
-      .from("attendances")
-      .select("lesson_id, status")
-      .eq("organization_id", membership.organizationId),
-  ]);
+      .limit(30);
 
   const all = (lessons ?? []) as unknown as LessonRow[];
-  const attendanceList = (attendances ?? []) as {
-    lesson_id: string;
-    status: string;
-  }[];
+  const now = new Date().toISOString();
 
-  const recordedOn = (lessonId: string) =>
-    attendanceList.filter(
-      (a) => a.lesson_id === lessonId && a.status !== "unconfirmed",
-    ).length;
+  // 入力の進み具合（記録済 / 対象）。数え方は lib/attendance に1つ
+  const progress = await fetchAttendanceProgress(
+    supabase,
+    membership.organizationId,
+    all,
+  );
 
   const todays = all.filter((l) => l.date === today);
   const upcoming = all.filter((l) => l.date > today);
@@ -175,7 +169,8 @@ export default async function StaffHome() {
               description="今日は担当のレッスンが入っていない日です。"
             />
           ) : (
-            <LessonList items={todays} recordedOn={recordedOn} flags={flags} />
+            <LessonList items={todays} progress={progress}
+              now={now} flags={flags} />
           )}
         </div>
       </Card>
@@ -184,7 +179,8 @@ export default async function StaffHome() {
         <Card className="p-4 sm:p-5">
           <SectionHeading kicker="Upcoming" title="この先の担当" />
           <div className="mt-4">
-            <LessonList items={upcoming} recordedOn={recordedOn} flags={flags} />
+            <LessonList items={upcoming} progress={progress}
+              now={now} flags={flags} />
           </div>
         </Card>
       )}

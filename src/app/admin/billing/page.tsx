@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { FileText, ReceiptText } from "lucide-react";
+import { FileText, ReceiptText, Search, X } from "lucide-react";
 import { requireAdmin } from "@/lib/auth/guards";
 import { createClient } from "@/lib/supabase/server";
-import { formatYen, todayInTokyo } from "@/lib/date";
+import { formatShortDateJa, formatYen, todayInTokyo } from "@/lib/date";
 import {
   billingMonthLabel,
   INVOICE_STATUSES,
@@ -61,24 +61,44 @@ export default async function BillingPage({
   const { membership } = await requireAdmin();
   const params = await searchParams;
   const raw = typeof params.month === "string" ? params.month : "";
+  const today = todayInTokyo();
   const month = /^\d{4}-\d{2}(-\d{2})?$/.test(raw)
     ? monthStart(raw.length === 7 ? `${raw}-01` : raw)
-    : monthStart(todayInTokyo());
+    : monthStart(today);
+
+  /**
+   * 絞り込み（URL に持つので、再読み込みや直接の表示でも条件が残る）
+   *   status=unpaid 未入金だけ / status=paid 入金済みだけ
+   *   overdue=1     支払期限を過ぎたものだけ
+   *   carried=1     先月以前の未入金（月をまたいで並べる。month は無視）
+   *   q=            生徒名・ふりがな
+   */
+  const status = params.status === "unpaid" || params.status === "paid" ? params.status : null;
+  const overdue = params.overdue === "1";
+  const carried = params.carried === "1";
+  const q = typeof params.q === "string" ? params.q.trim() : "";
+  const filtering = status !== null || overdue || carried || q !== "";
 
   const supabase = await createClient();
   const orgId = membership.organizationId;
 
   // RLS に加えて、アプリ層でも organization_id で絞る（設計書 3章）
+  let invoiceQuery = supabase
+    .from("invoices")
+    .select(
+      "id, student_id, billing_month, subtotal, discount_total, total, tax_amount, status, due_date, cancel_reason, students(name, name_kana)",
+    )
+    .eq("organization_id", orgId);
+  invoiceQuery = carried
+    ? invoiceQuery.lt("billing_month", monthStart(today)).in("status", UNPAID_STATUSES)
+    : invoiceQuery.eq("billing_month", month);
+  if (status === "unpaid") invoiceQuery = invoiceQuery.in("status", UNPAID_STATUSES);
+  if (status === "paid") invoiceQuery = invoiceQuery.eq("status", "paid");
+  if (overdue) invoiceQuery = invoiceQuery.lt("due_date", today);
+
   const [{ data: invoices }, { data: payments }, { data: contracts }] =
     await Promise.all([
-      supabase
-        .from("invoices")
-        .select(
-          "id, student_id, subtotal, discount_total, total, tax_amount, status, due_date, cancel_reason, students(name)",
-        )
-        .eq("organization_id", orgId)
-        .eq("billing_month", month)
-        .order("status"),
+      invoiceQuery.order("billing_month", { ascending: false }).order("status"),
       supabase
         .from("payments")
         .select("invoice_id, amount")
@@ -103,6 +123,7 @@ export default async function BillingPage({
   type InvoiceRow = {
     id: string;
     student_id: string;
+    billing_month: string;
     subtotal: number;
     discount_total: number;
     total: number;
@@ -110,10 +131,16 @@ export default async function BillingPage({
     status: string;
     due_date: string | null;
     cancel_reason: string | null;
-    students: { name: string } | null;
+    students: { name: string; name_kana: string | null } | null;
   };
 
-  const invoiceList = (invoices ?? []) as unknown as InvoiceRow[];
+  // 名前の絞り込みは取ってきてから行う（結合先の列で DB 側に条件を付けると、
+  // 一致しない行が null の結合になって残るため）
+  const invoiceList = ((invoices ?? []) as unknown as InvoiceRow[]).filter((i) =>
+    q === ""
+      ? true
+      : (i.students?.name ?? "").includes(q) || (i.students?.name_kana ?? "").includes(q),
+  );
   const paymentList = (payments ?? []) as { invoice_id: string; amount: number }[];
 
   const paidOf = (invoiceId: string) =>
@@ -134,7 +161,29 @@ export default async function BillingPage({
     count: invoiceList.filter((i) => i.status === s.value).length,
   })).filter((s) => s.count > 0);
 
-  const today = todayInTokyo();
+  // 絞り込みの表示と解除。月だけは残す
+  const chips: { label: string; without: string }[] = [];
+  const link = (omit: string, add?: [string, string]) => {
+    const p = new URLSearchParams();
+    if (!carried || omit === "carried") p.set("month", month);
+    if (status && omit !== "status") p.set("status", status);
+    if (overdue && omit !== "overdue") p.set("overdue", "1");
+    if (carried && omit !== "carried") p.set("carried", "1");
+    if (q && omit !== "q") p.set("q", q);
+    if (add) p.set(add[0], add[1]);
+    return `/admin/billing?${p.toString()}`;
+  };
+  if (carried) chips.push({ label: "先月以前の未入金", without: link("carried") });
+  if (status === "unpaid") chips.push({ label: "未入金のみ", without: link("status") });
+  if (status === "paid") chips.push({ label: "入金済みのみ", without: link("status") });
+  if (overdue) chips.push({ label: "支払期限を過ぎたもの", without: link("overdue") });
+  if (q) chips.push({ label: `「${q}」で検索`, without: link("q") });
+  const toggleClass = (on: boolean) =>
+    `rounded-full border px-3 py-1 text-[12px] transition ${
+      on
+        ? "border-sf-accent bg-sf-accent/10 text-sf-ink"
+        : "border-sf-border-strong text-sf-body hover:border-sf-muted"
+    }`;
 
   return (
     <div className="space-y-6">
@@ -171,7 +220,8 @@ export default async function BillingPage({
         </div>
       </div>
 
-      {/* 第一表示＝今月の月謝（設計書 9章） */}
+      {/* その月の集計。先月以前をまたいで見ているときは月の集計にならないので出さない */}
+      {!carried && (
       <Hero>
         <p className="sf-kicker text-sf-nav-muted">
           {billingMonthLabel(month)}の月謝
@@ -182,7 +232,7 @@ export default async function BillingPage({
         </div>
         <div className="mt-5 h-1.5 overflow-hidden rounded-full bg-white/12">
           <div
-            className="h-full rounded-full bg-gradient-to-r from-sf-ok to-emerald-300 shadow-[0_0_12px_rgba(42,168,118,0.55)] transition-all duration-700"
+            className="h-full rounded-full bg-sf-ok transition-all duration-700"
             style={{ width: `${Math.min(rate, 100)}%` }}
           />
         </div>
@@ -198,21 +248,87 @@ export default async function BillingPage({
           )}
         </div>
       </Hero>
+      )}
 
       <Card className="p-5">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <SectionHeading
-            kicker="Invoices"
-            title={`${billingMonthLabel(month)}の請求（${invoiceList.length}）`}
+            title={
+              carried
+                ? `先月以前の未入金（${invoiceList.length}）`
+                : `${billingMonthLabel(month)}の請求（${invoiceList.length}）`
+            }
           />
-          <div className="flex flex-wrap items-center gap-3">
-            <GenerateInvoicesButton
-              month={month}
-              hasInvoices={invoiceList.length > 0}
-            />
-            {invoiceList.length > 0 && <SendNoticesButton month={month} />}
-          </div>
+          {!carried && (
+            <div className="flex flex-wrap items-center gap-3">
+              <GenerateInvoicesButton
+                month={month}
+                hasInvoices={invoiceList.length > 0}
+              />
+              {invoiceList.length > 0 && <SendNoticesButton month={month} />}
+            </div>
+          )}
         </div>
+
+        {/* 絞り込み。条件は URL に残り、1つずつ外せる */}
+        <div className="mt-4 flex flex-wrap items-center gap-2">
+          <form method="get" action="/admin/billing" className="flex items-center gap-2">
+            {!carried && <input type="hidden" name="month" value={month} />}
+            {status && <input type="hidden" name="status" value={status} />}
+            {overdue && <input type="hidden" name="overdue" value="1" />}
+            {carried && <input type="hidden" name="carried" value="1" />}
+            <label htmlFor="billing-q" className="sr-only">生徒名で探す</label>
+            <div className="relative">
+              <Search className="pointer-events-none absolute left-2.5 top-1/2 size-3.5 -translate-y-1/2 text-sf-muted" aria-hidden />
+              <input
+                id="billing-q"
+                name="q"
+                type="search"
+                defaultValue={q}
+                placeholder="生徒名・ふりがな"
+                className="w-48 rounded-lg border border-sf-border-strong/90 bg-white py-1.5 pl-8 pr-2 text-[13px] text-sf-ink outline-none transition focus:border-sf-accent focus:ring-4 focus:ring-sf-accent/15"
+              />
+            </div>
+          </form>
+          {!carried && (
+            <>
+              <Link
+                href={status === "unpaid" ? link("status") : link("status", ["status", "unpaid"])}
+                className={toggleClass(status === "unpaid")}
+              >
+                未入金のみ
+              </Link>
+              <Link
+                href={overdue ? link("overdue") : link("overdue", ["overdue", "1"])}
+                className={toggleClass(overdue)}
+              >
+                期限超過のみ
+              </Link>
+              <Link href="/admin/billing?carried=1" className={toggleClass(false)}>
+                先月以前の未入金
+              </Link>
+            </>
+          )}
+        </div>
+        {filtering && (
+          <p className="mt-2 flex flex-wrap items-center gap-2 text-[12px] text-sf-body">
+            絞り込み中:
+            {chips.map((c) => (
+              <Link
+                key={c.label}
+                href={c.without}
+                className="inline-flex items-center gap-1 rounded-md bg-sf-ink/6 px-2 py-0.5 text-sf-ink hover:bg-sf-ink/10"
+                title="この条件を外す"
+              >
+                {c.label}
+                <X className="size-3" aria-hidden />
+              </Link>
+            ))}
+            <Link href={`/admin/billing?month=${carried ? monthStart(today) : month}`} className="underline">
+              すべて解除
+            </Link>
+          </p>
+        )}
 
         {byStatus.length > 0 && (
           <p className="mt-3 flex flex-wrap gap-2 text-[11px]">
@@ -229,10 +345,17 @@ export default async function BillingPage({
 
         <div className="mt-4">
           {invoiceList.length === 0 ? (
-            <EmptyState
-              title="この月の請求はまだありません"
-              description="月謝が決まっている生徒に対して、この月の請求をまとめて作ります。作成済みの月は作り直されません。"
-            />
+            filtering ? (
+              <EmptyState
+                title="条件に合う請求はありません"
+                description="絞り込みを外すと、この月のすべての請求が並びます。"
+              />
+            ) : (
+              <EmptyState
+                title="この月の請求はまだありません"
+                description="月謝が決まっている生徒に対して、この月の請求をまとめて作ります。作成済みの月は作り直されません。"
+              />
+            )
           ) : (
             <ul className="divide-y divide-sf-border rounded-xl border border-sf-border">
               {invoiceList.map((i) => {
@@ -252,6 +375,19 @@ export default async function BillingPage({
                             {i.students?.name ?? "（生徒不明）"}
                           </span>
                           <InvoiceBadge status={i.status} />
+                          {carried && (
+                            <span className="sf-num text-[12px] text-sf-muted">
+                              {billingMonthLabel(i.billing_month)}分
+                            </span>
+                          )}
+                          {!canceled &&
+                            i.due_date !== null &&
+                            i.due_date < today &&
+                            remaining > 0 && (
+                              <span className="sf-num rounded-md bg-sf-warn/14 px-1.5 py-0.5 text-[11px] font-medium text-sf-warn">
+                                期限 {formatShortDateJa(i.due_date)} 超過
+                              </span>
+                            )}
                         </span>
                         <span className="sf-num mt-0.5 block text-[12px] text-sf-muted">
                           請求 {formatYen(i.total)}
@@ -279,7 +415,7 @@ export default async function BillingPage({
                           <Link
                             href={`/print/invoices/${i.id}`}
                             target="_blank"
-                            className="inline-flex items-center gap-1 rounded-md border border-sf-border-strong px-2 py-1 text-sf-body transition hover:border-sf-muted"
+                            className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-sf-muted transition hover:bg-sf-bg hover:text-sf-ink"
                           >
                             <FileText className="size-3.5" aria-hidden />
                             請求書
@@ -288,7 +424,7 @@ export default async function BillingPage({
                           <Link
                             href={`/print/invoices/${i.id}?doc=receipt`}
                             target="_blank"
-                            className="inline-flex items-center gap-1 rounded-md border border-sf-border-strong px-2 py-1 text-sf-body transition hover:border-sf-muted"
+                            className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-sf-muted transition hover:bg-sf-bg hover:text-sf-ink"
                           >
                             <ReceiptText className="size-3.5" aria-hidden />
                             領収書

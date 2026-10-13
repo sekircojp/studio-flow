@@ -27,7 +27,12 @@ export const metadata: Metadata = { title: "生徒" };
  */
 export default async function StudentDetailPage({
   params,
+  searchParams,
 }: PageProps<"/admin/students/[id]">) {
+  // 一覧の絞り込み条件。戻ったときに同じ一覧に戻れるようにする
+  const sp = await searchParams;
+  const backQuery = typeof sp.back === "string" ? sp.back : "";
+  const backHref = backQuery ? `/admin/students?${backQuery}` : "/admin/students";
   const { id } = await params;
   const { membership } = await requireAdmin();
   const supabase = await createClient();
@@ -137,7 +142,7 @@ export default async function StudentDetailPage({
     <div className="space-y-6">
       <div>
         <Link
-          href="/admin/students"
+          href={backHref}
           className="inline-flex items-center gap-1 text-[12px] text-sf-muted hover:text-sf-ink"
         >
           <ArrowLeft className="size-3.5" aria-hidden />

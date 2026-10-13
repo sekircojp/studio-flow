@@ -6,7 +6,9 @@ import { requireStaff } from "@/lib/auth/staff";
 import { createClient } from "@/lib/supabase/server";
 import { formatDateJa, formatTimeJa } from "@/lib/date";
 import { recordAttendanceAsStaff, setLessonHeldAsStaff } from "../../actions";
-import { Roster, type AttendanceStatus } from "@/components/roster";
+import type { AttendanceStatus } from "@/components/roster";
+import { AttendanceSheet } from "@/components/attendance-sheet";
+import { fetchRoster } from "@/lib/attendance";
 import { Card, EmptyState, SectionHeading, secondaryButtonClass } from "@/components/ui";
 
 export const metadata: Metadata = { title: "出欠" };
@@ -51,36 +53,15 @@ export default async function StaffLessonPage({
   const klass = lesson.classes as unknown as { name: string } | null;
   const room = lesson.rooms as unknown as { name: string } | null;
 
-  // その回の時点で在籍している生徒だけを名簿に出す
-  const [{ data: enrollments }, { data: attendances }] = await Promise.all([
-    supabase
-      .from("enrollments")
-      .select("student_id, start_date, end_date, students(name, name_kana)")
-      .eq("class_id", lesson.class_id)
-      .eq("organization_id", orgId)
-      .lte("start_date", lesson.date),
+  // その回の時点で在籍している生徒だけを名簿に出す（ルールは lib/attendance に1つ）
+  const [students, { data: attendances }] = await Promise.all([
+    fetchRoster(supabase, orgId, lesson.class_id, lesson.date),
     supabase
       .from("attendances")
       .select("student_id, status")
       .eq("lesson_id", id)
       .eq("organization_id", orgId),
   ]);
-
-  type EnrollmentRow = {
-    student_id: string;
-    start_date: string;
-    end_date: string | null;
-    students: { name: string; name_kana: string | null } | null;
-  };
-
-  const students = ((enrollments ?? []) as unknown as EnrollmentRow[])
-    .filter((e) => e.end_date === null || e.end_date >= lesson.date)
-    .map((e) => ({
-      id: e.student_id,
-      name: e.students?.name ?? "（生徒不明）",
-      kana: e.students?.name_kana ?? null,
-    }))
-    .sort((a, b) => (a.kana ?? a.name).localeCompare(b.kana ?? b.name, "ja"));
 
   const initial: Record<string, AttendanceStatus> = {};
   for (const a of (attendances ?? []) as {
@@ -134,7 +115,7 @@ export default async function StaffLessonPage({
               description="このクラスにまだ誰も登録されていません。スタジオにご確認ください。"
             />
           ) : (
-            <Roster
+            <AttendanceSheet
               lessonId={id}
               students={students}
               initial={initial}

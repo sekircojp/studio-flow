@@ -40,3 +40,6 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# レビュー用に生成するソース一式。都度作るので管理しない
+docs/studio-flow-source.txt

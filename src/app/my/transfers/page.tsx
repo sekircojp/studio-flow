@@ -30,6 +30,8 @@ export default async function MyTransfersPage({
   const params = await searchParams;
   const requested = typeof params.student === "string" ? params.student : undefined;
   const student = pickStudent(students, requested);
+  // 予定一覧の「欠席を連絡」から来たときに選択済みにする回
+  const preselected = typeof params.lesson === "string" ? params.lesson : undefined;
 
   if (!student) {
     return (
@@ -89,6 +91,9 @@ export default async function MyTransfersPage({
     .map((l) => ({
       id: l.id,
       label: `${formatDateJa(l.date)} ${formatTimeJa(l.start_at)} ${l.classes?.name ?? ""}`,
+      date: formatDateJa(l.date),
+      time: formatTimeJa(l.start_at),
+      className: l.classes?.name ?? "",
     }));
 
   const creditList = (credits ?? []) as {
@@ -119,7 +124,12 @@ export default async function MyTransfersPage({
       <Card className="p-4 sm:p-5">
         <SectionHeading kicker="Report" title="欠席を連絡する" />
         <div className="mt-4">
-          <AbsenceRequestForm studentId={student.id} lessons={lessonOptions} />
+          <AbsenceRequestForm
+            studentId={student.id}
+            studentName={student.name}
+            lessons={lessonOptions}
+            preselected={preselected}
+          />
         </div>
       </Card>
 

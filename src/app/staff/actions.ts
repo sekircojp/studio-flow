@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { requireStaff } from "@/lib/auth/staff";
 import { createClient } from "@/lib/supabase/server";
-import type { AttendanceStatus } from "@/components/roster";
+import type { AttendanceResult, AttendanceStatus } from "@/components/roster";
 
 const STATUSES: AttendanceStatus[] = ["present", "absent", "late", "unconfirmed"];
 
@@ -20,10 +20,14 @@ export async function recordAttendanceAsStaff(
   lessonId: string,
   studentId: string,
   status: AttendanceStatus,
-) {
+): Promise<AttendanceResult> {
   const { membership, userId, instructor } = await requireStaff();
-  if (!STATUSES.includes(status)) return;
-  if (!instructor) return;
+  if (!STATUSES.includes(status)) {
+    return { ok: false, error: "出欠の値が正しくありません。" };
+  }
+  if (!instructor) {
+    return { ok: false, error: "講師として登録されていません。" };
+  }
 
   const supabase = await createClient();
   const orgId = membership.organizationId;
@@ -37,7 +41,7 @@ export async function recordAttendanceAsStaff(
     .eq("organization_id", orgId)
     .eq("lesson_instructors.instructor_id", instructor.id)
     .maybeSingle();
-  if (!lesson) return;
+  if (!lesson) return { ok: false, error: "担当していない回です。" };
 
   const { data: student } = await supabase
     .from("students")
@@ -45,7 +49,7 @@ export async function recordAttendanceAsStaff(
     .eq("id", studentId)
     .eq("organization_id", orgId)
     .maybeSingle();
-  if (!student) return;
+  if (!student) return { ok: false, error: "その生徒が見つかりませんでした。" };
 
   const { error } = await supabase.from("attendances").upsert(
     {
@@ -59,9 +63,13 @@ export async function recordAttendanceAsStaff(
     { onConflict: "lesson_id,student_id" },
   );
 
-  if (error) console.error("出欠の記録に失敗しました", error);
+  if (error) {
+    console.error("出欠の記録に失敗しました", error);
+    return { ok: false, error: "時間をおいてもう一度お試しください。" };
+  }
   revalidatePath(`/staff/lessons/${lessonId}`);
   revalidatePath("/staff");
+  return { ok: true };
 }
 
 /**

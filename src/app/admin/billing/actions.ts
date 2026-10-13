@@ -205,7 +205,7 @@ export async function recordPayment(
 
   revalidatePath("/admin/billing");
   revalidatePath("/admin");
-  return { ok: true };
+  return { ok: true, message: "入金を登録しました。残額と集計に反映されています。" };
 }
 
 /**

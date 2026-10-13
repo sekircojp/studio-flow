@@ -230,18 +230,30 @@ h3 {
   }
 }
 
-/* 管理画面の本文の背景。上部にだけ、ごく薄い光を置く */
+/* 管理画面の本文の背景。上部にだけ、ごく薄い光を置く（控えめに） */
 @utility sf-canvas {
   background:
     radial-gradient(
       900px 420px at 18% -10%,
-      color-mix(in srgb, var(--sf-accent) 7%, transparent) 0%,
+      color-mix(in srgb, var(--sf-accent) 4%, transparent) 0%,
       transparent 70%
     ),
     radial-gradient(
       700px 360px at 95% 0%,
-      color-mix(in srgb, var(--sf-nav) 6%, transparent) 0%,
+      color-mix(in srgb, var(--sf-nav) 4%, transparent) 0%,
       transparent 70%
     ),
     var(--sf-bg);
+}
+
+/*
+ * 業務画面（管理・講師）の日本語は通常のゴシックにする。
+ * 丸ゴシックは保護者向けの柔らかさには合うが、名簿や金額を読む画面では
+ * 字面がにじんで見える。英数字の Geist はそのまま。
+ * 保護者画面（/my）は丸ゴシックのまま。ここでは巻き込まない。
+ */
+@utility sf-business {
+  font-family:
+    var(--font-geist-sans), "Hiragino Sans", "Hiragino Kaku Gothic ProN",
+    "Yu Gothic UI", "Meiryo", "Noto Sans JP", sans-serif;
 }

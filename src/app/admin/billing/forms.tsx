@@ -119,7 +119,7 @@ export function PaymentForm({
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className={secondaryButtonClass}
+        className={`${primaryButtonClass} px-3 py-1.5 text-[13px]`}
       >
         <Wallet className="size-3.5" aria-hidden />
         入金を登録
@@ -180,6 +180,9 @@ export function PaymentForm({
           {pending && <Loader2 className="size-4 animate-spin" aria-hidden />}
           登録する
         </button>
+        {state.message && (
+          <span className="text-[12px] text-sf-ok">{state.message}</span>
+        )}
         <button
           type="button"
           onClick={() => setOpen(false)}
@@ -213,7 +216,8 @@ export function CancelInvoiceForm({ invoiceId }: { invoiceId: string }) {
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className={`${secondaryButtonClass} text-sf-danger hover:border-sf-danger`}
+        className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-[12px] text-sf-muted transition hover:bg-sf-danger/10 hover:text-sf-danger"
+        title="この請求を取り消す（入金前のみ）"
       >
         <X className="size-3.5" aria-hidden />
         取消
