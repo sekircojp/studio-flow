@@ -4,6 +4,8 @@ import { revalidatePath } from "next/cache";
 import { requireStaff } from "@/lib/auth/staff";
 import { createClient } from "@/lib/supabase/server";
 import type { AttendanceResult, AttendanceStatus } from "@/components/roster";
+import type { ConfirmResult } from "@/components/attendance-sheet";
+import { confirmAttendanceRows } from "@/lib/attendance";
 
 const STATUSES: AttendanceStatus[] = ["present", "absent", "late", "unconfirmed"];
 
@@ -78,6 +80,31 @@ export async function recordAttendanceAsStaff(
  * 休講の判断は運営側のものなので、講師の画面からは行わせない。
  * 当日の急な休講はスタジオが /admin から設定する。
  */
+/** 講師による「この回の出欠を確定する」。担当している回だけ */
+export async function confirmAttendanceAsStaff(lessonId: string): Promise<ConfirmResult> {
+  const { membership, userId, instructor } = await requireStaff();
+  if (!instructor) return { ok: false, error: "講師として登録されていません。" };
+  const supabase = await createClient();
+  const orgId = membership.organizationId;
+
+  const { data: lesson } = await supabase
+    .from("lessons")
+    .select("id, class_id, date, status, lesson_instructors!inner(instructor_id)")
+    .eq("id", lessonId)
+    .eq("organization_id", orgId)
+    .eq("lesson_instructors.instructor_id", instructor.id)
+    .maybeSingle();
+  if (!lesson) return { ok: false, error: "担当していない回です。" };
+  if (lesson.status === "canceled") return { ok: false, error: "休講の回は確定できません。" };
+
+  const result = await confirmAttendanceRows(supabase, orgId, lesson, userId);
+  if (result.ok) {
+    revalidatePath(`/staff/lessons/${lessonId}`);
+    revalidatePath("/staff");
+  }
+  return result;
+}
+
 export async function setLessonHeldAsStaff(
   lessonId: string,
   status: "scheduled" | "held",

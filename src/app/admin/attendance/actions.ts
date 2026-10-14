@@ -4,6 +4,8 @@ import { revalidatePath } from "next/cache";
 import { requireAdmin } from "@/lib/auth/guards";
 import { createClient } from "@/lib/supabase/server";
 import type { AttendanceResult } from "@/components/roster";
+import type { ConfirmResult } from "@/components/attendance-sheet";
+import { confirmAttendanceRows } from "@/lib/attendance";
 
 export type AttendanceState = { ok?: boolean; error?: string };
 
@@ -74,6 +76,32 @@ export async function recordAttendance(
   revalidatePath("/admin/attendance");
   revalidatePath("/admin");
   return { ok: true };
+}
+
+/**
+ * この回の出欠を確定する（未記録の生徒を出席・欠席連絡があれば欠席として保存）
+ */
+export async function confirmAttendance(lessonId: string): Promise<ConfirmResult> {
+  const { membership, userId } = await requireAdmin();
+  const supabase = await createClient();
+  const orgId = membership.organizationId;
+
+  const { data: lesson } = await supabase
+    .from("lessons")
+    .select("id, class_id, date, status")
+    .eq("id", lessonId)
+    .eq("organization_id", orgId)
+    .maybeSingle();
+  if (!lesson) return { ok: false, error: "そのレッスンが見つかりませんでした。" };
+  if (lesson.status === "canceled") return { ok: false, error: "休講の回は確定できません。" };
+
+  const result = await confirmAttendanceRows(supabase, orgId, lesson, userId);
+  if (result.ok) {
+    revalidatePath(`/admin/attendance/${lessonId}`);
+    revalidatePath("/admin/attendance");
+    revalidatePath("/admin");
+  }
+  return result;
 }
 
 /**

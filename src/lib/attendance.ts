@@ -198,3 +198,78 @@ export async function fetchIncompleteLessons(
       return s === "none" || s === "partial";
     });
 }
+
+/** その回に欠席連絡が来ている生徒の id */
+export async function fetchAbsenceNotified(
+  supabase: SupabaseClient,
+  organizationId: string,
+  lessonId: string,
+): Promise<string[]> {
+  const { data } = await supabase
+    .from("absence_requests")
+    .select("student_id")
+    .eq("organization_id", organizationId)
+    .eq("lesson_id", lessonId);
+  return ((data ?? []) as { student_id: string }[]).map((a) => a.student_id);
+}
+
+/**
+ * 「この回の出欠を確定する」
+ *
+ * まだ記録の無い生徒を、出席（欠席連絡があれば欠席）として保存する。
+ * 既定を出席にしても「全員出席だった」と「誰も見ていない」を区別するため、
+ * 確定という操作で行を作る（2026-10-14）。
+ *
+ * 認可は呼び出し側（管理画面・講師画面それぞれのサーバーアクション）で
+ * 済ませてから呼ぶこと。ここでは organization_id で絞るだけ。
+ */
+export async function confirmAttendanceRows(
+  supabase: SupabaseClient,
+  organizationId: string,
+  lesson: { id: string; class_id: string; date: string },
+  recordedBy: string,
+): Promise<
+  | { ok: true; saved: number; marks: Record<string, AttendanceStatusValue> }
+  | { ok: false; error: string }
+> {
+  const [roster, notified, { data: existing }] = await Promise.all([
+    fetchRoster(supabase, organizationId, lesson.class_id, lesson.date),
+    fetchAbsenceNotified(supabase, organizationId, lesson.id),
+    supabase
+      .from("attendances")
+      .select("student_id, status")
+      .eq("organization_id", organizationId)
+      .eq("lesson_id", lesson.id),
+  ]);
+
+  const marks: Record<string, AttendanceStatusValue> = {};
+  for (const a of (existing ?? []) as { student_id: string; status: AttendanceStatusValue }[]) {
+    marks[a.student_id] = a.status;
+  }
+  const notifiedSet = new Set(notified);
+  const now = new Date().toISOString();
+  const rows = roster
+    .filter((s) => (marks[s.id] ?? "unconfirmed") === "unconfirmed")
+    .map((s) => ({
+      organization_id: organizationId,
+      lesson_id: lesson.id,
+      student_id: s.id,
+      status: (notifiedSet.has(s.id) ? "absent" : "present") as AttendanceStatusValue,
+      recorded_by: recordedBy,
+      recorded_at: now,
+    }));
+
+  if (rows.length > 0) {
+    const { error } = await supabase
+      .from("attendances")
+      .upsert(rows, { onConflict: "lesson_id,student_id" });
+    if (error) {
+      console.error("出欠の確定に失敗しました", error);
+      return { ok: false, error: "時間をおいてもう一度お試しください。" };
+    }
+    for (const r of rows) marks[r.student_id] = r.status;
+  }
+  return { ok: true, saved: rows.length, marks };
+}
+
+export type AttendanceStatusValue = "present" | "absent" | "late" | "unconfirmed";

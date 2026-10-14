@@ -5,10 +5,10 @@ import { ArrowLeft, Users } from "lucide-react";
 import { requireAdmin } from "@/lib/auth/guards";
 import { createClient } from "@/lib/supabase/server";
 import { formatDateJa, formatTimeJa } from "@/lib/date";
-import { recordAttendance, setLessonStatus } from "../actions";
+import { confirmAttendance, recordAttendance, setLessonStatus } from "../actions";
 import type { AttendanceStatus } from "@/components/roster";
 import { AttendanceSheet } from "@/components/attendance-sheet";
-import { fetchRoster } from "@/lib/attendance";
+import { fetchAbsenceNotified, fetchRoster } from "@/lib/attendance";
 import { instructorLabel, type InstructorJoin } from "@/lib/instructors";
 import { Card, EmptyState, SectionHeading, secondaryButtonClass } from "@/components/ui";
 
@@ -52,8 +52,9 @@ export default async function AttendanceDetailPage({
   );
 
   // その回の時点で在籍している生徒だけを名簿に出す（ルールは lib/attendance に1つ）
-  const [students, { data: attendances }] = await Promise.all([
+  const [students, notified, { data: attendances }] = await Promise.all([
     fetchRoster(supabase, orgId, lesson.class_id, lesson.date),
+    fetchAbsenceNotified(supabase, orgId, id),
     supabase
       .from("attendances")
       .select("student_id, status")
@@ -120,8 +121,10 @@ export default async function AttendanceDetailPage({
               lessonId={id}
               students={students}
               initial={initial}
+              notified={notified}
               disabled={canceled}
               record={recordAttendance}
+              confirm={confirmAttendance}
             />
           )}
         </div>
