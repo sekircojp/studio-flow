@@ -51,7 +51,7 @@ MarcheBase と同じく、適用済みかどうかをこの表で管理する。
 | 45 | `20261012000100_revoke_internal_functions.sql` | 内部用の2関数を、ログイン中の利用者から呼べなくする（他スクールの ID で通っていた） | 済 2026-10-12 |
 | 46 | `20261012000200_transfer_dates_jst.sql` | 振替権の有効期限と失効を JST の「今日」で数える（早朝に1日ずれていた） | 済 2026-10-12 |
 | 47 | `20261012000300_class_instructors.sql` | クラス・レッスンの担当講師を複数にする（class_instructors / lesson_instructors。1列の instructor_id は廃止） | 済 2026-10-12 |
-| 48 | `20261016000100_trial_attendance.sql` | 体験の生徒の出欠を担当講師からも付けられる関数 record_trial_attendance | 未 |
+| 48 | `20261016000100_trial_attendance.sql` | 体験の生徒の出欠を担当講師からも付けられる関数 record_trial_attendance | 済 2026-10-16 |
 
 適用先: Supabase プロジェクト `studio-flow`（ref: fterpqyvzeqcaltfkpuc / Tokyo）
 
