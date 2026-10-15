@@ -3,9 +3,9 @@
 import { revalidatePath } from "next/cache";
 import { requireAdmin } from "@/lib/auth/guards";
 import { createClient } from "@/lib/supabase/server";
-import type { AttendanceResult } from "@/components/roster";
+import type { AttendanceResult, RosterKind } from "@/components/roster";
 import type { ConfirmResult } from "@/components/attendance-sheet";
-import { confirmAttendanceRows } from "@/lib/attendance";
+import { attendanceToTrialStatus, confirmAttendanceRows } from "@/lib/attendance";
 
 export type AttendanceState = { ok?: boolean; error?: string };
 
@@ -28,6 +28,7 @@ export async function recordAttendance(
   lessonId: string,
   studentId: string,
   status: AttendanceStatus,
+  kind: RosterKind = "enrolled",
 ): Promise<AttendanceResult> {
   const { membership, userId } = await requireAdmin();
   if (!STATUSES.includes(status)) {
@@ -36,6 +37,11 @@ export async function recordAttendance(
 
   const supabase = await createClient();
   const orgId = membership.organizationId;
+
+  // 体験の生徒は students に行が無い。trials.status で出欠を表す
+  if (kind === "trial") {
+    return recordTrial(supabase, orgId, lessonId, studentId, status);
+  }
 
   // そのレッスンと生徒が自テナントのものか、アプリ層でも確認する（設計書 3章）
   const [{ data: lesson }, { data: student }] = await Promise.all([
@@ -75,6 +81,37 @@ export async function recordAttendance(
   revalidatePath(`/admin/attendance/${lessonId}`);
   revalidatePath("/admin/attendance");
   revalidatePath("/admin");
+  return { ok: true };
+}
+
+/** 体験の出欠。認可は DB 関数の中（運営か、その回の担当講師） */
+async function recordTrial(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  orgId: string,
+  lessonId: string,
+  trialId: string,
+  status: AttendanceStatus,
+): Promise<AttendanceResult> {
+  const { data: trial } = await supabase
+    .from("trials")
+    .select("id")
+    .eq("id", trialId)
+    .eq("organization_id", orgId)
+    .eq("lesson_id", lessonId)
+    .maybeSingle();
+  if (!trial) return { ok: false, error: "その体験の申込が見つかりませんでした。" };
+
+  const { error } = await supabase.rpc("record_trial_attendance", {
+    p_trial_id: trialId,
+    p_status: attendanceToTrialStatus(status),
+  });
+  if (error) {
+    console.error("体験の出欠の記録に失敗しました", error);
+    return { ok: false, error: "時間をおいてもう一度お試しください。" };
+  }
+  revalidatePath(`/admin/attendance/${lessonId}`);
+  revalidatePath("/admin/attendance");
+  revalidatePath("/admin/students/trials");
   return { ok: true };
 }
 

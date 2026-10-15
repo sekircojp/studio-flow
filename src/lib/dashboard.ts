@@ -42,7 +42,7 @@ export type TodayLesson = {
   progress: AttendanceProgress;
   flags: LessonFlags;
   trials: number;
-  /** 来場予定。名簿 − 欠席連絡 ＋ 振替 ＋ 体験 */
+  /** 来場予定。名簿（在籍＋振替＋体験）− 欠席連絡 */
   expected: number;
   ended: boolean;
 };
@@ -280,7 +280,7 @@ export async function fetchDashboard(
       progress: p,
       flags: f,
       trials: t,
-      expected: Math.max(p.total - f.absences, 0) + f.transfersIn + t,
+      expected: Math.max(p.total - f.absences, 0),
       ended: l.end_at < nowIso,
     };
   });

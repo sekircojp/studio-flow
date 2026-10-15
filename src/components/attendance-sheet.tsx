@@ -2,7 +2,12 @@
 
 import { useState } from "react";
 import { CheckCheck, Loader2 } from "lucide-react";
-import { Roster, type AttendanceResult, type AttendanceStatus } from "@/components/roster";
+import {
+  Roster,
+  type AttendanceStatus,
+  type RecordFn,
+  type RosterRow,
+} from "@/components/roster";
 import { primaryButtonClass } from "@/components/ui";
 
 /** 確定処理の返り値。保存した人数と、保存後の全員ぶんの値 */
@@ -22,7 +27,7 @@ export type ConfirmResult =
  */
 export function AttendanceSheet({
   lessonId,
-  students,
+  rows,
   initial,
   notified,
   disabled,
@@ -30,18 +35,16 @@ export function AttendanceSheet({
   confirm,
 }: {
   lessonId: string;
-  students: { id: string; name: string; kana: string | null }[];
+  /** 名簿（在籍・振替・体験） */
+  rows: RosterRow[];
   initial: Record<string, AttendanceStatus>;
   /** 欠席連絡が来ている生徒の id */
   notified: string[];
   disabled: boolean;
-  record: (
-    lessonId: string,
-    studentId: string,
-    status: AttendanceStatus,
-  ) => Promise<AttendanceResult>;
+  record: RecordFn;
   confirm: (lessonId: string) => Promise<ConfirmResult>;
 }) {
+  const students = rows;
   const [marks, setMarks] = useState(initial);
   const [confirming, setConfirming] = useState(false);
   const [notice, setNotice] = useState<{ tone: "ok" | "error"; text: string } | null>(null);
@@ -105,7 +108,7 @@ export function AttendanceSheet({
 
       <Roster
         lessonId={lessonId}
-        students={students}
+        rows={rows}
         marks={marks}
         notified={notifiedSet}
         disabled={disabled}

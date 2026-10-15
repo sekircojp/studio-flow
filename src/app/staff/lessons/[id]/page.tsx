@@ -10,9 +10,8 @@ import {
   recordAttendanceAsStaff,
   setLessonHeldAsStaff,
 } from "../../actions";
-import type { AttendanceStatus } from "@/components/roster";
 import { AttendanceSheet } from "@/components/attendance-sheet";
-import { fetchAbsenceNotified, fetchRoster } from "@/lib/attendance";
+import { fetchAbsenceNotified, fetchRoster, fetchRosterMarks } from "@/lib/attendance";
 import { Card, EmptyState, SectionHeading, secondaryButtonClass } from "@/components/ui";
 
 export const metadata: Metadata = { title: "出欠" };
@@ -58,23 +57,13 @@ export default async function StaffLessonPage({
   const room = lesson.rooms as unknown as { name: string } | null;
 
   // その回の時点で在籍している生徒だけを名簿に出す（ルールは lib/attendance に1つ）
-  const [students, notified, { data: attendances }] = await Promise.all([
-    fetchRoster(supabase, orgId, lesson.class_id, lesson.date),
+  // 名簿は在籍＋振替＋体験（ルールは lib/attendance に1つ）
+  const students = await fetchRoster(supabase, orgId, lesson);
+  const [notified, initial] = await Promise.all([
     fetchAbsenceNotified(supabase, orgId, id),
-    supabase
-      .from("attendances")
-      .select("student_id, status")
-      .eq("lesson_id", id)
-      .eq("organization_id", orgId),
+    fetchRosterMarks(supabase, orgId, id, students),
   ]);
 
-  const initial: Record<string, AttendanceStatus> = {};
-  for (const a of (attendances ?? []) as {
-    student_id: string;
-    status: AttendanceStatus;
-  }[]) {
-    initial[a.student_id] = a.status;
-  }
 
   const canceled = lesson.status === "canceled";
 
@@ -122,7 +111,7 @@ export default async function StaffLessonPage({
           ) : (
             <AttendanceSheet
               lessonId={id}
-              students={students}
+              rows={students}
               initial={initial}
               notified={notified}
               disabled={canceled}

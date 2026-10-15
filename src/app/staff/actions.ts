@@ -3,9 +3,9 @@
 import { revalidatePath } from "next/cache";
 import { requireStaff } from "@/lib/auth/staff";
 import { createClient } from "@/lib/supabase/server";
-import type { AttendanceResult, AttendanceStatus } from "@/components/roster";
+import type { AttendanceResult, AttendanceStatus, RosterKind } from "@/components/roster";
 import type { ConfirmResult } from "@/components/attendance-sheet";
-import { confirmAttendanceRows } from "@/lib/attendance";
+import { attendanceToTrialStatus, confirmAttendanceRows } from "@/lib/attendance";
 
 const STATUSES: AttendanceStatus[] = ["present", "absent", "late", "unconfirmed"];
 
@@ -22,6 +22,7 @@ export async function recordAttendanceAsStaff(
   lessonId: string,
   studentId: string,
   status: AttendanceStatus,
+  kind: RosterKind = "enrolled",
 ): Promise<AttendanceResult> {
   const { membership, userId, instructor } = await requireStaff();
   if (!STATUSES.includes(status)) {
@@ -44,6 +45,22 @@ export async function recordAttendanceAsStaff(
     .eq("lesson_instructors.instructor_id", instructor.id)
     .maybeSingle();
   if (!lesson) return { ok: false, error: "担当していない回です。" };
+
+  // 体験の生徒は students に行が無い。trials.status で出欠を表す。
+  // 担当講師かどうかは DB 関数の中でも確かめる
+  if (kind === "trial") {
+    const { error } = await supabase.rpc("record_trial_attendance", {
+      p_trial_id: studentId,
+      p_status: attendanceToTrialStatus(status),
+    });
+    if (error) {
+      console.error("体験の出欠の記録に失敗しました", error);
+      return { ok: false, error: "時間をおいてもう一度お試しください。" };
+    }
+    revalidatePath(`/staff/lessons/${lessonId}`);
+    revalidatePath("/staff");
+    return { ok: true };
+  }
 
   const { data: student } = await supabase
     .from("students")
